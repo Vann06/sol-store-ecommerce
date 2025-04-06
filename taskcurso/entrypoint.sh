@@ -1,9 +1,18 @@
 #!/bin/sh
 
-#realiza la migración de la DB por primera vez
-php artisan migrate
+# Si no existe el directorio vendor, instala las dependencias con Composer
+if [ ! -d "/var/www/html/vendor" ]; then
+    echo "Directorio vendor no encontrado, instalando dependencias..."
+    composer install --prefer-dist --no-interaction --optimize-autoloader
+fi
 
-#deja el pod ejecutandose en 2do plano
+# Realiza las migraciones de la base de datos
+echo "Ejecutando migraciones..."
+php artisan migrate --force
+
+# Inicia Apache en primer plano (esto reemplaza el proceso actual)
 exec apache2-foreground
 
+# Esta línea no se ejecutará debido a exec
 echo "Migraciones aplicadas correctamente."
+

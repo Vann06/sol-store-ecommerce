@@ -38,7 +38,7 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"       # Se expone el puerto de PostgreSQL
+      - "5435:5432"       # Se expone el puerto de PostgreSQL
     networks:
       - app_network
 
