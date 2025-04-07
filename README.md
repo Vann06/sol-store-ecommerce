@@ -31,8 +31,10 @@ DOCKERIZANDO_2/
 ## ℹ️ Crea tus puntos env
 Asegurate de crear tus .env apartir de los .env.example para que todo funcione al 100
 en estas dos carpetas 
+```
 ├── front-vue/
 ├── taskcurso/
+```
 
 
 ## 🚀 Instrucciones para levantar el entorno
