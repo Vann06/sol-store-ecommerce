@@ -30,7 +30,16 @@
                     <a href="{{ route('admin.products.create') }}" class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800">
                         Add product
                     </a>
-                    <input type="text" placeholder="Search products" class="px-3 py-2 border rounded-lg dark:bg-gray-800">
+                    <form id="searchForm" method="GET" action="{{ route('admin.products.index') }}" class="flex items-center space-x-2">
+                        <input
+                            type="text"
+                            name="search"
+                            id="searchInput"
+                            value="{{ request('search') }}"
+                            placeholder="Search products"
+                            class="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600"
+                        />
+                    </form>
                 </div>
             </div>
 
@@ -68,7 +77,7 @@
                                     @endif
                                 </td>
                                 <td class="py-2 px-4">
-                                    <a href="{{ route('products.edit', $product->id) }}" class="text-blue-500 hover:underline">Edit</a>
+                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="text-blue-500 hover:underline">Edit</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -77,4 +86,23 @@
             </div>
         </div>
     </div>
+    <script>
+    const searchInput = document.getElementById('searchInput');
+    let timeout = null;
+
+    searchInput.addEventListener('keyup', function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            const value = searchInput.value.trim();
+            const url = new URL(window.location.href);
+            if (value.length > 0) {
+                url.searchParams.set('search', value);
+            } else {
+                url.searchParams.delete('search');
+            }
+            window.location.href = url.toString();
+        }, 500); // espera medio segundo después de dejar de escribir
+    });
+</script>
+
 </x-layout>
