@@ -12,11 +12,19 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::all(); // usa tus productos reales
+        $query = Product::query();
+
+        if ($request->filled('search')) {
+            $query->where('nombre', 'LIKE', '%' . $request->search . '%');
+        }
+
+        $products = $query->with(['category', 'theme'])->get();
+
         return view('admin.products.index', compact('products'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -68,8 +76,10 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        Log::info('Entrando al método edit con producto: ' . $product->id);
-        return view('products.edit', compact('product'));
+        $categories = \App\Models\Category::all();
+        $themes = \App\Models\Theme::all();
+
+        return view('admin.products.edit', compact('product', 'categories', 'themes'));
     }
 
     /**
@@ -77,15 +87,36 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $product->update($request->only('name','description','price'));
-        return redirect()->route('products.index')->with('success','Producto actualizado');
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'id_categoria' => 'required|exists:categories,id',
+            'id_tematica' => 'required|exists:themes,id',
+            'descripcion' => 'nullable|string',
+            'precio_base' => 'required|numeric',
+            'imagen' => 'nullable|image|max:2048',
+            'stock' => 'required|integer|min:0',
+            'status' => 'required|in:activo,inactivo',
+        ]);
+
+        // Si se sube una nueva imagen, reemplazarla
+        if ($request->hasFile('imagen')) {
+            $validated['imagen'] = $request->file('imagen')->store('products', 'public');
+        }
+
+        $validated['updated_by'] = auth()->id(); // solo si usás auth
+
+        $product->update($validated);
+
+        return redirect()->route('admin.products.index')->with('success', 'Producto actualizado exitosamente!');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Product $product)
     {
-        //
+        $product->delete();
+        return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
     }
 }
