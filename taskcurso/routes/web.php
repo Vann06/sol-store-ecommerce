@@ -9,7 +9,7 @@ Route::get('/', function () {
 });
 
 // Admin panel para productos
-Route::get('/admin/products', [ProductController::class, 'index'])->name('admin.products.index');
+Route::resource('admin/products', ProductController::class)->names('admin.products');
 
 Route::get('/admin/products/create', [ProductController::class, 'create'])->name('admin.products.create');
 
