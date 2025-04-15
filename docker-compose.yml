@@ -6,6 +6,7 @@ services:
     container_name: laravel_backend
     volumes:
       - ./taskcurso:/var/www/html
+      - /var/www/html/vendor
     ports:
       - "8000:80"
     depends_on:

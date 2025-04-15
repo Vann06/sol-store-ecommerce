@@ -40,6 +40,8 @@ COPY . .
 # lo cual es vital para el correcto funcionamiento de Laravel, especialmente en un entorno de ecommerce.
 # 7. Configuración de permisos:
 # Se crean los directorios necesarios (si no existen) y se asignan los permisos correspondientes.
+RUN composer install --no-dev --optimize-autoloader
+
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
