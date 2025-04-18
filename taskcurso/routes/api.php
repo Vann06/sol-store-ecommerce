@@ -9,3 +9,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
+
+Route::get('/ping', function () {
+    return 'pong';
+});

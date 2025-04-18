@@ -12,3 +12,6 @@ Route::get('/', function () {
 Route::resource('admin/products', ProductController::class)->names('admin.products');
 
 
+Route::get('/ping', function () {
+    return 'pong';
+});

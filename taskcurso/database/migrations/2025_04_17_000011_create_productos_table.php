@@ -22,10 +22,10 @@ return new class extends Migration
             $table->string('imagen', 2000)->nullable();
             $table->enum('status', ['activo', 'inactivo'])->default('activo');
             $table->timestamps();
-            $table->foreignId('created_by')->nullable()->constrained('users');
-            $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('usuarios');
+            $table->foreignId('updated_by')->nullable()->constrained('usuarios');
             $table->softDeletes(); // agrega deleted_at automáticamente
-            $table->foreignId('deleted_by')->nullable()->constrained('users');
+            $table->foreignId('deleted_by')->nullable()->constrained('usuarios');
         });
         
                

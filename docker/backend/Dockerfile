@@ -1,15 +1,9 @@
-# 1. Base: Utilizamos PHP 8.2 con Apache, ideal para servir aplicaciones Laravel con mod_rewrite activado.
+# docker/backend/Dockerfile
+
+# 1. Base: PHP 8.2 con Apache
 FROM php:8.2-apache
 
-# 2. Actualización e instalación de dependencias esenciales:
-# - libpng-dev: para el manejo de imágenes.
-# - libonig-dev: para soporte de expresiones regulares (útil en la manipulación de cadenas).
-# - libxml2-dev: para procesar XML.
-# - zip y unzip: para manejar archivos comprimidos.
-# - libpq-dev: para conectividad con PostgreSQL (base de datos común en ecommerce).
-# Además, instalamos las extensiones de PHP necesarias:
-# - pdo y pdo_pgsql: para conexiones seguras a la base de datos.
-# - mbstring, exif, pcntl, bcmath y gd: para manejo de cadenas, imágenes, procesos, cálculos precisos y manipulación de imágenes.
+# 2. Instalar dependencias del sistema y extensiones de PHP necesarias
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,42 +13,42 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
+  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd \
+  && rm -rf /var/lib/apt/lists/*
 
-# 3. Habilitar el módulo de reescritura de Apache, imprescindible para URLs amigables y SEO en un ecommerce.
+# 3. Habilitar mod_rewrite para URLs amigables
 RUN a2enmod rewrite
 
-# 4. Instalar Composer: Copiamos el ejecutable de Composer desde la imagen oficial, para la gestión de dependencias de PHP.
+# 4. Instalar Composer (copia el binario oficial)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 5. Establecer el directorio de trabajo dentro del contenedor.
+# 5. Directorio de trabajo
 WORKDIR /var/www/html
 
-# 6. Copiar el código de la aplicación Laravel al contenedor.
-# Es recomendable tener un archivo .dockerignore para omitir archivos innecesarios (por ejemplo, node_modules, vendor, etc.).
+# 6. Copiar el código de Laravel
+#    Asume que tienes un .dockerignore para omitir /vendor, /node_modules, etc.
 COPY . .
 
-# 7. Configuración de permisos:
-# Asigna la propiedad de los archivos al usuario www-data (usado por Apache)
-# y otorga permisos de escritura a los directorios necesarios (storage y bootstrap/cache),
-# lo cual es vital para el correcto funcionamiento de Laravel, especialmente en un entorno de ecommerce.
-# 7. Configuración de permisos:
-# Se crean los directorios necesarios (si no existen) y se asignan los permisos correspondientes.
-RUN composer install --no-dev --optimize-autoloader
+# 7. Instalar dependencias de Composer y Pail
+RUN composer install --no-dev --optimize-autoloader \
+ && composer require laravel/pail --no-interaction \
+ && composer require doctrine/dbal --no-interaction \
+ && composer dump-autoload -o
 
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+# 8. Ajustar permisos en storage y bootstrap/cache
+RUN mkdir -p storage bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache
 
-RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+# 9. Apuntar DocumentRoot a /public y suprimir warning de ServerName
+RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+ && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# 8. Exponer el puerto 80 para que Apache pueda servir la aplicación.
+# 10. Exponer el puerto 80 para Apache
 EXPOSE 80
 
-# 9. Comando por defecto para iniciar Apache en primer plano.
-CMD ["apache2-foreground"]
-
+# 11. Entrypoint y comando de arranque
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["apache2-foreground"]

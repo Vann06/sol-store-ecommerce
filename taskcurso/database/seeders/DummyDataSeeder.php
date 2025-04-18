@@ -17,7 +17,7 @@ class DummyDataSeeder extends Seeder
         $naruto = Theme::create(['name' => 'Naruto']);
         $onepiece = Theme::create(['name' => 'One Piece']);
 
-        Product::create([
+        Producto::create([
             'nombre' => 'Figura Goku SSJ',
             'descripcion' => 'Figura articulada de Goku Super Saiyajin.',
             'precio_base' => 35.50,
@@ -28,7 +28,7 @@ class DummyDataSeeder extends Seeder
             'imagen' => 'products/goku.jpg'
         ]);
 
-        Product::create([
+        Producto::create([
             'nombre' => 'Taza One Piece',
             'descripcion' => 'Taza térmica con diseño de Luffy y tripulación.',
             'precio_base' => 12.99,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -14,7 +15,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Producto::query();
 
         if ($request->filled('search')) {
             $query->where('nombre', 'LIKE', '%' . $request->search . '%');
@@ -58,7 +59,7 @@ class ProductController extends Controller
 
         $validated['created_by'] = auth()->id(); // si usas auth
 
-        \App\Models\Product::create($validated);
+        \App\Models\Producto::create($validated);
 
         return redirect()->route('admin.products.index')->with('success', 'Producto guardado exitosamente!');
     }
@@ -66,7 +67,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Producto $product)
     {
         //
     }
@@ -74,7 +75,7 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Producto $product)
     {
         $categories = \App\Models\Category::all();
         $themes = \App\Models\Theme::all();
@@ -85,7 +86,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Producto $product)
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
@@ -114,7 +115,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Producto $product)
     {
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
