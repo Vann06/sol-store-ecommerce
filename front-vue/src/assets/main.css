@@ -1,4 +1,6 @@
 @import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@600&display=swap');
+
 
 #app {
   max-width: 1280px;
@@ -25,6 +27,11 @@ a,
   body {
     display: flex;
     place-items: center;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
   }
 
   #app {

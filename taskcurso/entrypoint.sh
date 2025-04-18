@@ -9,6 +9,7 @@ fi
 # Realiza las migraciones de la base de datos
 echo "Ejecutando migraciones..."
 php artisan migrate --force
+php artisan db:seed --class=DummyDataSeeder
 
 # Inicia Apache en primer plano (esto reemplaza el proceso actual)
 exec apache2-foreground

@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala las dependencias definidas en el package.json (incluyendo Vue y Tailwind)
-RUN npm install
+RUN npm install && npm install vue-router@4
+
 
 # Copia el resto del código fuente de la aplicación al contenedor
 COPY . .

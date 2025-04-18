@@ -1,36 +1,20 @@
-<script setup>
-import HelloWorld  from './components/HelloWorld.vue'
-import TaskList    from './components/TaskList.vue'
-import TheWelcome  from './components/TheWelcome.vue'
-import PingTest    from './components/PingTest.vue'    // ← IMPORTA tu health‑check
-</script>
-
 <template>
-  <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="./assets/logo.svg"
-      width="125"
-      height="125"
-    />
-    <div class="wrapper">
-      <HelloWorld msg="ToDo App" />
-    </div>
-  </header>
-
-  <main>
-    <!-- ← AÑADE tu componente aquí -->
-    <PingTest />
-
-    <!-- Luego tu lista de tareas -->
-    <TaskList />
-
-    <!-- <TheWelcome /> -->
-  </main>
+  <div class="app-wrapper">
+    <router-view />
+  </div>
 </template>
 
-<style scoped>
-/* ... tu CSS ... */
-</style>
+<style>
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
 
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+</style>
