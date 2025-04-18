@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,9 +21,9 @@ class ProductController extends Controller
             $query->where('nombre', 'LIKE', '%' . $request->search . '%');
         }
 
-        $products = $query->with(['category', 'theme'])->get();
+        $productos = $query->with(['category', 'theme'])->get();
 
-        return view('admin.products.index', compact('products'));
+        return view('admin.products.index', ['products' => $productos]); // <- usa 'products' aquí
     }
 
 

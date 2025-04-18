@@ -18,19 +18,38 @@
   <script setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useUserStore} from '@/stores/user'
   
   const email = ref('')
   const password = ref('')
   const router = useRouter()
+  const userStore = useUserStore()
   
-  const handleLogin = () => {
-    if (email.value === 'admin@example.com' && password.value === 'admin') {
-      alert('Logged in!')
-      router.push('/')
+  
+const handleLogin = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    })
+
+    if (!response.ok) throw new Error('Error en login')
+
+    const data = await response.json()
+    userStore.setUser(data.user)
+
+    if (data.user.role === 'admin') {
+      window.location.href = 'http://localhost:8000/admin/products' 
     } else {
-      alert('Invalid credentials')
+      router.push('/')
     }
+
+  } catch (error) {
+    alert('Login fallido')
+    console.error(error)
   }
+}
   </script>
   
   <style scoped>

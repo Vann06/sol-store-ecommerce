@@ -38,15 +38,15 @@ class Producto extends Model
     /**
      * Relación con categoría
      */
-    public function categoria()
+    public function category()
     {
         return $this->belongsTo(Category::class, 'id_categoria');
     }
 
     /**
-     * Relación con temática (theme)
+     * Relación con  (theme)
      */
-    public function tematica()
+    public function theme()
     {
         return $this->belongsTo(Theme::class, 'id_tematica');
     }

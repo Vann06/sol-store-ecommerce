@@ -8,26 +8,32 @@
           <div class="form-group">
             <label>Primer Nombre</label>
             <input type="text" v-model="firstName" required />
+            <p v-if="errors.first_name" class="error-message">{{ errors.first_name[0] }}</p>
           </div>
   
           <div class="form-group">
             <label>Apellido</label>
             <input type="text" v-model="lastName" required />
+            <p v-if="errors.last_name" class="error-message">{{ errors.last_name[0] }}</p>
           </div>
   
           <div class="form-group">
             <label>Email</label>
             <input type="email" v-model="email" required />
+            <p v-if="errors.email" class="error-message">{{ errors.email[0] }}</p>
           </div>
   
           <div class="form-group">
             <label>Contraseña</label>
             <input type="password" v-model="password" required />
+            <p v-if="errors.password" class="error-message">{{ errors.password[0] }}</p>
+
           </div>
   
           <div class="form-group">
             <label>Confirmar Contraseña</label>
             <input type="password" v-model="confirmPassword" required />
+            <p v-if="errors.password_confirmation" class="error-message">{{ errors.password_confirmation[0] }}</p>
           </div>
         </div>
   
@@ -44,16 +50,39 @@
   
   <script setup>
   import { ref } from 'vue'
+  import axios from 'axios'
   
   const firstName = ref('')
   const lastName = ref('')
   const email = ref('')
   const password = ref('')
   const confirmPassword = ref('')
-  
-  const handleSubmit = () => {
-    alert('Account created! 🎉')
+  const errors = ref({})
+ 
+const handleSubmit = async () => {
+  errors.value = {}
+
+  try {
+    const response = await axios.post('http://localhost:8000/api/register', {
+      first_name: firstName.value,
+      last_name: lastName.value,
+      email: email.value,
+      password: password.value,
+      password_confirmation: confirmPassword.value,
+    });
+
+    alert('Cuenta creada exitosamente ');
+    console.log(response.data);
+
+  } catch (error) {
+    if (error.response?.data?.errors){
+      errors.value = error.response.data.errors
+    }
+    else{
+      alert('Ocurrio un error. Intenta de nuevo')
+    }
   }
+}
   </script>
   
   <style scoped>
@@ -135,5 +164,12 @@
   .submit-button:hover {
     background-color: #a70026;
   }
+
+  .error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
   </style>
   

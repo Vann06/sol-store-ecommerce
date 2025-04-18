@@ -1,4 +1,4 @@
-# docker/backend/Dockerfile
+
 
 # 1. Base: PHP 8.2 con Apache
 FROM php:8.2-apache

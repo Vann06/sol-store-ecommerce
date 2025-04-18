@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala las dependencias definidas en el package.json (incluyendo Vue y Tailwind)
-RUN npm install && npm install vue-router@4
+RUN npm install && \
+     npm install vue-router@4 axios
 
 
 # Copia el resto del código fuente de la aplicación al contenedor
@@ -20,4 +21,4 @@ RUN apk update && apk add --no-cache curl iputils
 EXPOSE 3000
 
 # Comando por defecto: inicia el servidor de desarrollo
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host"]

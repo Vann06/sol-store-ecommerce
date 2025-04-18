@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Category;
 use App\Models\Theme;
-use App\Models\Product;
+use App\Models\Producto;
 
 class DummyDataSeeder extends Seeder
 {
