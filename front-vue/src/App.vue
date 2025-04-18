@@ -1,18 +1,15 @@
-
 <template>
+  <div class="app-wrapper">
     <router-view />
+  </div>
 </template>
-
-
-<script setup>
-
-</script>
 
 <style>
 html, body, #app {
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: 'Poppins', sans-serif;
 }
 
 .app-wrapper {
@@ -20,9 +17,5 @@ html, body, #app {
   flex-direction: column;
   min-height: 100vh;
 }
-
-.main-content {
-  flex: 1; 
-}
-
 </style>
+
