@@ -13,6 +13,8 @@ RUN npm install
 # Copia el resto del código fuente de la aplicación al contenedor
 COPY . .
 
+RUN apk update && apk add --no-cache curl iputils
+
 # Expone el puerto 3000, que es el que se utilizará para el servidor de desarrollo (ej. Vite)
 EXPOSE 3000
 
