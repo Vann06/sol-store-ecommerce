@@ -44,7 +44,7 @@ const handleLogin = async () => {
     if (data.user.role === 'admin') {
       window.location.href = 'http://localhost:8000/admin/products' 
     } else {
-      router.push('/')
+      router.push('/account/orders')
     }
 
   } catch (error) {

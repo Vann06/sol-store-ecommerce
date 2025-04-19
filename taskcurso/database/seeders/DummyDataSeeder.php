@@ -15,62 +15,64 @@ class DummyDataSeeder extends Seeder
 {
     public function run(): void
     {
-       
-    $cliente = Role::firstOrCreate([
-        'nombre' => 'cliente',
-        'is_superadmin' => false
-    ]);
+        $cliente = Role::firstOrCreate([
+            'nombre' => 'cliente',
+        ], ['is_superadmin' => false]);
 
-    $admin = Role::firstOrCreate([
-        'nombre' => 'admin',
-        'is_superadmin' => true
-    ]);
+        $admin = Role::firstOrCreate([
+            'nombre' => 'admin',
+        ], ['is_superadmin' => true]);
 
-    $clienteUser = User::create([
-        'first_name' => 'Cliente',
-        'last_name' => 'Demo',
-        'email' => 'cliente@demo.com',
-        'password' => Hash::make('password'),
-    ]);
+        $clienteUser = User::firstOrCreate([
+            'email' => 'cliente@demo.com',
+        ], [
+            'first_name' => 'Cliente',
+            'last_name' => 'Demo',
+            'password' => Hash::make('password'),
+        ]);
 
-    $adminUser = User::create([
-        'first_name' => 'Admin',
-        'last_name' => 'Demo',
-        'email' => 'admin@demo.com',
-        'password' => Hash::make('admin123'),
-    ]);
-
-      // Asignar roles usando tabla intermedia usuarios_roles
-      $clienteUser->roles()->attach($cliente->id);
-      $adminUser->roles()->attach($admin->id);
+        $adminUser = User::firstOrCreate([
+            'email' => 'admin@demo.com',
+        ], [
+            'first_name' => 'Admin',
+            'last_name' => 'Demo',
+            'password' => Hash::make('admin123'),
+        ]);
 
 
-    $anime = Category::create(['name' => 'Anime']);
-    $geek = Category::create(['name' => 'Geek']);
+        $clienteUser->roles()->syncWithoutDetaching([$cliente->id]);
+        $adminUser->roles()->syncWithoutDetaching([$admin->id]);
 
-    $naruto = Theme::create(['name' => 'Naruto']);
-    $onepiece = Theme::create(['name' => 'One Piece']);
+    
+        $anime = Category::firstOrCreate(['name' => 'Anime']);
+        $geek = Category::firstOrCreate(['name' => 'Geek']);
 
-    Producto::create([
-        'nombre' => 'Figura Goku SSJ',
-        'descripcion' => 'Figura articulada de Goku Super Saiyajin.',
-        'precio_base' => 35.50,
-        'id_categoria' => $anime->id,
-        'id_tematica' => $naruto->id,
-        'status' => 'activo',
-        'stock' => 15,
-        'imagen' => 'products/goku.jpg'
-    ]);
+        $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
+        $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
 
-    Producto::create([
-        'nombre' => 'Taza One Piece',
-        'descripcion' => 'Taza térmica con diseño de Luffy y tripulación.',
-        'precio_base' => 12.99,
-        'id_categoria' => $geek->id,
-        'id_tematica' => $onepiece->id,
-        'status' => 'activo',
-        'stock' => 25,
-        'imagen' => 'products/onepiece.jpg'
-    ]);
+    
+        Producto::firstOrCreate([
+            'nombre' => 'Figura Goku SSJ',
+        ], [
+            'descripcion' => 'Figura articulada de Goku Super Saiyajin.',
+            'precio_base' => 35.50,
+            'id_categoria' => $anime->id,
+            'id_tematica' => $naruto->id,
+            'status' => 'activo',
+            'stock' => 15,
+            'imagen' => 'products/goku.jpg'
+        ]);
+
+        Producto::firstOrCreate([
+            'nombre' => 'Taza One Piece',
+        ], [
+            'descripcion' => 'Taza térmica con diseño de Luffy y tripulación.',
+            'precio_base' => 12.99,
+            'id_categoria' => $geek->id,
+            'id_tematica' => $onepiece->id,
+            'status' => 'activo',
+            'stock' => 25,
+            'imagen' => 'products/onepiece.jpg'
+        ]);
     }
 }

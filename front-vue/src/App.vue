@@ -1,8 +1,17 @@
 <template>
   <div class="app-wrapper">
-    <router-view />
+    <Header />
+    <div class="app-content">
+      <router-view />
+    </div>
+    <Footer />
   </div>
 </template>
+
+<script setup>
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
+</script>
 
 <style>
 html, body, #app {
@@ -16,5 +25,13 @@ html, body, #app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 </style>

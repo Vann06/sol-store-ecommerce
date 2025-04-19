@@ -1,11 +1,16 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+
+
 import HomeView from '../views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SignUpView from '@/views/SignUpView.vue'
-import Dashboard from '@/views/DashboardView.vue'
-
+import AccountLayout from '@/views/account/AccountLayout.vue'
+import OrdersView from '@/views/account/OrdersView.vue'
+import AddressView from '@/views/account/AddressView.vue'
+import PasswordView from '@/views/account/PasswordView.vue'
+import AccountDetailView from '@/views/account/AccountDetailView.vue'
 
 const routes = [
   {
@@ -24,12 +29,34 @@ const routes = [
     component: SignUpView
   },
   {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true }
+    path: '/account',
+    component: AccountLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'orders',
+        name: 'orders',
+        component: OrdersView
+      },
+      {
+        path: 'address',
+        name: 'address',
+        component: AddressView
+      },
+      {
+        path: 'password',
+        name: 'password',
+        component: PasswordView
+      },
+      {
+        path: 'details',
+        name: 'accountDetails',
+        component: AccountDetailView
+      }
+    ]
   }  
-  // Agregá más rutas aquí
+
+  //MAS RUTAS
 ]
 
 const router = createRouter({
@@ -37,15 +64,21 @@ const router = createRouter({
   routes
 })
 
+//Middleware para proteger las rutas 
 router.beforeEach((to, from, next) => {
   const store = useUserStore()
 
-  // si necesita auth
-  if (to.meta.requiresAuth && !store.user) {
+  // Si NO esta logeado lo manda a la seccion de login
+  if (to.meta.requiresAuth && !store.user){
     return next('/account/login')
+  }
+  // Si SI esta logeado lo manda a su cuenta personal
+  if (to.meta.requiresGuest && store.user){
+    return next('/account/orders')
   }
 
   next()
 })
+
 
 export default router
