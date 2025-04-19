@@ -31,7 +31,9 @@ const handleLogin = async () => {
     const response = await fetch('http://localhost:8000/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, password: password.value })
+      body: JSON.stringify({
+         email: email.value,
+          password: password.value })
     })
 
     if (!response.ok) throw new Error('Error en login')

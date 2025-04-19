@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('usuarios', function (Blueprint $table) {
@@ -16,24 +13,16 @@ return new class extends Migration
             $table->string('first_name', 100);
             $table->string('last_name', 100);
             $table->string('email', 255)->unique();
+            $table->timestamp('email_verified_at')->nullable(); // ← importante para Auth
             $table->string('password', 255);
+            $table->rememberToken(); // ← esto incluye la columna remember_token
             $table->timestamp('fecha_registro')->useCurrent();
-
-            $table->foreignId('id_rol')
-                ->nullable()
-                ->constrained('roles')
-                ->nullOnDelete();
-
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('usuarios');
     }
 };
-

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -26,6 +28,16 @@ class UserController extends Controller
             'password'   => \Hash::make($validated['password']), //  encriptacion de contraseña
         ]);
 
-        return response()->json(['message' => 'Usuario registrado correctamente', 'user' => $user], 201);
+        DB::table('usuarios_roles')->insert([
+            'id_usuario' => $user->id,
+            'id_rol' => Role::where('nombre','cliente')->first()->id,
+        ]);
+
+        
+
+        return response()->json([
+            'message' => 'Usuario registrado correctamente', 
+            'user' => $user
+        ], 201);
     }
 }
