@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'phone'   => env('WHATSAPP_PHONE'),
+        'message' => env('WHATSAPP_MESSAGE'),
+    ],
+
 ];

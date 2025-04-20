@@ -267,6 +267,13 @@
                     </svg>
                     <div class="absolute inset-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"></div>
                 </div>
+
+                <div class="mt-8 text-center">
+                    <a
+                        href="https://wa.me/{{ config('services.whatsapp.phone') }}?text={{ config('services.whatsapp.message') }}" target="_blank" rel="noopener" class="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        
+                    </a>
+                </div>
             </main>
         </div>
 
