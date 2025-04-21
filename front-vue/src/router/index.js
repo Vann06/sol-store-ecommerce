@@ -11,6 +11,7 @@ import OrdersView from '@/views/account/OrdersView.vue'
 import AddressView from '@/views/account/AddressView.vue'
 import PasswordView from '@/views/account/PasswordView.vue'
 import AccountDetailView from '@/views/account/AccountDetailView.vue'
+import SearchView from '@/views/SearchView.vue'
 
 const routes = [
   {
@@ -52,8 +53,13 @@ const routes = [
         path: 'details',
         name: 'accountDetails',
         component: AccountDetailView
-      }
+      },
     ]
+  },
+  {
+    path: '/search',
+    name: 'search',
+    component: () => import('@/views/SearchView.vue')
   }  
 
   //MAS RUTAS

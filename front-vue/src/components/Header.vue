@@ -29,8 +29,13 @@
 
         <div class="header__tools">
           <div class="search-box">
-            <input type="text" placeholder="Search products" />
-            <img src="/img/search-icon.svg" alt="Search" class="icon-img" />
+            <input
+              type="text"
+              v-model="searchText"
+              @keyup.enter="handleSearch"
+              placeholder="Search products"
+            />
+            <img src="/img/search-icon.svg" alt="Search" class="icon-img" @click="handleSearch"/>
           </div>
 
           <RouterLink to="/cart" class="icon-button">
@@ -48,9 +53,20 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 const isMenuOpen = ref(false)
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
+}
+
+const searchText = ref('')
+const router = useRouter()
+
+function handleSearch() {
+  if (searchText.value.trim() !== ''){
+    router.push({ name: 'search', query: { q: searchText.value.trim() } })
+  }
 }
 </script>
 
