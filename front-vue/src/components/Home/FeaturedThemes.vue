@@ -1,93 +1,99 @@
 <template>
-  <section class="product-section">
-    <h2>Más Comprados</h2>
-    <div class="product-grid">
-      <div class="product-card" v-for="(product, index) in products" :key="index">
-        <img :src="product.image" :alt="product.name">
-        <h3>{{ product.name }}</h3>
-        <p class="price">{{ product.price }} GTQ</p>
-        <button class="add-to-cart">Añadir al carrito</button>
+    <section class="featured-themes">
+      <h2 class="section-title">Temáticas destacadas</h2>
+      <div class="theme-slider" ref="slider">
+        <div
+          v-for="(theme, index) in themes"
+          :key="index"
+          class="theme-card"
+        >
+          <img :src="theme.image" :alt="theme.name" class="theme-img" />
+          <p class="theme-title">{{ theme.name }}</p>
+        </div>
       </div>
-    </div>
-  </section>
-</template>
-
-<script>
-export default {
-  name: 'BestSellers',
-  data() {
-    return {
-      products: [
-        { name: 'Cáscara de Dragon Ball', price: '275.00', image: 'https://via.placeholder.com/200x200' },
-        { name: 'Llavero Creeper', price: '95.00', image: 'https://via.placeholder.com/200x200' },
-        { name: 'Camiseta Anime', price: '175.00', image: 'https://via.placeholder.com/200x200' }
-      ]
-    }
+    </section>
+  </template>
+  
+  <script setup>
+  import { ref, onMounted } from 'vue'
+  
+  const slider = ref(null)
+  
+  const themes = [
+    { name: 'Harry Potter', image: '/img/theme-harrypotter.jpg' },
+    { name: 'Star Wars', image: '/img/theme-starwars.jpg' },
+    { name: 'Marvel', image: '/img/theme-marvel.jpg' },
+    { name: 'DC Comics', image: '/img/theme-dc.jpg' },
+    { name: 'Naruto', image: '/img/theme-naruto.jpg' },
+    { name: 'One Piece', image: '/img/theme-onepiece.jpg' }
+  ]
+  
+  onMounted(() => {
+    const el = slider.value
+    el.addEventListener('wheel', (evt) => {
+      evt.preventDefault()
+      el.scrollLeft += evt.deltaY
+    })
+  })
+  </script>
+  
+  <style scoped>
+  .featured-themes {
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+    text-align: center;
   }
-}
-</script>
-
-<style scoped>
-.product-section {
-  margin: 50px 0;
-}
-
-.product-section h2 {
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 24px;
-  border-bottom: 2px solid #780116;
-  padding-bottom: 10px;
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.product-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 15px;
-  text-align: center;
-}
-
-.product-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.price {
-  color: #780116;
-  font-weight: bold;
-  font-size: 18px;
-  margin: 10px 0;
-}
-
-.add-to-cart {
-  width: 100%;
-  padding: 10px;
-  background: #780116;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-@media (max-width: 768px) {
-  .product-grid {
-    grid-template-columns: 1fr 1fr;
+  
+  .section-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #8B0000;
+    font-family: 'Playfair Display', serif;
   }
-}
-
-@media (max-width: 480px) {
-  .product-grid {
-    grid-template-columns: 1fr;
+  
+  .theme-slider {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    scroll-behavior: smooth;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
   }
-}
-</style> 
+  
+  .theme-slider::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .theme-slider::-webkit-scrollbar-thumb {
+    background: #8B0000;
+    border-radius: 10px;
+  }
+  
+  .theme-card {
+    flex: 0 0 auto;
+    width: 160px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .theme-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .theme-img {
+    width: 100%;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .theme-title {
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+  }
+  </style>
