@@ -1,104 +1,94 @@
 <template>
-    <section class="featured-products">
-      <h2 class="section-title">Productos destacados</h2>
-      <div class="products-grid">
-        <div
-          v-for="(product, index) in products"
-          :key="index"
-          class="product-card"
-        >
-          <img :src="product.image" :alt="product.name" class="product-img" />
-          <div class="product-info">
-            <h3 class="product-name">{{ product.name }}</h3>
-            <p class="product-price">Q{{ product.price }}</p>
-            <button class="btn-view">Ver más</button>
-          </div>
-        </div>
+  <section class="product-section">
+    <h2>¡Nuevos!</h2>
+    <div class="product-grid">
+      <div class="product-card" v-for="(product, index) in products" :key="index">
+        <img :src="product.image" :alt="product.name">
+        <h3>{{ product.name }}</h3>
+        <p class="price">{{ product.price }} GTQ</p>
+        <button class="add-to-cart">Añadir al carrito</button>
       </div>
-    </section>
-  </template>
-  
-  <script setup>
-  const products = [
-    { name: 'Figura de Luffy', price: 250, image: '/img/prod-luffy.jpg' },
-    { name: 'Varita de Harry', price: 180, image: '/img/prod-harry.jpg' },
-    { name: 'Escudo del Capitán', price: 320, image: '/img/prod-cap.jpg' },
-    { name: 'Camiseta Naruto', price: 150, image: '/img/prod-naruto.jpg' },
-    { name: 'Taza Star Wars', price: 90, image: '/img/prod-starwars.jpg' },
-    { name: 'Llavero Batman', price: 70, image: '/img/prod-batman.jpg' }
-  ]
-  </script>
-  
-  <style scoped>
-  .featured-products {
-    padding: 40px 20px;
-    background-color: #fff;
-    text-align: center;
+    </div>
+  </section>
+</template>
+
+<script>
+export default {
+  name: 'NewProducts',
+  data() {
+    return {
+      products: [
+        { name: 'Pokébolas', price: '125.00', image: 'https://via.placeholder.com/200x200' },
+        { name: 'Funko Pop Naruto', price: '195.00', image: 'https://via.placeholder.com/200x200' },
+        { name: 'Figura Goku', price: '350.00', image: 'https://via.placeholder.com/200x200' }
+
+      ]
+    }
   }
-  
-  .section-title {
-    font-size: 24px;
-    margin-bottom: 30px;
-    color: #8B0000;
-    font-family: 'Playfair Display', serif;
+}
+</script>
+
+<style scoped>
+.product-section {
+  margin: 50px 0;
+}
+
+.product-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+  border-bottom: 2px solid #780116;
+  padding-bottom: 10px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+}
+
+.product-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.price {
+  color: #780116;
+  font-weight: bold;
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.add-to-cart {
+  width: 100%;
+  padding: 10px;
+  background: #780116;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
   }
-  
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .product-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
-  
-  .product-card:hover {
-    transform: translateY(-6px);
-  }
-  
-  .product-img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-  }
-  
-  .product-info {
-    padding: 10px 15px 20px;
-  }
-  
-  .product-name {
-    font-size: 16px;
-    margin: 10px 0 5px;
-    font-weight: 600;
-    color: #333;
-    font-family: 'Poppins', sans-serif;
-  }
-  
-  .product-price {
-    color: #8B0000;
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-  
-  .btn-view {
-    padding: 8px 14px;
-    background-color: #8B0000;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.3s;
-  }
-  
-  .btn-view:hover {
-    background-color: #a70000;
-  }
-  </style>
+}
+</style>
