@@ -1,5 +1,3 @@
-
-
 # 1. Base: PHP 8.2 con Apache
 FROM php:8.2-apache
 
@@ -26,11 +24,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # 6. Copiar el código de Laravel
-#    Asume que tienes un .dockerignore para omitir /vendor, /node_modules, etc.
 COPY . .
 
 # 7. Instalar dependencias de Composer y Pail
-RUN composer install --no-dev --optimize-autoloader \
+RUN composer config --global disable-tls true \
+ && composer install --no-dev --optimize-autoloader \
  && composer require laravel/pail --no-interaction \
  && composer require doctrine/dbal --no-interaction \
  && composer dump-autoload -o

@@ -1,8 +1,4 @@
-      
-      
-      
-      
-<template>
+    <template>
     <div class="whatsapp-button">
        <button @click="redirectToWhatsApp" class="whatsapp-button">
         <a
@@ -16,7 +12,6 @@
             alt="WhatsApp"
             class="whatsapp-icon"
           />
-          <span>Cotizar por WhatsApp</span>
         </a>
         </button>
       </div>
@@ -27,35 +22,44 @@
 const redirectToWhatsApp = () => {
   const phone = import.meta.env.VITE_WHATSAPP_PHONE
   const text  = import.meta.env.VITE_WHATSAPP_MESSAGE
-  window.open(`https://wa.me/${phone}?text=${text}`, '_blank')
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+  window.open(url, '_blank')
 }
 </script>
 
+
 <style scoped>
 .home-container {
-
   position: relative;
 }
-
 .whatsapp-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
+  width: 3.5rem;
+  height: 3.5rem;
   background-color: #25D366;
-  color: white;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
   z-index: 1000;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+  border: none;
 }
 
 .whatsapp-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-right: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+  transition: transform 0.2s ease;
+}
+
+.whatsapp-button:hover .whatsapp-icon {
+  transform: scale(1.5); 
+
 }
 </style>
