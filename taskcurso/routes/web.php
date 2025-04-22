@@ -15,3 +15,4 @@ Route::resource('admin/products', ProductController::class)->names('admin.produc
 Route::get('/ping', function () {
     return 'pong';
 });
+

@@ -9,24 +9,26 @@
         <FeaturedCategories />
         <FeaturedThemes />
         <FeaturedProducts />
+        <WhatsappButton />
       </main>
   
     </div>
-  </template>
+</template>
   
-  <script setup>
-  import Header from '@/components/Header.vue'
-  import HeroSlider from '@/components/Home/HeroSlider.vue'
-  import FeaturedCategories from '@/components/Home/FeaturedCategories.vue'
-  import FeaturedThemes from '@/components/Home/FeaturedThemes.vue'
-  import FeaturedProducts from '@/components/Home/FeaturedProducts.vue'
-  </script>
-  
-  <style scoped>
-  main {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-  }
-  </style>
-  
+<script setup>
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
+import HeroSlider from '@/components/Home/HeroSlider.vue'
+import FeaturedCategories from '@/components/Home/FeaturedCategories.vue'
+import FeaturedThemes from '@/components/Home/FeaturedThemes.vue'
+import FeaturedProducts from '@/components/Home/FeaturedProducts.vue'
+import WhatsappButton from '@/components/icons/WhatsappButton.vue'
+</script>
+
+<style scoped>
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+</style>
