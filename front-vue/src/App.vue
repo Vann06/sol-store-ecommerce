@@ -34,4 +34,9 @@ html, body, #app {
   display: flex;
   flex-direction: column;
 }
+
+body {
+  background-color: white !important;
+}
+
 </style>

@@ -12,9 +12,6 @@
         <WhatsappButton />
       </main>
   
-      <footer>
-        <Footer />
-      </footer>
     </div>
 </template>
   

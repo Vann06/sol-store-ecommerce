@@ -120,4 +120,20 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
     }
+
+    
+    /**
+     * JSON para utilziarlo en el frontend
+     */
+    public function apiIndex(Request $request)
+    {
+        $query = Producto::query()->with(['category', 'theme']);
+
+        if ($request->has('search')) {
+            $query->where('nombre', 'LIKE', '%' . $request->search . '%');
+        }
+
+        return response()->json($query->get());
+    }
+
 }
