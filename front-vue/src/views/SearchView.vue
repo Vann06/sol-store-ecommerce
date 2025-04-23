@@ -50,8 +50,8 @@
             <h3>{{ item.name }}</h3>
             <p class="category">{{ item.category }}</p>
             <p class="price">Q{{ item.price.toFixed(2) }}</p>
-            <button class="add-to-cart" @click="addToCart(item)">
-              <i class="fas fa-cart-plus"></i> Añadir
+            <button class="Details" @click="detailsItem(item.id)">
+              <i class="fas fa-cart-plus"></i> Detalles
             </button>
           </div>
         </div>
@@ -92,6 +92,7 @@
   </template>
 
 <script setup>
+import router from '@/router'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -169,8 +170,8 @@ function goToPage(page) {
   currentPage.value = page
 }
 
-function addToCart(item) {
-  alert(`Añadido al carrito: ${item.name} - Q${item.price.toFixed(2)}`)
+function detailsItem(id) {
+  router.push({name: 'product-detail', params: {id}})
 }
 
 watch(() => route.query.q, (newQuery) => {
@@ -317,7 +318,7 @@ watch(() => route.query.q, (newQuery) => {
     margin: 15px 0;
   }
   
-  .add-to-cart {
+  .Details {
     width: 100%;
     padding: 10px;
     background: #780116;
@@ -333,7 +334,7 @@ watch(() => route.query.q, (newQuery) => {
     gap: 8px;
   }
   
-  .add-to-cart:hover {
+  .Details:hover {
     background: #5c0114;
   }
   

@@ -25,3 +25,5 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Uso de Productos 
 Route::get('/productos', [ProductController::class, 'apiIndex']);
+
+Route::get('/productos/{id}', [ProductController::class, 'apiShow']);
