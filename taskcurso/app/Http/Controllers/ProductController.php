@@ -130,7 +130,7 @@ class ProductController extends Controller
         $query = Producto::query()->with(['category', 'theme']);
 
         if ($request->has('search')) {
-            $query->where('nombre', 'LIKE', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         return response()->json($query->get());
