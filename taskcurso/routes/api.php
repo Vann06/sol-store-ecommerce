@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\FaqController;
 
 
 
@@ -25,3 +26,12 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Uso de Productos 
 Route::get('/productos', [ProductController::class, 'apiIndex']);
+
+// FAQ API
+Route::get('/faqs', [FaqController::class, 'index']);
+Route::post('/faqs', [FaqController::class, 'store']);
+Route::put('/faqs/{id}', [FaqController::class, 'update']);
+Route::delete('/faqs/{id}', [FaqController::class, 'destroy']);
+Route::get('/faqs/categories', function () {
+    return \App\Models\FaqCategory::all();
+});
