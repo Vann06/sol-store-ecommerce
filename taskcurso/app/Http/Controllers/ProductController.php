@@ -136,4 +136,15 @@ class ProductController extends Controller
         return response()->json($query->get());
     }
 
+    public function apiShow($id)
+    {
+        $producto = Producto::with(['category', 'theme'])->find($id);
+
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        return response()->json($producto);
+    }
+
 }
