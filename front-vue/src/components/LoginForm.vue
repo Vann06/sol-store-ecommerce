@@ -1,6 +1,6 @@
 <template>
     <section class="login-box">
-      <img src="/img/logo.png" alt="Logo" class="logo" />
+      <img src="/img/logo_2.png" alt="Logo" class="logo" />
       <h2 class="admin-title">Login</h2>
   
       <form @submit.prevent="handleLogin">

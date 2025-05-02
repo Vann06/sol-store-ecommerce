@@ -2,12 +2,18 @@
     <section class="footer">
       <div class="footer-content">
         <div class="brand">
-          <img src="/img/logo.png" alt="Logo" class="logo" />
-          <p class="tagline" >Tienda de réplicas de tus series y películas favoritas</p>
+          <img src="/img/logo_2.png" alt="Logo" class="logo" />
+          <p class="tagline" >Centro Comercial, Metamercado, Calzada San Juan, Pasarela 2, local 342</p>
           <div class="social">
-            <i class="fa fa-facebook"></i>
-            <i class="fa fa-instagram"></i>
-            <i class="fa fa-youtube"></i>
+            <a href="https://www.facebook.com/solstoreguatemala/" target="_blank" rel="noopener">
+              <img src="/img/facebook.svg" alt="Facebook" class="icon" />
+            </a>
+            <a href="https://www.instagram.com/sol.store.gt/" target="_blank" rel="noopener">
+              <img src="/img/instagram.svg" alt="Instagram" class="icon" />
+            </a>
+            <a href="https://www.youtube.com/@SolStoregt" target="_blank" rel="noopener">
+              <img src="/img/youtube.svg" alt="YouTube" class="icon" />
+            </a>
           </div>
         </div>
         <div class="footer-columns">
@@ -133,5 +139,33 @@
     width: 100%;
     color: white;
   }
+
+  .social {
+  margin-top: 15px;
+  display: flex;
+  gap: 12px;
+}
+
+.social a {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+
+.social a:hover {
+  transform: scale(1.1);
+}
+
+.icon {
+  width: 100%;
+  height: 100%;
+  filter: invert(100%); 
+}
+
+.social a:hover .icon {
+  filter: invert(100%) brightness(1.5);
+}
+
   </style>
   
