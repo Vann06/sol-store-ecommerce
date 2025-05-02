@@ -10,6 +10,8 @@
         </section>
         <Information/>
         <HeroSlider />
+        <SobreNosotros/>
+
         <FeaturedCategories />
         <FeaturedThemes />
         <FeaturedProducts />
@@ -28,6 +30,8 @@ import FeaturedThemes from '@/components/Home/FeaturedThemes.vue'
 import FeaturedProducts from '@/components/Home/FeaturedProducts.vue'
 import WhatsappButton from '@/components/icons/WhatsappButton.vue'
 import Information from '@/components/Home/Information.vue'
+import SobreNosotros from '@/components/Home/sobreNosotros.vue'
+
 </script>
 
 <style scoped>
