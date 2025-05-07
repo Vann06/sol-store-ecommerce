@@ -30,6 +30,7 @@ Route::get('/productos', [ProductController::class, 'apiIndex']);
 // FAQ API
 Route::get('/faqs', [FaqController::class, 'index']);
 Route::post('/faqs', [FaqController::class, 'store']);
+Route::get('/faqs/{id}', [FaqController::class, 'show']);
 Route::put('/faqs/{id}', [FaqController::class, 'update']);
 Route::delete('/faqs/{id}', [FaqController::class, 'destroy']);
 Route::get('/faqs/categories', function () {

@@ -8,6 +8,17 @@ use Illuminate\Http\Request;
 
 class FaqController extends Controller
 {
+    /**
+     * Display the specified FAQ by ID.
+     */
+    public function show($id)
+    {
+        $faq = Faq::find($id);
+        if (!$faq) {
+            return response()->json(['error' => 'FAQ not found'], 404);
+        }
+        return response()->json($faq);
+    }
     public function index()
     {
         // List all FAQs grouped by category
