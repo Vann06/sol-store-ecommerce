@@ -53,8 +53,13 @@ const routes = [
         path: 'details',
         name: 'accountDetails',
         component: AccountDetailView
-      },
+      }
     ]
+  },
+  {
+    path: '/faq',
+    name: 'faq',
+    component: () => import('@/views/FaqView.vue') // Ruta FAQ al mismo nivel que search
   },
   {
     path: '/search',
