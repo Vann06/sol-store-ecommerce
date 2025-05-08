@@ -11,6 +11,11 @@ services:
       - "8000:80"
     depends_on:
       - database
+    environment:
+      CLOUDINARY_URL: "cloudinary://298872777779474:bPsMsut064CSWHBD1VfzEtvf6aU@drv2wctxj"
+      CLOUDINARY_CLOUD_NAME: "drv2wctxj"
+      CLOUDINARY_API_KEY: "298872777779474"
+      CLOUDINARY_API_SECRET: "bPsMsut064CSWHBD1VfzEtvf6aU"
     networks:
       - app_network
 

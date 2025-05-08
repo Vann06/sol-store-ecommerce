@@ -71,7 +71,8 @@
                                 <td class="py-2 px-4">{{ ucfirst($product->status) }}</td>
                                 <td class="py-2 px-4">
                                     @if ($product->imagen)
-                                        <img src="{{ asset('storage/' . $product->imagen) }}" alt="Imagen" class="h-10 w-10 rounded">
+                                        <!-- Usar la URL de Cloudinary directamente sin asset() -->
+                                        <img src="{{ $product->imagen }}" alt="{{ $product->nombre }}" class="h-10 w-10 rounded object-cover">
                                     @else
                                         <span class="text-xs text-gray-500">No image</span>
                                     @endif

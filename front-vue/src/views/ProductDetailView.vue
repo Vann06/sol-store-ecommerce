@@ -75,7 +75,7 @@ onMounted(async () => {
       name: data.nombre,
       price: parseFloat(data.precio_base),
       category: data.category?.name || 'Sin categoría',
-      image: data.imagen ? `/storage/${data.imagen}` : 'https://via.placeholder.com/500x600'
+      imagen_url: data.imagen || 'https://via.placeholder.com/500x600'
     }
     } catch (error) {
         console.error('Error al cargar producto:', error)

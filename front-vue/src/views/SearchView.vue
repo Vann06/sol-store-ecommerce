@@ -47,6 +47,13 @@
             v-for="(item, index) in paginatedResults" 
             :key="index"
           >
+          <div class = "product_image_container">
+            <img 
+              :src="item.imageUrl" 
+              :alt="item.name" 
+              class="product-image"
+              @error="item.imageUrl = '/img/default-product.png'"
+          </div>
             <h3>{{ item.name }}</h3>
             <p class="category">{{ item.category }}</p>
             <p class="price">Q{{ item.price.toFixed(2) }}</p>
@@ -145,7 +152,8 @@ async function performSearch() {
       name: product.nombre,
       category: product.category?.name || 'Sin categoría',
       price: parseFloat(product.precio_base),
-      id: product.id
+      id: product.id,
+      imageUrl: product.imagen
     }))
   } catch (error) {
     console.error('Error al buscar productos:', error)
@@ -389,6 +397,29 @@ watch(() => route.query.q, (newQuery) => {
   margin-top: 20px;
   border-radius: 8px;
   opacity: 0.8;
+}
+
+.product-image-container {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+  transform: scale(1.05);
 }
 @media (max-width: 768px) {
   .search-header {

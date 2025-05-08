@@ -62,10 +62,9 @@
                     <input type="file" name="imagen" class="w-full mt-1 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
 
                     @if ($product->imagen)
-                        <div class="mt-2">
-                            <span class="text-sm text-gray-500">Current image:</span>
-                            <img src="{{ asset('storage/' . $product->imagen) }}" alt="Imagen actual" class="h-20 w-20 mt-1 rounded shadow border">
-                        </div>
+                        <img src = "{{ $product->imagen}}" alt = "imagen" class = "h-10 w-10 mt-2 rounded">
+                    @else 
+                        <span class = "text-sm text-gray-500 dark:text-gray-400">No image uploaded</span>
                     @endif
                 </div>
 
