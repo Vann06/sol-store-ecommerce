@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ThemeController;
 
 
 
@@ -25,5 +27,14 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Uso de Productos 
 Route::get('/productos', [ProductController::class, 'apiIndex']);
+Route::get('/productos/recientes', [ProductController::class, 'productosRecientes']);
+
 
 Route::get('/productos/{id}', [ProductController::class, 'apiShow']);
+
+// Categorias 
+Route::get('/categorias', [CategoryController::class, 'apiIndex']);
+
+// Tematicas
+Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
+

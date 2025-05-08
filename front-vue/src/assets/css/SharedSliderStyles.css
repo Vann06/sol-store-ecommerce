@@ -1,0 +1,86 @@
+.section-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #8B0000;
+  font-family: 'Playfair Display', serif;
+  text-align: center;
+}
+
+.slider-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.slider {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 20px 10px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.arrow {
+  background: #8B0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.card, .product-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 180px;
+  height: 150px;
+  background: #FFC94D;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover,
+.product-card:hover {
+  transform: translateY(-6px);
+}
+
+.card-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.card-title {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  z-index: 2;
+  text-align: center;
+}
+
+.glow {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  background: radial-gradient(circle, rgba(255, 255, 0, 0.2), transparent);
+  border-radius: 16px;
+  z-index: 0;
+}

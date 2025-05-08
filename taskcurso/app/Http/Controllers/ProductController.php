@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Producto ;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -128,13 +129,22 @@ class ProductController extends Controller
     public function apiIndex(Request $request)
     {
         $query = Producto::query()->with(['category', 'theme']);
-
+    
         if ($request->has('search')) {
-            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($request->search) . '%']);
+            $search = strtolower($request->search);
+    
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(nombre) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(descripcion) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereHas('category', function ($catQuery) use ($search) {
+                      $catQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%']);
+                  });
+            });
         }
-
+    
         return response()->json($query->get());
     }
+    
 
     public function apiShow($id)
     {
@@ -145,6 +155,17 @@ class ProductController extends Controller
         }
 
         return response()->json($producto);
+    }
+
+    public function productosRecientes()
+    {
+        $productos = Producto::whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json($productos);
     }
 
 }
