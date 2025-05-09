@@ -20,27 +20,57 @@
         </ul>
       </aside>
 
-      <section class="faq-questions" v-if="selectedCategory">
-        <h2>{{ selectedCategory.category.toUpperCase() }}</h2>
+      <section class="faq-main">
+        <!-- Barra de búsqueda en el lado derecho -->
+        <div class="search-container right-search">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Buscar en todas las preguntas..." 
+            @input="handleSearch"
+            class="search-input"
+          >
+          <span class="search-icon">🔍</span>
+        </div>
 
-        <div
-          v-for="faq in selectedCategory.faqs"
-          :key="faq.id"
-          class="faq-item"
-        >
-          <div class="faq-question" @click="toggleAnswer(faq.id)">
-            {{ faq.question }}
-            <span>{{ openFaqId === faq.id ? '−' : '+' }}</span>
-          </div>
-
-          <transition name="accordion">
-            <div
-              v-show="openFaqId === faq.id"
-              class="faq-answer"
-            >
-              {{ faq.answer }}
+        <!-- Mostrar resultados de búsqueda o preguntas de la categoría seleccionada -->
+        <div v-if="searchQuery && filteredFAQs.length > 0">
+          <h2>Resultados de búsqueda</h2>
+          <div
+            v-for="result in filteredFAQs"
+            :key="result.id"
+            class="faq-item"
+          >
+            <div class="faq-question">
+              <strong>{{ result.question }}</strong>
+              <span class="faq-category">({{ result.category }})</span>
             </div>
-          </transition>
+          </div>
+        </div>
+        <div v-else-if="selectedCategory">
+          <h2>{{ selectedCategory.category.toUpperCase() }}</h2>
+          <div
+            v-for="faq in selectedCategory.faqs"
+            :key="faq.id"
+            class="faq-item"
+          >
+            <div class="faq-question" @click="toggleAnswer(faq.id)">
+              {{ faq.question }}
+              <span>{{ openFaqId === faq.id ? '−' : '+' }}</span>
+            </div>
+
+            <transition name="accordion">
+              <div
+                v-show="openFaqId === faq.id"
+                class="faq-answer"
+              >
+                {{ faq.answer }}
+              </div>
+            </transition>
+          </div>
+        </div>
+        <div v-else>
+          <p>No se encontraron resultados para "{{ searchQuery }}"</p>
         </div>
       </section>
     </div>
@@ -54,6 +84,7 @@ import axios from 'axios'
 const categories = ref([])
 const selectedCategoryName = ref(null)
 const openFaqId = ref(null)
+const searchQuery = ref('') // Estado para la barra de búsqueda
 
 const fetchFAQs = async () => {
   try {
@@ -80,6 +111,19 @@ const toggleAnswer = (id) => {
   openFaqId.value = openFaqId.value === id ? null : id
 }
 
+// Computed para filtrar las preguntas según la búsqueda
+const filteredFAQs = computed(() => {
+  if (!searchQuery.value.trim()) return []
+  const query = searchQuery.value.toLowerCase()
+  return categories.value
+    .flatMap(category => category.faqs.map(faq => ({ ...faq, category: category.category })))
+    .filter(faq => faq.question.toLowerCase().includes(query))
+})
+
+const handleSearch = () => {
+  // Lógica adicional si es necesario
+}
+
 onMounted(fetchFAQs)
 </script>
 
@@ -97,6 +141,42 @@ onMounted(fetchFAQs)
 .faq-header h1 {
   font-size: 2rem;
   font-weight: bold;
+}
+
+.search-container {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.right-search {
+  margin-left: auto;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px 12px 45px;
+  border: 2px solid #F7B538;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s;
+  box-shadow: 0 2px 10px rgba(120, 1, 22, 0.1);
+}
+
+.search-input:focus {
+  border-color: #780116;
+  box-shadow: 0 4px 15px rgba(120, 1, 22, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #780116;
+  font-size: 1.1rem;
 }
 
 .faq-content {
@@ -137,11 +217,11 @@ onMounted(fetchFAQs)
   border-left: 3px solid #f0c040;
 }
 
-.faq-questions {
+.faq-main {
   flex: 1;
 }
 
-.faq-questions h2 {
+.faq-main h2 {
   font-size: 1.3rem;
   color: #7a0019;
   border-bottom: 2px solid #f0c040;
@@ -172,13 +252,19 @@ onMounted(fetchFAQs)
   border-top: 1px solid #f0c040;
 }
 
-.accordion-enter-active,
-.accordion-leave-active {
-  transition: all 0.3s ease;
+.faq-search-results {
+  margin-top: 2rem;
 }
-.accordion-enter-from,
-.accordion-leave-to {
-  opacity: 0;
-  max-height: 0;
+
+.faq-search-results h2 {
+  font-size: 1.3rem;
+  color: #7a0019;
+  margin-bottom: 1rem;
+}
+
+.faq-category {
+  font-size: 0.9rem;
+  color: #7a0019;
+  margin-left: 0.5rem;
 }
 </style>
