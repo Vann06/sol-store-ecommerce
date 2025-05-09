@@ -6,7 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto ;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Cloudinary\Cloudinary;
 
 
 class ProductController extends Controller
@@ -55,7 +55,22 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('imagen')) {
-            $validated['imagen'] = $request->file('imagen')->store('products', 'public');
+            // Crear instancia de Cloudinary con configuración
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'drv2wctxj'),
+                    'api_key' => env('CLOUDINARY_API_KEY', '298872777779474'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET', 'bPsMsut064CSWHBD1VfzEtvf6aU'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            
+            $uploadResult = $cloudinary->uploadApi()->upload(
+                $request->file('imagen')->getRealPath(),
+                ['folder' => 'sol-store/products']
+            );
+            
+            $validated['imagen'] = $uploadResult['secure_url'];
         }
 
         $validated['created_by'] = auth()->id(); // si usas auth
@@ -102,10 +117,22 @@ class ProductController extends Controller
 
         // Si se sube una nueva imagen, reemplazarla
         if ($request->hasFile('imagen')) {
-            $validated['imagen'] = $request->file('imagen')->store('products', 'public');
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'drv2wctxj'),
+                    'api_key' => env('CLOUDINARY_API_KEY', '298872777779474'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET', 'bPsMsut064CSWHBD1VfzEtvf6aU'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            
+            $uploadResult = $cloudinary->uploadApi()->upload(
+                $request->file('imagen')->getRealPath(),
+                ['folder' => 'sol-store/products']
+            );
+            
+            $validated['imagen'] = $uploadResult['secure_url'];
         }
-
-        $validated['updated_by'] = auth()->id(); // solo si usás auth
 
         $product->update($validated);
 
