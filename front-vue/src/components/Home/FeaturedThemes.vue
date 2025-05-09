@@ -11,7 +11,8 @@
           @click="goToSearch(theme.name)"
         >
           <div class="glow"></div>
-          <img :src="`/${theme.imagen}`" :alt="theme.name" class="card-img" />
+          <img :src="theme.imagen" :alt="theme.name" class="card-img" />
+
           <p class="card-title">{{ theme.name }}</p>
         </div>
       </div>
@@ -41,6 +42,8 @@ onMounted(async () => {
     slider.value.scrollLeft += e.deltaY
   })
 })
+
+
 </script>
 
 <style scoped>

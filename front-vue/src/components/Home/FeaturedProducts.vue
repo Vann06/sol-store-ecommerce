@@ -10,7 +10,7 @@
           class="product-card"
         >
           <div class="glow"></div>
-          <img :src="`/${product.imagen}`" :alt="product.nombre" class="card-img" />
+          <img :src="product.imagen" :alt="product.nombre" class="card-img" />
           <p class="card-title">{{ product.nombre }}</p>
         </div>
       </div>
@@ -37,6 +37,8 @@ onMounted(async () => {
     slider.value.scrollLeft += e.deltaY
   })
 })
+
+
 </script>
 
 <style scoped>
