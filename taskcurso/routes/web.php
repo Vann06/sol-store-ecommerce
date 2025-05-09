@@ -2,14 +2,22 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Admin\FaqAdminController;
 
 // Ruta home
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Admin panel para productos
-Route::resource('admin/products', ProductController::class)->names('admin.products');
+// Admin panel 
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::resource('products', ProductController::class)
+        ->parameters(['products' => 'product'])
+        ->names('products');
+
+    Route::resource('faqs', FaqAdminController::class)->names('faqs');
+});
+
 
 
 Route::get('/ping', function () {
