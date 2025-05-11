@@ -22,6 +22,12 @@
                 <a href="{{ route('admin.faqs.index') }}" class="block px-3 py-2 rounded-lg {{ request()->is('admin/faqs*') ? 'bg-red-700 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
                     FAQs
                 </a>
+                 <a href="{{ route('admin.categories.index') }}" class="block px-3 py-2 rounded-lg {{ request()->is('admin/categories*') ? 'bg-red-700 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
+                    Categorias
+                </a>
+                <a href="{{ route('admin.themes.index') }}" class="block px-3 py-2 rounded-lg {{ request()->is('admin/themes*') ? 'bg-red-700 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
+                    Temáticas
+                </a>
             </nav>
         </aside>
 

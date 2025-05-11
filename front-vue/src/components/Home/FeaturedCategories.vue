@@ -1,51 +1,71 @@
 <template>
-  <section>
+  <section class="featured-categories">
     <h2 class="section-title">Categorías</h2>
+    <hr class="section-divider" />
     <div class="slider-container">
-      <button class="arrow" @click="scrollLeft">❮</button>
-      <div class="slider" ref="slider">
+      <button class="arrow left" @click="prevPage" :disabled="currentPage === 0">❮</button>
+      <div class="category-grid">
         <div
-          v-for="(category, index) in categories"
+          v-for="(category, index) in paginatedCategories"
           :key="index"
-          class="card"
+          class="card-overlay"
           @click="goToSearch(category.name)"
         >
-          <div class="glow"></div>
-          <img :src="category.imagen" :alt="category.name" class="card-img" />
-
-          <p class="card-title">{{ category.name }}</p>
+          <img :src="category.imagen" alt="imagen categoría" class="card-bg-img" />
+          <div class="overlay"></div>
+          <p class="card-text">{{ category.name }}</p>
         </div>
       </div>
-      <button class="arrow" @click="scrollRight">❯</button>
+      <button class="arrow right" @click="nextPage" :disabled="endIndex >= categories.length">❯</button>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 
 const categories = ref([])
-const slider = ref(null)
 const router = useRouter()
 
-const scrollLeft = () => slider.value.scrollLeft -= 200
-const scrollRight = () => slider.value.scrollLeft += 200
-const goToSearch = (query) => router.push({ path: '/search', query: { q: query } })
+const itemsPerPage = 4 // 2x2
+const currentPage = ref(0)
+
+const startIndex = computed(() => currentPage.value * itemsPerPage)
+const endIndex = computed(() => startIndex.value + itemsPerPage)
+
+const paginatedCategories = computed(() =>
+  categories.value.slice(startIndex.value, endIndex.value)
+)
+
+const nextPage = () => {
+  if (endIndex.value < categories.value.length) currentPage.value++
+}
+const prevPage = () => {
+  if (currentPage.value > 0) currentPage.value--
+}
+
+const goToSearch = (query) => {
+  router.push({ path: '/search', query: { q: query } })
+}
 
 onMounted(async () => {
   const res = await axios.get('/api/categorias')
   categories.value = res.data
-  slider.value.addEventListener('wheel', e => {
-    e.preventDefault()
-    slider.value.scrollLeft += e.deltaY
-  })
 })
-
-
 </script>
 
 <style scoped>
 @import '@/assets/css/SharedSliderStyles.css';
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 200px);
+  gap: 24px;
+  padding: 20px;
+  width: 580px;
+  justify-content: center;
+}
 </style>

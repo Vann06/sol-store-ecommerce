@@ -12,7 +12,7 @@ class Category extends Model
     // Opcional si tu tabla se llama exactamente "categories"
     protected $table = 'categories';
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'imagen'];	
 
     // Relación con productos (si la usas)
     public function products()

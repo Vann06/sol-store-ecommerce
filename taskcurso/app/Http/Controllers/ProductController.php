@@ -153,22 +153,43 @@ class ProductController extends Controller
     /**
      * JSON para utilziarlo en el frontend
      */
+
     public function apiIndex(Request $request)
     {
-        $query = Producto::query()->with(['category', 'theme']);
-    
+        $query = Producto::query()->with(['category', 'theme'])->where('status', 'activo');
+
+        // Búsqueda por nombre, descripción, categoría o temática
         if ($request->has('search')) {
             $search = strtolower($request->search);
-    
             $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(nombre) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(descripcion) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereHas('category', function ($catQuery) use ($search) {
-                      $catQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%']);
-                  });
+                $q->whereRaw('LOWER(nombre) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(descripcion) LIKE ?', ["%{$search}%"])
+                ->orWhereHas('category', fn($cat) => $cat->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]))
+                ->orWhereHas('theme', fn($th) => $th->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]));
             });
         }
-    
+
+        if ($request->has('categoria')) {
+            $query->whereIn('id_categoria', (array) $request->categoria);
+        }
+
+        if ($request->has('tematica')) {
+            $query->whereIn('id_tematica', (array) $request->tematica);
+        }
+
+
+        // Filtro por disponibilidad
+        if ($request->has('estado')) {
+            $query->where('status', $request->estado);
+        }
+
+        // Orden por precio
+        if ($request->orden === 'price_asc') {
+            $query->orderBy('precio_base', 'asc');
+        } elseif ($request->orden === 'price_desc') {
+            $query->orderBy('precio_base', 'desc');
+        }
+
         return response()->json($query->get());
     }
     
