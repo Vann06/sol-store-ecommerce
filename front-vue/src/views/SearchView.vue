@@ -200,11 +200,24 @@ function detailsItem(id) {
   router.push({name: 'product-detail', params: {id}})
 }
 
-watch(() => route.query.q, (newQuery) => {
-  if (newQuery !== undefined) {
-    searchQuery.value = newQuery
-    performSearch()
+watch(() => route.query, (query) => {
+  if (query.q !== undefined) {
+    searchQuery.value = query.q
   }
+
+  if (query.categoria) {
+    selectedCategories.value = Array.isArray(query.categoria)
+      ? query.categoria
+      : [query.categoria]
+  }
+
+  if (query.tematica) {
+    selectedThemes.value = Array.isArray(query.tematica)
+      ? query.tematica
+      : [query.tematica]
+  }
+
+  performSearch()
 }, { immediate: true })
 
 onMounted(async () => {
@@ -231,10 +244,15 @@ onMounted(async () => {
 .search-main {
   display: flex;
   gap: 30px;
+  align-items: flex-start;
+}
+.search-results {
+  flex: 1;
+  width: 100%;
 }
 
 .sidebar-filters {
-  width: 240px;
+  width: 200px;
   padding: 10px;
   border-right: 2px solid #eee;
 }
@@ -318,6 +336,7 @@ onMounted(async () => {
   font-size: 24px;
   border-bottom: 2px solid #780116;
   padding-bottom: 10px;
+  flex: 1;
 }
 .search-header {
   display: flex;
@@ -354,19 +373,30 @@ onMounted(async () => {
 .results-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  padding: 10px;
-  justify-items: center;
+  gap: 25px;
+ width: 100%
 }
 
+
 .result-item {
+  background-color: #fff;
   border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.3s;
-  background: white;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
+.result-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
 .result-item:hover {
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(120, 1, 22, 0.1);

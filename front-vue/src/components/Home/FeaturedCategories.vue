@@ -9,8 +9,8 @@
           v-for="(category, index) in paginatedCategories"
           :key="index"
           class="card-overlay"
-          @click="goToSearch(category.name)"
-        >
+          @click="goToSearch(category.id, 'categoria')"   
+               >
           <img :src="category.imagen" alt="imagen categoría" class="card-bg-img" />
           <div class="overlay"></div>
           <p class="card-text">{{ category.name }}</p>
@@ -46,8 +46,11 @@ const prevPage = () => {
   if (currentPage.value > 0) currentPage.value--
 }
 
-const goToSearch = (query) => {
-  router.push({ path: '/search', query: { q: query } })
+const goToSearch = (queryId, type) => {
+  router.push({ 
+    path: '/search', 
+    query: { [type]: queryId }  
+  })
 }
 
 onMounted(async () => {
