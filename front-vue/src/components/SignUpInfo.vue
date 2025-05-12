@@ -3,10 +3,7 @@
       <h2>¿No tienes una cuenta?</h2>
       <p>Crea una cuenta y disfruta de los siguientes beneficios:</p>
       <ul>
-        <li><i class="fa fa-database"></i> Centraliza info de tus productos</li>
-        <li><i class="fa fa-bolt"></i> Acelerar el Checkout</li>
-        <li><i class="fa fa-star"></i> Obten descuentos exclusivos</li>
-        <li><i class="fa fa-truck"></i> Seguimiento de pedidos y devoluciones</li>
+        <li><font-awesome-icon icon="database" /> Centraliza info de tus productos</li>
       </ul>
       <RouterLink to="/account/create">
         <button class="btn-secondary">Crea una cuenta</button>
