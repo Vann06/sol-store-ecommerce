@@ -36,3 +36,5 @@ Route::delete('/faqs/{id}', [FaqController::class, 'destroy']);
 Route::get('/faqs/categories', function () {
     return \App\Models\FaqCategory::all();
 });
+
+
