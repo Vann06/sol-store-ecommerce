@@ -38,34 +38,34 @@
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 px-4">{{ $loop->iteration }}</td>
                         <td class="py-2 px-4">{{ $product->nombre }}</td>
-                        <td class="py-2 px-4">${{ number_format($product->precio_base, 2) }}</td>
+                        <td class="py-2 px-4">Q{{ number_format($product->precio_base, 2) }}</td>
                         <td class="py-2 px-4">{{ $product->stock > 0 ? 'Disponible' : 'Agotado' }}</td>
                         <td class="py-2 px-4">{{ $product->category->name ?? 'N/A' }}</td>
                         <td class="py-2 px-4">{{ $product->theme->name ?? 'N/A' }}</td>
                         <td class="py-2 px-4">{{ ucfirst($product->status) }}</td>
                         <td class="py-2 px-4">
                             @if ($product->imagen)
-                                <img src="{{ asset('storage/' . $product->imagen) }}" class="h-10 w-10 rounded">
+                                <img src="{{ $product->imagen }}" alt="Imagen" class="h-10 w-10 rounded object-cover">
                             @else
                                 <span class="text-xs text-gray-500">Sin imagen</span>
                             @endif
                         </td>
                         <td class="py-2 px-4">
-    <div class="flex justify-end gap-2">
-        <a href="{{ route('admin.products.edit', $product->id) }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition">
-            Editar
-        </a>
-        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('¿Eliminar este producto?')">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition">
-                Eliminar
-            </button>
-        </form>
-    </div>
-</td>
-
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ route('admin.products.edit', $product->id) }}"
+                                   class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition">
+                                    Editar
+                                </a>
+                                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST"
+                                      onsubmit="return confirm('¿Eliminar este producto?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>

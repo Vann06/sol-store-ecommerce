@@ -11,6 +11,7 @@ import OrdersView from '@/views/account/OrdersView.vue'
 import AddressView from '@/views/account/AddressView.vue'
 import PasswordView from '@/views/account/PasswordView.vue'
 import AccountDetailView from '@/views/account/AccountDetailView.vue'
+import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 
 const routes = [
@@ -64,8 +65,14 @@ const routes = [
   {
     path: '/search',
     name: 'search',
-    component: () => import('@/views/SearchView.vue')
-  }  
+    component: SearchView
+  } ,
+  
+  {
+    path: '/product/:id',
+    name: 'product-detail',
+    component: ProductDetailView
+  }
 
   //MAS RUTAS
 ]

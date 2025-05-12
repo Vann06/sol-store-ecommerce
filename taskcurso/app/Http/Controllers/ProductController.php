@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Producto ;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Cloudinary\Cloudinary;
 
 
 class ProductController extends Controller
@@ -54,7 +55,22 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('imagen')) {
-            $validated['imagen'] = $request->file('imagen')->store('products', 'public');
+            // Crear instancia de Cloudinary con configuración
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'drv2wctxj'),
+                    'api_key' => env('CLOUDINARY_API_KEY', '298872777779474'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET', 'bPsMsut064CSWHBD1VfzEtvf6aU'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            
+            $uploadResult = $cloudinary->uploadApi()->upload(
+                $request->file('imagen')->getRealPath(),
+                ['folder' => 'sol-store/products']
+            );
+            
+            $validated['imagen'] = $uploadResult['secure_url'];
         }
 
         $validated['created_by'] = auth()->id(); // si usas auth
@@ -101,10 +117,22 @@ class ProductController extends Controller
 
         // Si se sube una nueva imagen, reemplazarla
         if ($request->hasFile('imagen')) {
-            $validated['imagen'] = $request->file('imagen')->store('products', 'public');
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'drv2wctxj'),
+                    'api_key' => env('CLOUDINARY_API_KEY', '298872777779474'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET', 'bPsMsut064CSWHBD1VfzEtvf6aU'),
+                ],
+                'url' => ['secure' => true]
+            ]);
+            
+            $uploadResult = $cloudinary->uploadApi()->upload(
+                $request->file('imagen')->getRealPath(),
+                ['folder' => 'sol-store/products']
+            );
+            
+            $validated['imagen'] = $uploadResult['secure_url'];
         }
-
-        $validated['updated_by'] = auth()->id(); // solo si usás auth
 
         $product->update($validated);
 
@@ -125,15 +153,67 @@ class ProductController extends Controller
     /**
      * JSON para utilziarlo en el frontend
      */
+
     public function apiIndex(Request $request)
     {
-        $query = Producto::query()->with(['category', 'theme']);
+        $query = Producto::query()->with(['category', 'theme'])->where('status', 'activo');
 
+        // Búsqueda por nombre, descripción, categoría o temática
         if ($request->has('search')) {
-            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($request->search) . '%']);
+            $search = strtolower($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(nombre) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(descripcion) LIKE ?', ["%{$search}%"])
+                ->orWhereHas('category', fn($cat) => $cat->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]))
+                ->orWhereHas('theme', fn($th) => $th->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]));
+            });
+        }
+
+        if ($request->has('categoria')) {
+            $query->whereIn('id_categoria', (array) $request->categoria);
+        }
+
+        if ($request->has('tematica')) {
+            $query->whereIn('id_tematica', (array) $request->tematica);
+        }
+
+
+        // Filtro por disponibilidad
+        if ($request->has('estado')) {
+            $query->where('status', $request->estado);
+        }
+
+        // Orden por precio
+        if ($request->orden === 'price_asc') {
+            $query->orderBy('precio_base', 'asc');
+        } elseif ($request->orden === 'price_desc') {
+            $query->orderBy('precio_base', 'desc');
         }
 
         return response()->json($query->get());
+    }
+    
+
+    public function apiShow($id)
+    {
+        $producto = Producto::with(['category', 'theme'])->find($id);
+
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        return response()->json($producto);
+    }
+
+    public function productosRecientes()
+    {
+        $productos = Producto::whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json($productos);
     }
 
 }

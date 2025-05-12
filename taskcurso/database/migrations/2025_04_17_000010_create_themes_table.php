@@ -9,6 +9,7 @@ return new class extends Migration {
         Schema::create('themes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('imagen', 2000)->nullable();
             $table->timestamps();
         });
     }

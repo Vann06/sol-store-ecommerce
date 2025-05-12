@@ -63,7 +63,7 @@ class DummyDataSeeder extends Seeder
             'id_tematica' => $naruto->id,
             'status' => 'activo',
             'stock' => 15,
-            'imagen' => 'products/goku.jpg'
+            'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934290/sol-store/products/bbcthfqef3ip1ycclgqe.jpg'
         ]);
 
         Producto::firstOrCreate([
@@ -75,7 +75,7 @@ class DummyDataSeeder extends Seeder
             'id_tematica' => $onepiece->id,
             'status' => 'activo',
             'stock' => 25,
-            'imagen' => 'products/onepiece.jpg'
+            'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg'
         ]);
 
         $faqCatGeneral = FaqCategory::firstOrCreate(['name' => 'General']);

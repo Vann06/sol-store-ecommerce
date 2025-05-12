@@ -31,8 +31,11 @@ RUN composer config --global disable-tls true \
  && composer install --no-dev --optimize-autoloader \
  && composer require laravel/pail --no-interaction \
  && composer require doctrine/dbal --no-interaction \
+ && composer require cloudinary-labs/cloudinary-laravel --no-interaction \
  && composer dump-autoload -o
 
+ RUN php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider" --tag="cloudinary-laravel-config"
+ 
 # 8. Ajustar permisos en storage y bootstrap/cache
 RUN mkdir -p storage bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \

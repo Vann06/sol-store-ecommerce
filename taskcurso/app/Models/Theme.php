@@ -12,7 +12,7 @@ class Theme extends Model
     // Opcional si tu tabla se llama exactamente "themes"
     // protected $table = 'themes';
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'imagen'];
 
     // Relación con productos (si la usas)
     public function products()

@@ -1,19 +1,25 @@
 #!/bin/sh
 
-# Si no existe el directorio vendor, instala las dependencias con Composer
+# Esperar a que PostgreSQL esté disponible (hasta 30s)
+echo "Esperando a que la base de datos esté lista..."
+for i in $(seq 1 30); do
+    php artisan migrate:status > /dev/null 2>&1 && break
+    echo "Esperando... ($i)"
+    sleep 1
+done
+
+# Instalar dependencias si no existen
 if [ ! -d "/var/www/html/vendor" ]; then
-    echo "Directorio vendor no encontrado, instalando dependencias..."
+    echo "Instalando dependencias de Composer..."
     composer install --prefer-dist --no-interaction --optimize-autoloader
 fi
 
-# Realiza las migraciones de la base de datos
+# Migraciones + Seeder
 echo "Ejecutando migraciones..."
 php artisan migrate --force
+
+echo "Ejecutando seeder de datos dummy..."
 php artisan db:seed --class=DummyDataSeeder
 
-# Inicia Apache en primer plano (esto reemplaza el proceso actual)
+echo "Todo listo. Iniciando Apache..."
 exec apache2-foreground
-
-# Esta línea no se ejecutará debido a exec
-echo "Migraciones aplicadas correctamente."
-

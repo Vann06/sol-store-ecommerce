@@ -23,7 +23,7 @@
   
   const slides = [
     '/img/hero-banner.png',
-    '/img/slider2.jpg',
+    '/img/hero-banner-2.png',
     '/img/slider3.jpg'
   ]
   
@@ -56,7 +56,7 @@
   
   .slider {
     width: 100vw;
-    height: 100vh;
+    height: 70vh;
     background-size: cover;
     background-position: center;
     position: relative;
@@ -67,7 +67,7 @@
   
   .slider-overlay {
     width: 100%;
-    padding-bottom: 60px;
+    padding-bottom: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -76,7 +76,7 @@
   
   .cta {
     margin-bottom: 20px;
-    padding: 12px 30px;
+    padding: 5px 30px;
     background-color: #8B0000;
     color: white;
     border: none;

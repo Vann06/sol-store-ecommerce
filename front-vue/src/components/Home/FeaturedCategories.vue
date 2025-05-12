@@ -1,100 +1,74 @@
 <template>
-    <section class="featured-categories">
-      <h2 class="section-title">Categorías destacadas</h2>
-      <div class="slider" ref="slider">
+  <section class="featured-categories">
+    <h2 class="section-title">Categorías</h2>
+    <hr class="section-divider" />
+    <div class="slider-container">
+      <button class="arrow left" @click="prevPage" :disabled="currentPage === 0">❮</button>
+      <div class="category-grid">
         <div
-          v-for="(category, index) in categories"
+          v-for="(category, index) in paginatedCategories"
           :key="index"
-          class="card"
-        >
-          <img :src="category.image" :alt="category.name" class="card-img" />
-          <p class="card-title">{{ category.name }}</p>
+          class="card-overlay"
+          @click="goToSearch(category.id, 'categoria')"   
+               >
+          <img :src="category.imagen" alt="imagen categoría" class="card-bg-img" />
+          <div class="overlay"></div>
+          <p class="card-text">{{ category.name }}</p>
         </div>
       </div>
-    </section>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  
-  const slider = ref(null)
-  
-  const categories = [
-    { name: 'Anime', image: '/img/cat-anime.jpg' },
-    { name: 'Películas', image: '/img/cat-peliculas.jpg' },
-    { name: 'Videojuegos', image: '/img/cat-videojuegos.jpg' },
-    { name: 'Series', image: '/img/cat-series.jpg' },
-    { name: 'Comics', image: '/img/cat-comics.jpg' },
-    { name: 'Música', image: '/img/cat-musica.jpg' },
-    { name: 'Libros', image: '/img/cat-libros.jpg' }
-  ]
-  
-  onMounted(() => {
-    const el = slider.value
-    el.addEventListener('wheel', (evt) => {
-      evt.preventDefault()
-      el.scrollLeft += evt.deltaY
-    })
+      <button class="arrow right" @click="nextPage" :disabled="endIndex >= categories.length">❯</button>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const categories = ref([])
+const router = useRouter()
+
+const itemsPerPage = 4 // 2x2
+const currentPage = ref(0)
+
+const startIndex = computed(() => currentPage.value * itemsPerPage)
+const endIndex = computed(() => startIndex.value + itemsPerPage)
+
+const paginatedCategories = computed(() =>
+  categories.value.slice(startIndex.value, endIndex.value)
+)
+
+const nextPage = () => {
+  if (endIndex.value < categories.value.length) currentPage.value++
+}
+const prevPage = () => {
+  if (currentPage.value > 0) currentPage.value--
+}
+
+const goToSearch = (queryId, type) => {
+  router.push({ 
+    path: '/search', 
+    query: { [type]: queryId }  
   })
-  </script>
-  
-  <style scoped>
-  .featured-categories {
-    padding: 40px 20px;
-    background-color: #fff;
-    text-align: center;
-  }
-  
-  .section-title {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #8B0000;
-    font-family: 'Playfair Display', serif;
-  }
-  
-  .slider {
-    display: flex;
-    overflow-x: auto;
-    gap: 16px;
-    scroll-behavior: smooth;
-    padding: 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .slider::-webkit-scrollbar {
-    height: 8px;
-  }
-  
-  .slider::-webkit-scrollbar-thumb {
-    background: #8B0000;
-    border-radius: 10px;
-  }
-  
-  .card {
-    flex: 0 0 auto;
-    width: 160px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-    cursor: pointer;
-  }
-  
-  .card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .card-img {
-    width: 100%;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-  
-  .card-title {
-    padding: 10px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-    font-family: 'Poppins', sans-serif;
-  }
-  </style>
+}
+
+onMounted(async () => {
+  const res = await axios.get('/api/categorias')
+  categories.value = res.data
+})
+</script>
+
+<style scoped>
+@import '@/assets/css/SharedSliderStyles.css';
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 200px);
+  gap: 24px;
+  padding: 20px;
+  width: 580px;
+  justify-content: center;
+}
+</style>

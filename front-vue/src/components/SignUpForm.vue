@@ -1,6 +1,6 @@
 <template>
     <div class="form-wrapper">
-      <img src="/img/logo.png" alt="Logo" class="logo" />
+      <img src="/img/logo_2.png" alt="Logo" class="logo" />
       <h2 class="title">Crea tu Cuenta</h2>
   
       <form @submit.prevent="handleSubmit">
