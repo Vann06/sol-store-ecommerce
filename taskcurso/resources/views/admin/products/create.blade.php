@@ -3,9 +3,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto">
     <div class="mb-6">
-         <a href="{{ route('admin.products.index') }}" class="text-red-700 hover:text-red-900 text-xl">
-        ←
-    </a>
+        <a href="{{ route('admin.products.index') }}" class="text-red-700 hover:text-red-900 text-xl">←</a>
         <h1 class="text-2xl font-semibold text-red-700 mb-1">Agregar Producto</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400">Admin › Panel</p>
     </div>
@@ -50,22 +48,21 @@
                 <input type="number" name="stock" class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" required />
             </div>
 
-        <div>
-            <label class="block text-sm font-medium">Imagen</label>
-            <input 
-                type="file" 
-                name="imagen" 
-                id="imagenInput"
-                class="w-full mt-1 border rounded-md dark:bg-gray-700 dark:border-gray-600" 
-                accept="image/*"
-                onchange="previewImage(event)"
-            />
-            <div id="previewContainer" class="mt-2 hidden">
-                <span class="text-sm text-gray-500">Vista previa:</span>
-                <img id="previewImg" src="#" alt="Vista previa" class="h-20 w-20 mt-1 rounded shadow border">
+            <div>
+                <label class="block text-sm font-medium">Imagen</label>
+                <input 
+                    type="file" 
+                    name="imagen" 
+                    id="imagenInput"
+                    class="w-full mt-1 border rounded-md dark:bg-gray-700 dark:border-gray-600" 
+                    accept="image/*"
+                    onchange="previewImage(event)"
+                />
+                <div id="previewContainer" class="mt-2 hidden">
+                    <span class="text-sm text-gray-500">Vista previa:</span>
+                    <img id="previewImg" src="#" alt="Vista previa" class="h-20 w-20 mt-1 rounded shadow border">
+                </div>
             </div>
-        </div>
-
         </div>
 
         <div>
@@ -88,4 +85,24 @@
         </div>
     </form>
 </div>
+
+<script>
+function previewImage(event) {
+    const input = event.target
+    const file = input.files[0]
+    const previewContainer = document.getElementById('previewContainer')
+    const previewImg = document.getElementById('previewImg')
+
+    if (file) {
+        const reader = new FileReader()
+        reader.onload = e => {
+            previewImg.src = e.target.result
+            previewContainer.classList.remove('hidden')
+        }
+        reader.readAsDataURL(file)
+    } else {
+        previewContainer.classList.add('hidden')
+    }
+}
+</script>
 @endsection

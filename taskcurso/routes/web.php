@@ -14,7 +14,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
 // Admin panel 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('products', ProductController::class)
@@ -22,6 +21,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->names('products');
 
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
+
+});
 
     Route::resource('categories', CategoryAdminController::class)->names('categories');
     Route::resource('themes', ThemeAdminController::class)->names('themes');
@@ -32,6 +33,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('settings', SettingAdminController::class)->names('settings');
     Route::resource('coupons', CouponAdminController::class)->names('coupons');
 });
+
 
 
 Route::get('/ping', function () {

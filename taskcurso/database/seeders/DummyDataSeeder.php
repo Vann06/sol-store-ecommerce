@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Faq;
+use App\Models\FaqCategory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\DB;
 use App\Models\Category;
 use App\Models\Theme;
@@ -13,7 +16,7 @@ use App\Models\User;
 
 class DummyDataSeeder extends Seeder
 {
-    public function run(): void
+        public function run(): void
     {
         $cliente = Role::firstOrCreate([
             'nombre' => 'cliente',
@@ -73,6 +76,26 @@ class DummyDataSeeder extends Seeder
             'status' => 'activo',
             'stock' => 25,
             'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg'
+        ]);
+
+        $faqCatGeneral = FaqCategory::firstOrCreate(['name' => 'General']);
+        $faqCatPagos = FaqCategory::firstOrCreate(['name' => 'Pagos']);
+        $faqCatCuenta = FaqCategory::firstOrCreate(['name' => 'Cuenta']);
+
+        Faq::firstOrCreate([
+            'question' => '¿Cómo puedo registrarme?',
+            'answer' => 'Haz clic en el botón de registro y completa el formulario.',
+            'faq_category_id' => $faqCatGeneral->id
+        ]);
+        Faq::firstOrCreate([
+            'question' => '¿Qué métodos de pago aceptan?',
+            'answer' => 'Aceptamos tarjetas de crédito y PayPal.',
+            'faq_category_id' => $faqCatPagos->id
+        ]);
+        Faq::firstOrCreate([
+            'question' => '¿Cómo recupero mi contraseña?',
+            'answer' => 'Utiliza la opción "Olvidé mi contraseña" en la página de inicio de sesión.',
+            'faq_category_id' => $faqCatCuenta->id
         ]);
     }
 }
