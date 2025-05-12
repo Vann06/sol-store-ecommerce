@@ -4,6 +4,7 @@
       <p>Crea una cuenta y disfruta de los siguientes beneficios:</p>
       <ul>
         <li><font-awesome-icon icon="database" /> Centraliza info de tus productos</li>
+        <li><font-awesome-icon icon="bolt" /> Acelerar el Checkout</li>
       </ul>
       <RouterLink to="/account/create">
         <button class="btn-secondary">Crea una cuenta</button>
