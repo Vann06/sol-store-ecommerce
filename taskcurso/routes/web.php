@@ -21,9 +21,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->names('products');
 
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
-
-});
-
     Route::resource('categories', CategoryAdminController::class)->names('categories');
     Route::resource('themes', ThemeAdminController::class)->names('themes');
     Route::resource('users', UserAdminController::class)->names('users');
