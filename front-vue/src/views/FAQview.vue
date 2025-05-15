@@ -21,7 +21,7 @@
       </aside>
 
       <section class="faq-main">
-        <!-- Barra de búsqueda en el lado derecho -->
+        <!-- Barra de búsqueda en el lado derecho x2 -->
         <div class="search-container right-search">
           <input 
             type="text" 
