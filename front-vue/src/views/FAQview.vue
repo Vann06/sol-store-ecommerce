@@ -5,6 +5,8 @@
       <p>Estamos aquí para ayudarte...</p>
     </div>
 
+
+    
     <div class="faq-content">
       <aside class="faq-categories">
         <h2>TEMAS DE AYUDA</h2>
