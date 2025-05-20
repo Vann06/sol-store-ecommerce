@@ -12,7 +12,6 @@ use App\Http\Controllers\ThemeController;
 
 
 
-
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -51,5 +50,4 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 
 // Tematicas
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
-
 

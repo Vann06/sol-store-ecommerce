@@ -16,9 +16,14 @@ Route::get('/', function () {
 
 // Admin panel 
 Route::prefix('admin')->name('admin.')->group(function () {
+
     Route::resource('products', ProductController::class)
         ->parameters(['products' => 'product'])
         ->names('products');
+
+    // Inventario admin web
+    Route::resource('inventario', App\Http\Controllers\Admin\InventarioAdminController::class)
+        ->names('inventario');
 
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
     Route::resource('categories', CategoryAdminController::class)->names('categories');
