@@ -7,12 +7,6 @@
             <h1 class="text-2xl font-semibold text-red-700">Inventario</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">Admin › Panel</p>
         </div>
-        <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.inventario.create') }}" class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800">
-                + Añadir
-            </a>
-        </div>
-    </div>
 
     <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow">
         <table class="min-w-full table-auto">

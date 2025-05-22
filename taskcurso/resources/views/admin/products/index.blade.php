@@ -25,7 +25,7 @@
                     <th class="py-2 px-4">#</th>
                     <th class="py-2 px-4">Nombre</th>
                     <th class="py-2 px-4">Precio</th>
-                    <th class="py-2 px-4">Stock</th>
+                    <th class="py-2 px-4">Stock (Inventario)</th>
                     <th class="py-2 px-4">Categoría</th>
                     <th class="py-2 px-4">Temática</th>
                     <th class="py-2 px-4">Estado</th>
@@ -39,7 +39,20 @@
                         <td class="py-2 px-4">{{ $loop->iteration }}</td>
                         <td class="py-2 px-4">{{ $product->nombre }}</td>
                         <td class="py-2 px-4">Q{{ number_format($product->precio_base, 2) }}</td>
-                        <td class="py-2 px-4">{{ $product->stock > 0 ? 'Disponible' : 'Agotado' }}</td>
+                        <td class="py-2 px-4">
+                            @php
+                                $detalle = $product->detalleProducto->first();
+                                $stock = null;
+                                if ($detalle && $detalle->inventario) {
+                                    $stock = $detalle->inventario->stock_actual;
+                                }
+                            @endphp
+                            @if ($stock !== null)
+                                {{ $stock > 0 ? 'Disponible (' . $stock . ')' : 'Agotado' }}
+                            @else
+                                <span class="text-xs text-gray-500">Sin inventario</span>
+                            @endif
+                        </td>
                         <td class="py-2 px-4">{{ $product->category->name ?? 'N/A' }}</td>
                         <td class="py-2 px-4">{{ $product->theme->name ?? 'N/A' }}</td>
                         <td class="py-2 px-4">{{ ucfirst($product->status) }}</td>
