@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\CarritoController;
 
 
 
@@ -41,6 +42,8 @@ Route::get('/faqs/categories', function () {
 });
 
 
+
+
 Route::get('/productos/recientes', [ProductController::class, 'productosRecientes']);
 
 
@@ -52,4 +55,14 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 // Tematicas
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
+Route::middleware('auth:sanctum')->group(function () {
+    // Rutas para el carrito de compras
+    Route::prefix('carrito')->group(function () {
+        Route::get('/', [CarritoController::class, 'getCarrito']);
+        Route::post('/agregar', [CarritoController::class, 'agregarProducto']);
+        Route::put('/actualizar/{detalle_id}', [CarritoController::class, 'actualizarCantidad']);
+        Route::delete('/eliminar/{detalle_id}', [CarritoController::class, 'eliminarProducto']);
+        Route::delete('/vaciar', [CarritoController::class, 'vaciarCarrito']);
+    });
+});
 
