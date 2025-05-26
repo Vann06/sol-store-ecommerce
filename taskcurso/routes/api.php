@@ -55,18 +55,25 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 // Tematicas
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
+Route::prefix('carrito')->group(function () {
+    Route::get('/', [CarritoController::class, 'getCarrito']);
+    Route::post('/agregar', [CarritoController::class, 'agregarProducto']);
+    Route::put('/actualizar/{detalle_id}', [CarritoController::class, 'actualizarCantidad']);
+    Route::delete('/eliminar/{detalle_id}', [CarritoController::class, 'eliminarProducto']);
+    Route::delete('/vaciar', [CarritoController::class, 'vaciarCarrito']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     // Rutas de autenticación
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     
-    // Rutas para el carrito de compras
-    Route::prefix('carrito')->group(function () {
-        Route::get('/', [CarritoController::class, 'getCarrito']);
-        Route::post('/agregar', [CarritoController::class, 'agregarProducto']);
-        Route::put('/actualizar/{detalle_id}', [CarritoController::class, 'actualizarCantidad']);
-        Route::delete('/eliminar/{detalle_id}', [CarritoController::class, 'eliminarProducto']);
-        Route::delete('/vaciar', [CarritoController::class, 'vaciarCarrito']);
+    // Transferir carrito al hacer login
+    Route::post('/carrito/transferir', [CarritoController::class, 'transferirCarritoLogin']);
+    
+    // Rutas que requieren autenticación (checkout, etc.)
+    Route::prefix('checkout')->group(function () {
+        // Aquí irán las rutas del checkout
     });
 });
 
