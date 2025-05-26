@@ -56,6 +56,10 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Rutas de autenticación
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    
     // Rutas para el carrito de compras
     Route::prefix('carrito')->group(function () {
         Route::get('/', [CarritoController::class, 'getCarrito']);

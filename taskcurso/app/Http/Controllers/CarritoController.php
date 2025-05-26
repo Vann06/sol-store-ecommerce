@@ -98,7 +98,11 @@ class CarritoController extends Controller
         // Para simplificar, creamos un detalle_producto básico si no existe
         $detalle_producto = DetalleProducto::firstOrCreate(
             ['id_producto' => $producto_id],
-            ['descripcion' => 'Producto estándar']
+            [
+                'stock' => 0,
+                'precio' => $producto->precio_base,
+                'created_by' => auth()->id()
+            ]
         );
         
         // Verificar si el producto ya está en el carrito
