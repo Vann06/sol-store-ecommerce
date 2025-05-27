@@ -8,13 +8,20 @@ use App\Models\DetalleCarrito;
 use App\Models\DetalleProducto;
 use App\Models\Producto;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Asegúrate de importar Auth
+use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class CarritoController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = $request->user(); // gracias a sanctum
+
+        return CarritoCompra::where('user_id', $user->id)->get();
+    }
+
     private function obtenerIdentificadores(Request $request)
     {
         $user = $request->user(); // Intento primario

@@ -29,6 +29,10 @@ Route::prefix('carrito')->group(function () {
     Route::delete('/vaciar', [CarritoController::class, 'vaciarCarrito']);
 });
 
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
 // Rutas autenticadas obligatorias
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
