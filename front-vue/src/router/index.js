@@ -1,4 +1,3 @@
-
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
@@ -13,6 +12,8 @@ import PasswordView from '@/views/account/PasswordView.vue'
 import AccountDetailView from '@/views/account/AccountDetailView.vue'
 import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
+import CartView from '@/views/CartView.vue'
+
 
 const routes = [
   {
@@ -57,6 +58,7 @@ const routes = [
       }
     ]
   },
+  
   {
     path: '/faq',
     name: 'faq',
@@ -72,7 +74,13 @@ const routes = [
     path: '/product/:id',
     name: 'product-detail',
     component: ProductDetailView
-  }
+  },
+  {
+    path: '/cart',
+    name: 'cart',
+    component: CartView
+  },
+
 
   //MAS RUTAS
 ]
