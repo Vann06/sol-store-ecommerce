@@ -8,47 +8,83 @@ use App\Models\DetalleCarrito;
 use App\Models\DetalleProducto;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Asegúrate de importar Auth
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class CarritoController extends Controller
 {
-    /**
-     * Obtener identificadores del carrito (usuario o sesión)
-     */
     private function obtenerIdentificadores(Request $request)
     {
-        $usuario_id = auth()->check() ? auth()->id() : null;
+        $user = $request->user(); // Intento primario
+
+        // Si $request->user() es null pero hay un token, intentar con el guard 'sanctum'
+        if (!$user && $request->bearerToken()) {
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+            }
+        }
         
-        // Obtener session_id de forma segura
+        $usuario_id = $user ? $user->id : null;
+        
+        // Log mejorado
+        \Log::info('Estado autenticación en obtenerIdentificadores', [
+            'request_user_id' => $request->user() ? $request->user()->id : 'null (request->user)',
+            'sanctum_check' => Auth::guard('sanctum')->check(),
+            'sanctum_user_id' => Auth::guard('sanctum')->user() ? Auth::guard('sanctum')->user()->id : 'null (Auth guard)',
+            'resolved_user_id' => $usuario_id,
+            'has_bearer_token' => !empty($request->bearerToken()),
+            'authorization_header' => $request->header('Authorization'),
+        ]);
+        
         $session_id = null;
         if (!$usuario_id) {
             try {
-                // Intentar obtener session_id si las sesiones están disponibles
-                if ($request->hasSession()) {
+                if ($request->hasSession() && $request->session()->isStarted()) {
                     $session_id = $request->session()->getId();
                 } else {
-                    // Generar un session_id temporal basado en IP y User-Agent
                     $session_id = 'temp_' . md5(
                         $request->ip() . 
-                        $request->userAgent() . 
+                        ($request->userAgent() ?? 'no-agent') . 
                         date('Y-m-d')
                     );
                 }
             } catch (\Exception $e) {
-                // Fallback: generar session_id temporal
                 $session_id = 'temp_' . Str::random(40);
+                \Log::info('Session fallback generado', ['session_id' => $session_id]);
             }
         }
         
         return [$usuario_id, $session_id];
     }
 
+    private function esUsuarioAutenticado(Request $request)
+    {
+        if ($request->user()) {
+            return true;
+        }
+        // Verificar explícitamente con el guard 'sanctum' si hay un token
+        if ($request->bearerToken()) {
+            return Auth::guard('sanctum')->check();
+        }
+        return false;
+    }
+
     public function getCarrito(Request $request)
     {
         try {
             [$usuario_id, $session_id] = $this->obtenerIdentificadores($request);
+            $esInvitado = !$this->esUsuarioAutenticado($request);
+
+            // Log para debug
+            \Log::info('getCarrito - Identificadores', [
+                'usuario_id' => $usuario_id,
+                'session_id' => $session_id,
+                'es_invitado' => $esInvitado,
+                'request_user_direct' => $request->user() ? 'User object present' : 'null',
+                'auth_sanctum_check_direct' => Auth::guard('sanctum')->check()
+            ]);
 
             $carrito = CarritoCompra::obtenerCarrito($usuario_id, $session_id);
             
@@ -59,8 +95,14 @@ class CarritoController extends Controller
                     'total' => 0,
                     'cantidad_items' => 0,
                     'cantidad_total_productos' => 0,
-                    'es_invitado' => !auth()->check(),
-                    'session_id' => $session_id // Para debug
+                    'es_invitado' => $esInvitado,
+                    'usuario_id' => $usuario_id, 
+                    'session_id' => $session_id, 
+                    'debug_auth' => [
+                        'has_user' => !!$request->user() || Auth::guard('sanctum')->check(),
+                        'auth_check' => auth()->check() || Auth::guard('sanctum')->check(),
+                        'sanctum_user' => ($request->user() ?? Auth::guard('sanctum')->user()) ? ($request->user() ?? Auth::guard('sanctum')->user())->id : null
+                    ]
                 ]);
             }
 
@@ -106,12 +148,20 @@ class CarritoController extends Controller
                 'cantidad_items' => count($items),
                 'cantidad_total_productos' => $cantidad_total_items,
                 'moneda' => 'Q',
-                'es_invitado' => !auth()->check(),
-                'requiere_login_checkout' => !auth()->check(),
-                'session_id' => $session_id // Para debug
+                'es_invitado' => $esInvitado,
+                'requiere_login_checkout' => $esInvitado,
+                'usuario_id' => $usuario_id, 
+                'session_id' => $session_id, 
+                'debug_auth' => [
+                    'has_user' => !!$request->user() || Auth::guard('sanctum')->check(),
+                    'auth_check' => auth()->check() || Auth::guard('sanctum')->check(),
+                    'sanctum_user' => ($request->user() ?? Auth::guard('sanctum')->user()) ? ($request->user() ?? Auth::guard('sanctum')->user())->id : null
+                ]
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error en getCarrito: ' . $e->getMessage());
+            \Log::error('Error en getCarrito: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'error' => 'Error interno del servidor',
                 'message' => $e->getMessage()
@@ -132,6 +182,7 @@ class CarritoController extends Controller
             }
             
             [$usuario_id, $session_id] = $this->obtenerIdentificadores($request);
+            $esInvitado = !$this->esUsuarioAutenticado($request);
             
             $producto_id = $request->producto_id;
             $cantidad = $request->cantidad;
@@ -189,7 +240,8 @@ class CarritoController extends Controller
                     'subtotal' => $producto->precio_base * $detalle_carrito->cantidad
                 ],
                 'carrito_totales' => $carrito_actualizado,
-                'es_invitado' => !auth()->check(),
+                'es_invitado' => $esInvitado,
+                'usuario_id' => $usuario_id, // Para debug
                 'session_id' => $session_id // Para debug
             ], 201);
             
@@ -213,6 +265,7 @@ class CarritoController extends Controller
         }
         
         [$usuario_id, $session_id] = $this->obtenerIdentificadores($request);
+        $esInvitado = !$this->esUsuarioAutenticado($request);
         
         $carrito = CarritoCompra::obtenerCarrito($usuario_id, $session_id);
         
@@ -247,13 +300,14 @@ class CarritoController extends Controller
                 'nuevo_subtotal' => round($nuevo_subtotal, 2)
             ],
             'carrito_totales' => $carrito_totales,
-            'es_invitado' => !auth()->check()
+            'es_invitado' => $esInvitado
         ]);
     }
 
     public function eliminarProducto(Request $request, $detalle_id)
     {
         [$usuario_id, $session_id] = $this->obtenerIdentificadores($request);
+        $esInvitado = !$this->esUsuarioAutenticado($request);
         
         $carrito = CarritoCompra::obtenerCarrito($usuario_id, $session_id);
         
@@ -277,13 +331,14 @@ class CarritoController extends Controller
         return response()->json([
             'message' => 'Producto eliminado del carrito',
             'carrito_totales' => $carrito_totales,
-            'es_invitado' => !auth()->check()
+            'es_invitado' => $esInvitado
         ]);
     }
 
     public function vaciarCarrito(Request $request)
     {
         [$usuario_id, $session_id] = $this->obtenerIdentificadores($request);
+        $esInvitado = !$this->esUsuarioAutenticado($request);
         
         $carrito = CarritoCompra::obtenerCarrito($usuario_id, $session_id);
         
@@ -300,7 +355,7 @@ class CarritoController extends Controller
                 'cantidad_items' => 0,
                 'cantidad_total_productos' => 0
             ],
-            'es_invitado' => !auth()->check()
+            'es_invitado' => $esInvitado
         ]);
     }
 
@@ -309,12 +364,12 @@ class CarritoController extends Controller
      */
     public function transferirCarritoLogin(Request $request)
     {
-        if (!auth()->check()) {
+        if (!$this->esUsuarioAutenticado($request)) {
             return response()->json(['error' => 'Usuario no autenticado'], 401);
         }
 
         $session_id = $request->session()->getId();
-        $usuario_id = auth()->id();
+        $usuario_id = $request->user()->id;
 
         $carrito = CarritoCompra::transferirCarritoInvitado($session_id, $usuario_id);
 

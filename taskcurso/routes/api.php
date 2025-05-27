@@ -1,60 +1,26 @@
 <?php
 
-use App\Http\Controllers\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\FaqController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductoController;
 
-
-
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
-
-Route::get('/ping', function () {
-    return 'pong';
-});
-
-// Registro de usuarios
+// Autenticación (sin sesión)
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Uso de Productos 
-Route::get('/productos', [ProductController::class, 'apiIndex']);
+// Productos públicos
+Route::get('/productos', [ProductoController::class, 'index']);
+Route::get('/productos/{id}', [ProductoController::class, 'show']);
 
-// FAQ API
-Route::get('/faqs', [FaqController::class, 'index']);
-Route::post('/faqs', [FaqController::class, 'store']);
-Route::get('/faqs/{id}', [FaqController::class, 'show']);
-Route::put('/faqs/{id}', [FaqController::class, 'update']);
-Route::delete('/faqs/{id}', [FaqController::class, 'destroy']);
-Route::get('/faqs/categories', function () {
-    return \App\Models\FaqCategory::all();
+// Test endpoint
+Route::get('/ping', function () {
+    return response()->json(['message' => 'pong']);
 });
 
-
-
-
-Route::get('/productos/recientes', [ProductController::class, 'productosRecientes']);
-
-
-Route::get('/productos/{id}', [ProductController::class, 'apiShow']);
-
-// Categorias 
-Route::get('/categorias', [CategoryController::class, 'apiIndex']);
-
-// Tematicas
-Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
-
+// Rutas del carrito SIN middleware (el controller maneja la autenticación)
 Route::prefix('carrito')->group(function () {
     Route::get('/', [CarritoController::class, 'getCarrito']);
     Route::post('/agregar', [CarritoController::class, 'agregarProducto']);
@@ -63,10 +29,11 @@ Route::prefix('carrito')->group(function () {
     Route::delete('/vaciar', [CarritoController::class, 'vaciarCarrito']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    // Rutas de autenticación
+// Rutas autenticadas obligatorias
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/auth/check', [AuthController::class, 'checkAuth']);
     
     // Transferir carrito al hacer login
     Route::post('/carrito/transferir', [CarritoController::class, 'transferirCarritoLogin']);
@@ -76,4 +43,3 @@ Route::middleware('auth:sanctum')->group(function () {
         // Aquí irán las rutas del checkout
     });
 });
-
