@@ -19,39 +19,44 @@
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore} from '@/stores/user'
+  import axios from 'axios'
   
   const email = ref('')
   const password = ref('')
   const router = useRouter()
   const userStore = useUserStore()
-  
-  
+
 const handleLogin = async () => {
   try {
     const response = await fetch('http://localhost:8000/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-         email: email.value,
-          password: password.value })
+        email: email.value,
+        password: password.value
+      })
     })
 
     if (!response.ok) throw new Error('Error en login')
 
     const data = await response.json()
+
+    // Guardar el token en localStorage y configurar el header de Authorization
+    localStorage.setItem('auth_token', data.token)
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
     userStore.setUser(data.user)
 
     if (data.user.role === 'admin') {
-      window.location.href = 'http://localhost:8000/admin/products' 
+      window.location.href = 'http://localhost:8000/admin/products'
     } else {
       router.push('/account/orders')
     }
-
   } catch (error) {
     alert('Login fallido')
     console.error(error)
   }
 }
+
   </script>
   
   <style scoped>
