@@ -60,10 +60,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useCartStore } from '../stores/cart'
 
 const route = useRoute()
 const product = ref(null)
 const cantidad = ref(1)
+const cart = useCartStore()
 
 onMounted(async () => {
   const id = route.params.id
@@ -88,6 +90,13 @@ function aumentarCantidad() {
 
 function disminuirCantidad() {
   if (cantidad.value > 1) cantidad.value--
+}
+
+async function agregarAlCarrito() {
+  if (!product.value) return
+  await cart.addToCart(product.value.id, cantidad.value)
+  // Opcional: notificación o feedback
+  alert('Producto agregado al carrito')
 }
 </script>
   
