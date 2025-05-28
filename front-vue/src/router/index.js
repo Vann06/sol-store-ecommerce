@@ -13,6 +13,7 @@ import AccountDetailView from '@/views/account/AccountDetailView.vue'
 import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 import CartView from '@/views/CartView.vue'
+import AboutView from '@/views/AboutView.vue'
 
 
 const routes = [
@@ -80,8 +81,11 @@ const routes = [
     name: 'cart',
     component: CartView
   },
-
-
+  {
+    path: '/about',
+    name: 'about',
+    component: AboutView
+  }
   //MAS RUTAS
 ]
 
@@ -108,3 +112,4 @@ router.beforeEach((to, from, next) => {
 
 
 export default router
+
