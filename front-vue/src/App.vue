@@ -11,6 +11,26 @@
 <script setup>
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { useUserStore } from '@/stores/userStore'
+import { mapActions } from 'pinia'
+
+const userStore = useUserStore()
+onMounted(async () => {
+  const token = localStorage.getItem('auth_token')
+  if(token && !userStore.user){
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    try{
+      const response = await axios.get('/api/user')
+      userStore.setUser(response.data)
+    }catch (e) {
+      userStore.clearUser()
+      localStorage.removeItem('auth_token')
+    }
+  }
+})
+
 </script>
 
 <style>

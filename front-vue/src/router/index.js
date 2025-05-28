@@ -86,7 +86,6 @@ const routes = [
     name: 'about',
     component: AboutView
   }
-
   //MAS RUTAS
 ]
 

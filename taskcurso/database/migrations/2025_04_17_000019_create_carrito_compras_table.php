@@ -6,16 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('carrito_compras', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_usuario')->unique()->constrained('usuarios')->onDelete('cascade');
+            $table->bigInteger('id_usuario')->nullable(); // Nullable para usuarios invitados
+            $table->string('session_id')->nullable(); // Para usuarios no autenticados
             $table->timestamps();
+            
+            // Índices
+            $table->index(['id_usuario', 'session_id']);
+            
+            // Foreign key
+            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('carrito_compras');
     }

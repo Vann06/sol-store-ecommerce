@@ -42,9 +42,22 @@
             <img src="/img/cart-icon.svg" alt="Cart" class="icon-img" />
           </RouterLink>
 
-          <RouterLink to="/account/login" class="icon-button">
+          <!-- SI ESTÁ LOGUEADO -->
+          <div v-if="isLoggedIn" class="user-logged">
+            <RouterLink to="/account/orders" class="icon-button">
+              <img src="/img/user-icon.svg" alt="User" class="icon-img" />
+              <span class="username">{{ user.first_name }}</span>
+            </RouterLink>
+            <button @click="logout" class="icon-button logout-btn" title="Logout">
+              <i class="fa fa-sign-out-alt"></i>
+            </button>
+          </div>
+
+          <!-- SI NO ESTÁ LOGUEADO -->
+          <RouterLink v-else to="/account/login" class="icon-button">
             <img src="/img/user-icon.svg" alt="User" class="icon-img" />
           </RouterLink>
+
         </div>
       </div>
     </div>
@@ -54,6 +67,13 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import {computed} from 'vue'
+import axios from 'axios'
+
+const userStore = useUserStore()
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const user = computed(() => userStore.getUser)
 
 const isMenuOpen = ref(false)
 const toggleMenu = () => {
@@ -67,6 +87,18 @@ function handleSearch() {
   if (searchText.value.trim() !== ''){
     router.push({ name: 'search', query: { q: searchText.value.trim() } })
   }
+}
+
+const logout = async () => {
+  try {
+    await axios.post('/api/logout') // si usas Sanctum
+  } catch (e) {
+    // opcional
+  }
+  userStore.clearUser()
+  localStorage.removeItem('auth_token')
+  delete axios.defaults.headers.common['Authorization']
+  router.push('/account/login')
 }
 </script>
 
