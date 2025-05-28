@@ -12,6 +12,10 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\CarritoController;
 
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
 Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
 
 
@@ -52,7 +56,6 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 //Tematicas de un producto 
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
-
 // Rutas autenticadas obligatorias
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -73,3 +76,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('/ping', function () {
     return response()->json(['message' => 'pong']);
 });
+

@@ -6,13 +6,13 @@ use App\Models\Faq;
 use App\Models\FaqCategory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Support\Facades\DB;
 use App\Models\Category;
 use App\Models\Theme;
 use App\Models\Producto;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Inventario;
+use App\Models\DetalleProducto;
 
 class DummyDataSeeder extends Seeder
 {
@@ -53,30 +53,48 @@ class DummyDataSeeder extends Seeder
         $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
         $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
 
-    
-        Producto::firstOrCreate([
-            'nombre' => 'Figura Goku SSJ',
-        ], [
-            'descripcion' => 'Figura articulada de Goku Super Saiyajin.',
-            'precio_base' => 35.50,
-            'id_categoria' => $anime->id,
-            'id_tematica' => $naruto->id,
-            'status' => 'activo',
-            'stock' => 15,
-            'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934290/sol-store/products/bbcthfqef3ip1ycclgqe.jpg'
-        ]);
+        Inventario::truncate();
+        DetalleProducto::truncate();
+        Producto::truncate();
 
-        Producto::firstOrCreate([
-            'nombre' => 'Taza One Piece',
-        ], [
-            'descripcion' => 'Taza térmica con diseño de Luffy y tripulación.',
-            'precio_base' => 12.99,
-            'id_categoria' => $geek->id,
-            'id_tematica' => $onepiece->id,
-            'status' => 'activo',
-            'stock' => 25,
-            'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg'
-        ]);
+        $productosDummy = [
+            [
+                'nombre' => 'Figura Goku SSJ',
+                'descripcion' => 'Figura articulada de Goku Super Saiyajin.',
+                'precio_base' => 35.50,
+                'id_categoria' => $anime->id,
+                'id_tematica' => $naruto->id,
+                'status' => 'activo',
+                'stock' => 15,
+                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934290/sol-store/products/bbcthfqef3ip1ycclgqe.jpg'
+            ],
+            [
+                'nombre' => 'Taza One Piece',
+                'descripcion' => 'Taza térmica con diseño de Luffy y tripulación.',
+                'precio_base' => 12.99,
+                'id_categoria' => $geek->id,
+                'id_tematica' => $onepiece->id,
+                'status' => 'activo',
+                'stock' => 25,
+                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg'
+            ]
+        ];
+
+        foreach ($productosDummy as $prodData) {
+            $producto = Producto::create($prodData);
+            $detalle = DetalleProducto::create([
+                'id_producto' => $producto->id,
+                'stock' => rand(5, 50),
+                'precio' => $producto->precio_base,
+                'created_by' => $adminUser->id,
+            ]);
+            Inventario::create([
+                'id_detalle_producto' => $detalle->id,
+                'stock_actual' => $detalle->stock,
+                'cantidad_en_produccion' => rand(0, 10),
+                'fecha_actualizacion' => now(),
+            ]);
+        }
 
         $faqCatGeneral = FaqCategory::firstOrCreate(['name' => 'General']);
         $faqCatPagos = FaqCategory::firstOrCreate(['name' => 'Pagos']);
@@ -97,5 +115,6 @@ class DummyDataSeeder extends Seeder
             'answer' => 'Utiliza la opción "Olvidé mi contraseña" en la página de inicio de sesión.',
             'faq_category_id' => $faqCatCuenta->id
         ]);
+
     }
 }

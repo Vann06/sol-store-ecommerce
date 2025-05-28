@@ -35,4 +35,11 @@ class DetalleProducto extends Model
     {
         return $this->belongsTo(Usuario::class, 'created_by');
     }
+
+    public function inventario()
+    {
+        return $this->hasOne(Inventario::class, 'id_detalle_producto');
+    }
+
+
 }

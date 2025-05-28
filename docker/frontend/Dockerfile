@@ -18,8 +18,8 @@ COPY . .
 
 RUN apk update && apk add --no-cache curl iputils
 
-# Expone el puerto 3000, que es el que se utilizará para el servidor de desarrollo (ej. Vite)
-EXPOSE 3000
+# Expone el puerto 5173, que es el que se utilizará para el servidor de desarrollo (Vite)
+EXPOSE 5173
 
 # Comando por defecto: inicia el servidor de desarrollo
 CMD ["npm", "run", "dev", "--", "--host"]

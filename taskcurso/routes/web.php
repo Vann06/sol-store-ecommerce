@@ -7,6 +7,13 @@ use App\Http\Controllers\Admin\CategoryAdminController;
 use App\Http\Controllers\Admin\ThemeAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Admin\OrderAdminController;
+use App\Http\Controllers\Admin\RoleAdminController;
+use App\Http\Controllers\Admin\PermissionAdminController;
+use App\Http\Controllers\Admin\SettingAdminController;
+use App\Http\Controllers\Admin\CouponAdminController;
+use App\Http\Controllers\Admin\InventarioAdminController;
+
+
 
 
 // Ruta home
@@ -16,9 +23,14 @@ Route::get('/', function () {
 
 // Admin panel 
 Route::prefix('admin')->name('admin.')->group(function () {
+
     Route::resource('products', ProductController::class)
         ->parameters(['products' => 'product'])
         ->names('products');
+
+    // Inventario admin web
+    Route::resource('inventario', InventarioAdminController::class)
+        ->names('inventario');
 
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
     Route::resource('categories', CategoryAdminController::class)->names('categories');
