@@ -15,7 +15,6 @@ class UsuarioTest extends TestCase
     {
         echo "🔧 Configurando roles de prueba...\n";
         
-        // Crear rol cliente
         $rolCliente = Role::create([
             'nombre' => 'cliente',
             'is_superadmin' => false
@@ -24,7 +23,6 @@ class UsuarioTest extends TestCase
 
         echo "🧪 Creando usuario...\n";
         
-        // Crear usuario
         $usuario = User::create([
             'first_name' => 'Juan',
             'last_name' => 'Pérez',
@@ -32,14 +30,12 @@ class UsuarioTest extends TestCase
             'password' => Hash::make('password123'),
         ]);
 
-        // Verificaciones
         $this->assertNotNull($usuario);
         $this->assertEquals('Juan', $usuario->first_name);
         $this->assertEquals('Pérez', $usuario->last_name);
         $this->assertEquals('juan.perez@test.com', $usuario->email);
         $this->assertTrue(Hash::check('password123', $usuario->password));
         
-        // Verificar que se guardó en la base de datos
         $this->assertDatabaseHas('usuarios', [
             'email' => 'juan.perez@test.com',
             'first_name' => 'Juan'
@@ -52,7 +48,6 @@ class UsuarioTest extends TestCase
     {
         echo "🔧 Configurando datos de prueba...\n";
         
-        // Crear roles
         $rolCliente = Role::create([
             'nombre' => 'cliente',
             'is_superadmin' => false
@@ -64,7 +59,6 @@ class UsuarioTest extends TestCase
         ]);
         echo "   🎭 Roles 'cliente' y 'admin' creados\n";
 
-        // Crear usuario
         $usuario = User::create([
             'first_name' => 'María',
             'last_name' => 'González',
@@ -75,20 +69,17 @@ class UsuarioTest extends TestCase
 
         echo "🔗 Asignando roles...\n";
         
-        // Asignar rol de cliente
         $usuario->roles()->attach($rolCliente->id);
         
-        // Verificar relación
         $this->assertTrue($usuario->roles->contains($rolCliente));
         $this->assertEquals('cliente', $usuario->roles->first()->nombre);
         $this->assertFalse($usuario->roles->first()->is_superadmin);
         
         echo "   ✅ Rol 'cliente' asignado correctamente\n";
 
-        // Cambiar a admin
         $usuario->roles()->detach($rolCliente->id);
         $usuario->roles()->attach($rolAdmin->id);
-        $usuario->refresh(); // Refrescar las relaciones
+        $usuario->refresh();
         
         $this->assertTrue($usuario->roles->contains($rolAdmin));
         $this->assertEquals('admin', $usuario->roles->first()->nombre);
@@ -102,7 +93,6 @@ class UsuarioTest extends TestCase
     {
         echo "🔧 Configurando sistema de roles...\n";
         
-        // Crear roles
         $rolCliente = Role::create([
             'nombre' => 'cliente',
             'is_superadmin' => false
@@ -116,7 +106,6 @@ class UsuarioTest extends TestCase
 
         echo "🧪 Creando diferentes tipos de usuarios...\n";
         
-        // Crear usuario cliente
         $cliente = User::create([
             'first_name' => 'Carlos',
             'last_name' => 'Cliente',
@@ -125,7 +114,6 @@ class UsuarioTest extends TestCase
         ]);
         $cliente->roles()->attach($rolCliente->id);
         
-        // Crear usuario admin
         $admin = User::create([
             'first_name' => 'Ana',
             'last_name' => 'Admin',
@@ -137,18 +125,15 @@ class UsuarioTest extends TestCase
         echo "   👤 Cliente: {$cliente->first_name} {$cliente->last_name}\n";
         echo "   👑 Admin: {$admin->first_name} {$admin->last_name}\n";
 
-        // Verificar tipos
         $this->assertEquals('cliente', $cliente->roles->first()->nombre);
         $this->assertFalse($cliente->roles->first()->is_superadmin);
         
         $this->assertEquals('admin', $admin->roles->first()->nombre);
         $this->assertTrue($admin->roles->first()->is_superadmin);
 
-        // Verificar que ambos existen en la base de datos
         $this->assertDatabaseHas('usuarios', ['email' => 'carlos.cliente@test.com']);
         $this->assertDatabaseHas('usuarios', ['email' => 'ana.admin@test.com']);
         
-        // Verificar relaciones en la tabla pivot
         $this->assertDatabaseHas('usuarios_roles', [
             'id_usuario' => $cliente->id,
             'id_rol' => $rolCliente->id

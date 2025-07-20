@@ -108,7 +108,6 @@ class ApiEndpointsTest extends TestCase
     {
         echo "📦 Probando endpoint público de productos...\n";
         
-        // Crear datos de prueba
         $categoria = Category::create([
             'name' => 'Electrónicos Test',
             'imagen' => 'https://example.com/categoria.jpg'
@@ -132,7 +131,6 @@ class ApiEndpointsTest extends TestCase
         
         echo "   📦 Producto de prueba creado: {$producto->nombre}\n";
         
-        // Probar endpoint de lista de productos
         $response = $this->getJson('/api/productos');
         
         $response->assertStatus(200)
@@ -180,7 +178,6 @@ class ApiEndpointsTest extends TestCase
             'imagen' => 'individual.jpg'
         ]);
         
-        // Probar endpoint de producto específico
         $response = $this->getJson("/api/productos/{$producto->id}");
         
         $response->assertStatus(200)
