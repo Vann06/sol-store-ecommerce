@@ -43,20 +43,13 @@ class DummyDataSeeder extends Seeder
         ]);
 
 
-        $clienteUser->roles()->syncWithoutDetaching([$cliente->id]);
-        $adminUser->roles()->syncWithoutDetaching([$admin->id]);
+    $clienteUser->roles()->syncWithoutDetaching([$cliente->id]);
+    $adminUser->roles()->syncWithoutDetaching([$admin->id]);
 
-    
-        $anime = Category::firstOrCreate(['name' => 'Anime']);
-        $geek = Category::firstOrCreate(['name' => 'Geek']);
-
-        $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
-        $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
-
-        Inventario::truncate();
-        DetalleProducto::truncate();
-        Producto::truncate();
-
+    $anime = Category::firstOrCreate(['name' => 'Anime']);
+    $geek = Category::firstOrCreate(['name' => 'Geek']);
+    $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
+    $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
         $productosDummy = [
             [
                 'nombre' => 'Figura Goku SSJ',
@@ -80,8 +73,10 @@ class DummyDataSeeder extends Seeder
             ]
         ];
 
+        $productosCreados = [];
         foreach ($productosDummy as $prodData) {
             $producto = Producto::create($prodData);
+            $productosCreados[] = $producto;
             $detalle = DetalleProducto::create([
                 'id_producto' => $producto->id,
                 'stock' => rand(5, 50),
@@ -115,6 +110,48 @@ class DummyDataSeeder extends Seeder
             'answer' => 'Utiliza la opción "Olvidé mi contraseña" en la página de inicio de sesión.',
             'faq_category_id' => $faqCatCuenta->id
         ]);
+
+        $ordersDummy = [
+            [
+                'user_id' => $clienteUser->id,
+                'status' => 'pendiente',
+                'created_at' => now()->subDays(3),
+                'productos' => [$productosCreados[0]],
+            ],
+            [
+                'user_id' => $clienteUser->id,
+                'status' => 'en produccion',
+                'created_at' => now()->subDays(2),
+                'productos' => [$productosCreados[0], $productosCreados[1]],
+            ],
+            [
+                'user_id' => $adminUser->id,
+                'status' => 'enviado',
+                'created_at' => now()->subDay(),
+                'productos' => [$productosCreados[1]],
+            ],
+            [
+                'user_id' => $adminUser->id,
+                'status' => 'entregado',
+                'created_at' => now(),
+                'productos' => [$productosCreados[0], $productosCreados[1]],
+            ],
+        ];
+
+        foreach ($ordersDummy as $orderData) {
+            $productosAsociados = $orderData['productos'];
+            unset($orderData['productos']);
+            $order = \App\Models\Order::create($orderData);
+
+            foreach ($productosAsociados as $producto) {
+                \App\Models\DetallePedido::create([
+                    'order_id' => $order->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => rand(1, 3),
+                    'precio_unitario' => $producto->precio_base,
+                ]);
+            }
+        }
 
     }
 }
