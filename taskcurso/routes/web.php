@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\PermissionAdminController;
 use App\Http\Controllers\Admin\SettingAdminController;
 use App\Http\Controllers\Admin\CouponAdminController;
 use App\Http\Controllers\Admin\InventarioAdminController;
+use App\Http\Controllers\Admin\OrderController;
+
 
 
 
@@ -49,3 +51,9 @@ Route::get('/ping', function () {
     return 'pong';
 });
 
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::resource('orders', OrderController::class)->names('orders');
+});
+
+Route::put('/admin/orders/{order}/status', [OrderController::class, 'updateStatus'])
+    ->name('admin.orders.updateStatus');
