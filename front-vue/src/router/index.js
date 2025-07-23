@@ -13,7 +13,7 @@ import AccountDetailView from '@/views/account/AccountDetailView.vue'
 import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 import CartView from '@/views/CartView.vue'
-import AboutView from '@/views/AboutView.vue'
+import AboutView from '@/views/About.View.vue'
 
 
 const routes = [

@@ -1,5 +1,8 @@
 
 
+@extends('admin.layouts.app')
+
+@section('content')
 <div class="max-w-5xl mx-auto p-4">
     <h2 class="text-2xl font-bold mb-4">Listado de Pedidos</h2>
 
@@ -56,19 +59,19 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($orders as $order)
+                @forelse($orders as $pedido)
                     <tr>
-                        <td class="px-4 py-2 border">{{ $order->id }}</td>
-                        <td class="px-4 py-2 border">{{ $order->user->name ?? 'Desconocido' }}</td>
-                        <td class="px-4 py-2 border">{{ ucfirst($order->status) }}</td>
-                        <td class="px-4 py-2 border">{{ $order->created_at->format('Y-m-d') }}</td>
+                        <td class="px-4 py-2 border">{{ $pedido->id }}</td>
+                        <td class="px-4 py-2 border">{{ $pedido->usuario->name ?? 'Desconocido' }}</td>
+                        <td class="px-4 py-2 border">{{ ucfirst($pedido->estado) }}</td>
+                        <td class="px-4 py-2 border">{{ $pedido->fecha_pedido ? $pedido->fecha_pedido->format('Y-m-d') : '' }}</td>
                         <td class="px-4 py-2 border">
-                            <form method="POST" action="{{ route('admin.orders.updateStatus', $order->id) }}">
+                            <form method="POST" action="{{ route('admin.orders.updateStatus', $pedido->id) }}">
                                 @csrf
                                 @method('PUT')
                                 <select name="status" onchange="this.form.submit()" class="border rounded px-2 py-1">
                                     @foreach(['pendiente', 'en produccion', 'enviado', 'entregado'] as $estado)
-                                        <option value="{{ $estado }}" {{ $order->status == $estado ? 'selected' : '' }}>{{ ucfirst($estado) }}</option>
+                                        <option value="{{ $estado }}" {{ $pedido->estado == $estado ? 'selected' : '' }}>{{ ucfirst($estado) }}</option>
                                     @endforeach
                                 </select>
                             </form>
@@ -83,3 +86,4 @@
         </table>
     </div>
 </div>
+@endsection
