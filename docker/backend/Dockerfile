@@ -1,8 +1,5 @@
 # 1. Base: PHP 8.2 con Apache
-FROM php:8.2-apache-bullseye
-
-# Fix GPG key issue for Debian Bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends debian-archive-keyring
+FROM php:8.2-apache
 
 # 2. Instalar dependencias del sistema y extensiones de PHP necesarias
 RUN apt-get update && apt-get install -y \
