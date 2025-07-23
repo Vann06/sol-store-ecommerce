@@ -1,5 +1,10 @@
 {
   "dependencies": {
     "pinia-plugin-persistedstate": "^4.2.0"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.4"
   }
 }
