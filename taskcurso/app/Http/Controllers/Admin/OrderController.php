@@ -2,42 +2,41 @@
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Order;
+use App\Models\Pedido;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::query();
+        $query = Pedido::query();
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('estado', $request->status);
         }
 
         if ($request->filled('client')) {
-            $query->whereHas('user', function($q) use ($request) {
+            $query->whereHas('usuario', function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->client . '%');
             });
         }
 
         if ($request->filled('from_date')) {
-            $query->whereDate('created_at', '>=', $request->from_date);
+            $query->whereDate('fecha_pedido', '>=', $request->from_date);
         }
         if ($request->filled('to_date')) {
-            $query->whereDate('created_at', '<=', $request->to_date);
+            $query->whereDate('fecha_pedido', '<=', $request->to_date);
         }
 
-        $orders = $query->with('user')->orderBy('created_at', 'desc')->get();
+        $orders = $query->with('usuario')->orderBy('fecha_pedido', 'desc')->get();
         return view('admin.orders.index', compact('orders'));
     }
 
-
-    public function show(Order $order)
+    public function show(Pedido $pedido)
     {
-        return view('admin.orders.show', compact('order'));
+        return view('admin.orders.show', compact('pedido'));
     }
 
-    public function updateStatus(Request $request, Order $order)
+    public function updateStatus(Request $request, Pedido $pedido)
     {
         if (auth()->user()->role !== 'trabajador') {
             abort(403, 'No autorizado');
@@ -47,11 +46,10 @@ class OrderController extends Controller
             'status' => 'required|in:pendiente,en produccion,enviado,entregado'
         ]);
 
-        $order->status = $request->status;
-        $order->save();
+        $pedido->estado = $request->status;
+        $pedido->save();
 
         return redirect()->back()->with('success', 'Estado del pedido actualizado.');
     }
 }
 
-?>
