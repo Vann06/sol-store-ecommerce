@@ -1,15 +1,16 @@
 
 
-@extends('admin.layouts.app')
+@extends('layouts.admin')
 
 @section('content')
-<div class="max-w-5xl mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4">Listado de Pedidos</h2>
+<div class="max-w-7xl mx-auto p-6">
+    <h2 class="text-3xl font-bold text-red-700 mb-2">Pedidos</h2>
+    <div class="text-sm text-gray-400 mb-6">Admin &gt; Panel</div>
 
-    <form method="GET" class="mb-6 flex flex-wrap gap-4 items-end">
+    <form method="GET" class="mb-6 flex flex-wrap gap-4 items-end bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
         <div>
-            <label class="block text-sm font-medium mb-1">Estado</label>
-            <select name="status" class="border rounded px-2 py-1">
+            <label class="block text-sm font-medium mb-1" for="estado">Estado</label>
+            <select id="estado" name="status" class="border rounded px-2 py-1">
                 <option value="">Todos</option>
                 @foreach(['pendiente', 'en produccion', 'enviado', 'entregado'] as $estado)
                     <option value="{{ $estado }}" {{ request('status') == $estado ? 'selected' : '' }}>{{ ucfirst($estado) }}</option>
@@ -17,18 +18,18 @@
             </select>
         </div>
         <div>
-            <label class="block text-sm font-medium mb-1">Cliente</label>
-            <input type="text" name="client" value="{{ request('client') }}" class="border rounded px-2 py-1" placeholder="Nombre cliente">
+            <label class="block text-sm font-medium mb-1" for="client">Cliente</label>
+            <input id="client" type="text" name="client" value="{{ request('client') }}" class="border rounded px-2 py-1" placeholder="Nombre cliente">
         </div>
         <div>
-            <label class="block text-sm font-medium mb-1">Desde</label>
-            <input type="date" name="from_date" value="{{ request('from_date') }}" class="border rounded px-2 py-1">
+            <label class="block text-sm font-medium mb-1" for="from_date">Desde</label>
+            <input id="from_date" type="date" name="from_date" value="{{ request('from_date') }}" class="border rounded px-2 py-1">
         </div>
         <div>
-            <label class="block text-sm font-medium mb-1">Hasta</label>
-            <input type="date" name="to_date" value="{{ request('to_date') }}" class="border rounded px-2 py-1">
+            <label class="block text-sm font-medium mb-1" for="to_date">Hasta</label>
+            <input id="to_date" type="date" name="to_date" value="{{ request('to_date') }}" class="border rounded px-2 py-1">
         </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Filtrar</button>
+        <button type="submit" class="bg-red-700 text-white px-4 py-2 rounded">Filtrar</button>
     </form>
 
     @if(session('success'))
@@ -51,7 +52,7 @@
         <table class="min-w-full bg-white border rounded shadow">
             <thead>
                 <tr class="bg-gray-100">
-                    <th class="px-4 py-2 border">ID</th>
+                    <th class="px-4 py-2 border">#</th>
                     <th class="px-4 py-2 border">Cliente</th>
                     <th class="px-4 py-2 border">Estado</th>
                     <th class="px-4 py-2 border">Fecha</th>
