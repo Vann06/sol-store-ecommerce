@@ -138,20 +138,20 @@ class DummyDataSeeder extends Seeder
             ],
         ];
 
-        foreach ($ordersDummy as $orderData) {
-            $productosAsociados = $orderData['productos'];
-            unset($orderData['productos']);
-            $order = \App\Models\Order::create($orderData);
+     foreach ($productosAsociados as $producto) {
+    $detalleProducto = \App\Models\DetalleProducto::where('id_producto', $producto->id)->first();
 
-            foreach ($productosAsociados as $producto) {
-                \App\Models\DetallePedido::create([
-                    'order_id' => $order->id,
-                    'producto_id' => $producto->id,
-                    'cantidad' => rand(1, 3),
-                    'precio_unitario' => $producto->precio_base,
-                ]);
-            }
-        }
+    if ($detalleProducto) {
+        \App\Models\DetallePedido::create([
+            'id_pedido' => $order->id,
+            'id_detalle_producto' => $detalleProducto->id,
+            'cantidad' => rand(1, 3),
+            'precio_unitario' => $producto->precio_base,
+        ]);
+    }
+}
+
+
 
     }
 }
