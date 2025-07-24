@@ -16,44 +16,36 @@ use App\Models\DetalleProducto;
 use Carbon\Carbon;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
-use App\Models\ProductoPedido;
 
 class DummyDataSeeder extends Seeder
 {
-        public function run(): void
+    public function run(): void
     {
-        $cliente = Role::firstOrCreate([
-            'nombre' => 'cliente',
-        ], ['is_superadmin' => false]);
+        \DB::table('detalle_pedidos')->truncate();
+        \DB::table('pedidos')->truncate();
 
-        $admin = Role::firstOrCreate([
-            'nombre' => 'admin',
-        ], ['is_superadmin' => true]);
+        $cliente = Role::firstOrCreate(['nombre' => 'cliente'], ['is_superadmin' => false]);
+        $admin = Role::firstOrCreate(['nombre' => 'admin'], ['is_superadmin' => true]);
+        $trabajador = Role::firstOrCreate(['nombre' => 'trabajador'], ['is_superadmin' => false]);
 
-        $clienteUser = User::firstOrCreate([
-            'email' => 'cliente@demo.com',
-        ], [
-            'first_name' => 'Cliente',
-            'last_name' => 'Demo',
-            'password' => Hash::make('password'),
-        ]);
+        $clienteUser = User::firstOrCreate(
+            ['email' => 'cliente@demo.com'],
+            ['first_name' => 'Cliente', 'last_name' => 'Demo', 'password' => Hash::make('password')]
+        );
 
-        $adminUser = User::firstOrCreate([
-            'email' => 'admin@demo.com',
-        ], [
-            'first_name' => 'Admin',
-            'last_name' => 'Demo',
-            'password' => Hash::make('admin123'),
-        ]);
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@demo.com'],
+            ['first_name' => 'Admin', 'last_name' => 'Demo', 'password' => Hash::make('admin123')]
+        );
 
+        $clienteUser->roles()->syncWithoutDetaching([$cliente->id]);
+        $adminUser->roles()->sync([$admin->id, $trabajador->id]);
 
-    $clienteUser->roles()->syncWithoutDetaching([$cliente->id]);
-    $adminUser->roles()->syncWithoutDetaching([$admin->id]);
+        $anime = Category::firstOrCreate(['name' => 'Anime']);
+        $geek = Category::firstOrCreate(['name' => 'Geek']);
+        $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
+        $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
 
-    $anime = Category::firstOrCreate(['name' => 'Anime']);
-    $geek = Category::firstOrCreate(['name' => 'Geek']);
-    $naruto = Theme::firstOrCreate(['name' => 'Naruto']);
-    $onepiece = Theme::firstOrCreate(['name' => 'One Piece']);
         $productosDummy = [
             [
                 'nombre' => 'Figura Goku SSJ',
@@ -63,7 +55,7 @@ class DummyDataSeeder extends Seeder
                 'id_tematica' => $naruto->id,
                 'status' => 'activo',
                 'stock' => 15,
-                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934290/sol-store/products/bbcthfqef3ip1ycclgqe.jpg'
+                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934290/sol-store/products/bbcthfqef3ip1ycclgqe.jpg',
             ],
             [
                 'nombre' => 'Taza One Piece',
@@ -73,39 +65,36 @@ class DummyDataSeeder extends Seeder
                 'id_tematica' => $onepiece->id,
                 'status' => 'activo',
                 'stock' => 25,
-                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg'
-            ]
+                'imagen' => 'https://res.cloudinary.com/drv2wctxj/image/upload/v1746934190/sol-store/products/ysfywvepllsn0v3bqcg7.jpg',
+            ],
         ];
 
         $productosCreados = [];
         $detallesCreados = [];
+
         foreach ($productosDummy as $prodData) {
-            $producto = Producto::firstOrCreate([
-                'nombre' => $prodData['nombre'],
-                'descripcion' => $prodData['descripcion'],
-                'precio_base' => $prodData['precio_base'],
-                'id_categoria' => $prodData['id_categoria'],
-                'id_tematica' => $prodData['id_tematica'],
-                'status' => $prodData['status'],
-                'stock' => $prodData['stock'],
-                'imagen' => $prodData['imagen'],
-            ]);
+            $producto = Producto::firstOrCreate($prodData);
             $productosCreados[] = $producto;
-            $detalle = DetalleProducto::firstOrCreate([
-                'id_producto' => $producto->id,
-            ], [
-                'stock' => rand(5, 50),
-                'precio' => $producto->precio_base,
-                'created_by' => $adminUser->id,
-            ]);
+
+            $detalle = DetalleProducto::firstOrCreate(
+                ['id_producto' => $producto->id],
+                [
+                    'stock' => rand(5, 50),
+                    'precio' => $producto->precio_base,
+                    'created_by' => $adminUser->id,
+                ]
+            );
+
             $detallesCreados[$producto->id] = $detalle;
-            Inventario::firstOrCreate([
-                'id_detalle_producto' => $detalle->id,
-            ], [
-                'stock_actual' => $detalle->stock,
-                'cantidad_en_produccion' => rand(0, 10),
-                'fecha_actualizacion' => Carbon::now(),
-            ]);
+
+            Inventario::firstOrCreate(
+                ['id_detalle_producto' => $detalle->id],
+                [
+                    'stock_actual' => $detalle->stock,
+                    'cantidad_en_produccion' => rand(0, 10),
+                    'fecha_actualizacion' => Carbon::now(),
+                ]
+            );
         }
 
         $faqCatGeneral = FaqCategory::firstOrCreate(['name' => 'General']);
@@ -131,25 +120,25 @@ class DummyDataSeeder extends Seeder
         $pedidosDummy = [
             [
                 'id_usuario' => $clienteUser->id,
-                'estado' => 'pendiente',
+                'estado' => 'Imprimiendo',
                 'fecha_pedido' => Carbon::now()->subDays(3),
                 'productos' => [$productosCreados[0]],
             ],
             [
                 'id_usuario' => $clienteUser->id,
-                'estado' => 'en produccion',
+                'estado' => 'Pintando',
                 'fecha_pedido' => Carbon::now()->subDays(2),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
             [
                 'id_usuario' => $adminUser->id,
-                'estado' => 'enviado',
+                'estado' => 'Enviando',
                 'fecha_pedido' => Carbon::now()->subDay(),
                 'productos' => [$productosCreados[1]],
             ],
             [
                 'id_usuario' => $adminUser->id,
-                'estado' => 'entregado',
+                'estado' => 'Entregado',
                 'fecha_pedido' => Carbon::now(),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
@@ -158,33 +147,22 @@ class DummyDataSeeder extends Seeder
         foreach ($pedidosDummy as $pedidoData) {
             $productosAsociados = $pedidoData['productos'];
             unset($pedidoData['productos']);
-            // Asegura que el usuario existe
-            if (!User::find($pedidoData['id_usuario'])) {
-                User::firstOrCreate([
-                    'id' => $pedidoData['id_usuario'],
-                    'first_name' => 'Usuario',
-                    'last_name' => 'Dummy',
-                    'email' => 'dummy' . $pedidoData['id_usuario'] . '@demo.com',
-                    'password' => Hash::make('password'),
-                ]);
-            }
-            $pedido = \App\Models\Pedido::create($pedidoData);
+
+            $pedido = Pedido::create($pedidoData);
 
             foreach ($productosAsociados as $producto) {
-                $detalleProducto = isset($detallesCreados[$producto->id]) ? $detallesCreados[$producto->id] : null;
+                $detalleProducto = $detallesCreados[$producto->id] ?? null;
+
                 if ($detalleProducto) {
-                    \App\Models\DetallePedido::firstOrCreate([
-                        'id_pedido' => $pedido->id,
-                        'id_detalle_producto' => $detalleProducto->id,
-                    ], [
-                        'id_pedido' => $pedido->id,
-                        'id_detalle_producto' => $detalleProducto->id,
-                        'cantidad' => rand(1, 3),
-                        'precio_unitario' => $producto->precio_base,
-                    ]);
+                    DetallePedido::firstOrCreate(
+                        ['id_pedido' => $pedido->id, 'id_detalle_producto' => $detalleProducto->id],
+                        [
+                            'cantidad' => rand(1, 3),
+                            'precio_unitario' => $producto->precio_base,
+                        ]
+                    );
                 }
             }
         }
-
     }
 }

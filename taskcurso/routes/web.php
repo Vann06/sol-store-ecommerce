@@ -52,8 +52,7 @@ Route::get('/ping', function () {
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('orders', OrderController::class)->names('orders');
+    Route::resource('orders', OrderController::class)->names('orders')->parameters(['orders' => 'pedido']);
+    Route::put('orders/{pedido}/status', [OrderController::class, 'updateStatus'])
+        ->name('orders.updateStatus');
 });
-
-Route::put('/admin/orders/{order}/status', [OrderController::class, 'updateStatus'])
-    ->name('admin.orders.updateStatus');
