@@ -13,6 +13,10 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Inventario;
 use App\Models\DetalleProducto;
+use Carbon\Carbon;
+use App\Models\Pedido;
+use App\Models\DetallePedido;
+use App\Models\ProductoPedido;
 
 class DummyDataSeeder extends Seeder
 {
@@ -74,20 +78,33 @@ class DummyDataSeeder extends Seeder
         ];
 
         $productosCreados = [];
+        $detallesCreados = [];
         foreach ($productosDummy as $prodData) {
-            $producto = Producto::create($prodData);
+            $producto = Producto::firstOrCreate([
+                'nombre' => $prodData['nombre'],
+                'descripcion' => $prodData['descripcion'],
+                'precio_base' => $prodData['precio_base'],
+                'id_categoria' => $prodData['id_categoria'],
+                'id_tematica' => $prodData['id_tematica'],
+                'status' => $prodData['status'],
+                'stock' => $prodData['stock'],
+                'imagen' => $prodData['imagen'],
+            ]);
             $productosCreados[] = $producto;
-            $detalle = DetalleProducto::create([
+            $detalle = DetalleProducto::firstOrCreate([
                 'id_producto' => $producto->id,
+            ], [
                 'stock' => rand(5, 50),
                 'precio' => $producto->precio_base,
                 'created_by' => $adminUser->id,
             ]);
-            Inventario::create([
+            $detallesCreados[$producto->id] = $detalle;
+            Inventario::firstOrCreate([
                 'id_detalle_producto' => $detalle->id,
+            ], [
                 'stock_actual' => $detalle->stock,
                 'cantidad_en_produccion' => rand(0, 10),
-                'fecha_actualizacion' => now(),
+                'fecha_actualizacion' => Carbon::now(),
             ]);
         }
 
@@ -111,47 +128,63 @@ class DummyDataSeeder extends Seeder
             'faq_category_id' => $faqCatCuenta->id
         ]);
 
-        $ordersDummy = [
+        $pedidosDummy = [
             [
-                'user_id' => $clienteUser->id,
-                'status' => 'pendiente',
-                'created_at' => now()->subDays(3),
+                'id_usuario' => $clienteUser->id,
+                'estado' => 'pendiente',
+                'fecha_pedido' => Carbon::now()->subDays(3),
                 'productos' => [$productosCreados[0]],
             ],
             [
-                'user_id' => $clienteUser->id,
-                'status' => 'en produccion',
-                'created_at' => now()->subDays(2),
+                'id_usuario' => $clienteUser->id,
+                'estado' => 'en produccion',
+                'fecha_pedido' => Carbon::now()->subDays(2),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
             [
-                'user_id' => $adminUser->id,
-                'status' => 'enviado',
-                'created_at' => now()->subDay(),
+                'id_usuario' => $adminUser->id,
+                'estado' => 'enviado',
+                'fecha_pedido' => Carbon::now()->subDay(),
                 'productos' => [$productosCreados[1]],
             ],
             [
-                'user_id' => $adminUser->id,
-                'status' => 'entregado',
-                'created_at' => now(),
+                'id_usuario' => $adminUser->id,
+                'estado' => 'entregado',
+                'fecha_pedido' => Carbon::now(),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
         ];
 
-     foreach ($productosAsociados as $producto) {
-    $detalleProducto = \App\Models\DetalleProducto::where('id_producto', $producto->id)->first();
+        foreach ($pedidosDummy as $pedidoData) {
+            $productosAsociados = $pedidoData['productos'];
+            unset($pedidoData['productos']);
+            // Asegura que el usuario existe
+            if (!User::find($pedidoData['id_usuario'])) {
+                User::firstOrCreate([
+                    'id' => $pedidoData['id_usuario'],
+                    'first_name' => 'Usuario',
+                    'last_name' => 'Dummy',
+                    'email' => 'dummy' . $pedidoData['id_usuario'] . '@demo.com',
+                    'password' => Hash::make('password'),
+                ]);
+            }
+            $pedido = \App\Models\Pedido::create($pedidoData);
 
-    if ($detalleProducto) {
-        \App\Models\DetallePedido::create([
-            'id_pedido' => $order->id,
-            'id_detalle_producto' => $detalleProducto->id,
-            'cantidad' => rand(1, 3),
-            'precio_unitario' => $producto->precio_base,
-        ]);
-    }
-}
-
-
+            foreach ($productosAsociados as $producto) {
+                $detalleProducto = isset($detallesCreados[$producto->id]) ? $detallesCreados[$producto->id] : null;
+                if ($detalleProducto) {
+                    \App\Models\DetallePedido::firstOrCreate([
+                        'id_pedido' => $pedido->id,
+                        'id_detalle_producto' => $detalleProducto->id,
+                    ], [
+                        'id_pedido' => $pedido->id,
+                        'id_detalle_producto' => $detalleProducto->id,
+                        'cantidad' => rand(1, 3),
+                        'precio_unitario' => $producto->precio_base,
+                    ]);
+                }
+            }
+        }
 
     }
 }
