@@ -38,12 +38,9 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Pedido $pedido)
     {
-        if (auth()->user()->role !== 'trabajador') {
-            abort(403, 'No autorizado');
-        }
 
         $request->validate([
-            'status' => 'required|in:pendiente,en produccion,enviado,entregado'
+            'status' => 'required|in:Imprimiendo,Pintando,Enviando,Entregado'
         ]);
 
         $pedido->estado = $request->status;
