@@ -19,4 +19,10 @@ class Theme extends Model
     {
         return $this->hasMany(Product::class, 'id_tematica');
     }
+
+    // Relación con productos usando el nombre correcto para los tests
+    public function productos()
+    {
+        return $this->hasMany(\App\Models\Producto::class, 'id_tematica');
+    }
 }

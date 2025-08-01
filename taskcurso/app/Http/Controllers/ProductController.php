@@ -177,6 +177,15 @@ class ProductController extends Controller
             $query->whereIn('id_tematica', (array) $request->tematica);
         }
 
+        // Filtro por rango de precio
+        if ($request->has('precio_min')) {
+            $query->where('precio_base', '>=', $request->precio_min);
+        }
+
+        if ($request->has('precio_max')) {
+            $query->where('precio_base', '<=', $request->precio_max);
+        }
+
 
         // Filtro por disponibilidad
         if ($request->has('estado')) {
@@ -207,7 +216,8 @@ class ProductController extends Controller
 
     public function productosRecientes()
     {
-        $productos = Producto::whereMonth('created_at', Carbon::now()->month)
+        $productos = Producto::with(['category', 'theme'])
+            ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->orderBy('created_at', 'desc')
             ->take(10)

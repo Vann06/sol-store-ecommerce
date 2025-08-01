@@ -28,9 +28,9 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="DB_CONNECTION" value="pgsql"/>
-        <env name="DB_HOST" value="database"/>
-        <env name="DB_PORT" value="5432"/>
-        <env name="DB_DATABASE" value="sol_store"/>
+        <env name="DB_HOST" value="localhost"/>
+        <env name="DB_PORT" value="5435"/>
+        <env name="DB_DATABASE" value="sol_store_test"/>
         <env name="DB_USERNAME" value="user"/>
         <env name="DB_PASSWORD" value="password"/>
     </php>
