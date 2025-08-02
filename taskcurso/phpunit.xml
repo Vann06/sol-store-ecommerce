@@ -27,11 +27,22 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        
+        <!-- Variables de base de datos -->
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="database"/>
         <env name="DB_PORT" value="5432"/>
         <env name="DB_DATABASE" value="sol_store"/>
         <env name="DB_USERNAME" value="user"/>
         <env name="DB_PASSWORD" value="password"/>
+        
+        <!-- Variables específicas de la aplicación -->
+        <env name="WHATSAPP_NUMBER" value="50231271096"/>
+        <env name="WHATSAPP_MESSAGE" value="Hola, me interesa cotizar un producto personalizado. ¿Podrían, por favor, enviarme qué información necesita para cotizar el producto? ¡Muchas gracias!"/>
+        <env name="CLOUDINARY_CLOUD_NAME" value="drv2wctxj"/>
+        <env name="CLOUDINARY_API_KEY" value="298872777779474"/>
+        <env name="CLOUDINARY_API_SECRET" value="bPsMsut064CSWHBD1VfzEtvf6aU"/>
+        <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost:5173"/>
+        <env name="SESSION_DOMAIN" value="localhost"/>
     </php>
 </phpunit>
