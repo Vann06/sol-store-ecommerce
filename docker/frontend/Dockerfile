@@ -1,21 +1,10 @@
 # Usamos Node.js 18 en su variante Alpine para reducir el tamaño de la imagen
 FROM node:18-alpine
 
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    curl \
-    git \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-
 # Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia los archivos de definición de dependencias
+# Copia los archivos de definición de dependencias (package.json y package-lock.json)
 COPY package*.json ./
 
 # Instala las dependencias definidas en el package.json (incluyendo Vue y Tailwind)
@@ -28,7 +17,9 @@ RUN npm install && \
 # Copia el resto del código fuente de la aplicación al contenedor
 COPY . .
 
-# Expone el puerto 5173
+RUN apk update && apk add --no-cache curl iputils
+
+# Expone el puerto 5173, que es el que se utilizará para el servidor de desarrollo (Vite)
 EXPOSE 5173
 
 # Comando por defecto: inicia el servidor de desarrollo
