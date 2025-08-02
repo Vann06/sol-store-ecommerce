@@ -11,8 +11,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpq-dev \
-    libzip-dev \
-  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip \
+  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd \
   && rm -rf /var/lib/apt/lists/*
 
 # 3. Habilitar mod_rewrite para URLs amigables
@@ -45,11 +44,14 @@ RUN mkdir -p storage bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# 12. Apuntar DocumentRoot a /public y suprimir warning de ServerName
+# 9. Apuntar DocumentRoot a /public y suprimir warning de ServerName
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
  && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# 13. Entrypoint y comando de arranque
+# 10. Exponer el puerto 80 para Apache
+EXPOSE 80
+
+# 11. Entrypoint y comando de arranque
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
