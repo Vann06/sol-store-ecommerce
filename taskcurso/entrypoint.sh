@@ -21,14 +21,5 @@ php artisan migrate --force
 echo "Ejecutando seeder de datos dummy..."
 php artisan db:seed --class=DummyDataSeeder
 
-# Generar clave de aplicación si no existe
-if [ ! -f .env ]; then
-    cp .env.example .env
-    php artisan key:generate
-fi
-
-# Configurar almacenamiento
-php artisan storage:link
-
 echo "Todo listo. Iniciando Apache..."
 exec apache2-foreground
