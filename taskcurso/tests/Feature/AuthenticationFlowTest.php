@@ -16,7 +16,7 @@ class AuthenticationFlowTest extends TestCase
     {
         parent::setUp();
         
-        // Crear roles necesarios basados en tu estructura real
+
         Role::create([
             'nombre' => 'cliente',
             'is_superadmin' => false
@@ -28,10 +28,7 @@ class AuthenticationFlowTest extends TestCase
         ]);
     }
 
-    /**
-     * PRUEBA FUNCIONAL: Usuario puede registrarse exitosamente
-     * INTEGRACIÓN: UserController + Validation + User Model + Role Assignment
-     */
+
     public function test_usuario_puede_registrarse_completamente()
     {
         // Datos de registro basados en tu validación actual

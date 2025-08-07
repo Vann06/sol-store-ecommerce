@@ -30,13 +30,13 @@ class RegressionTest extends TestCase
         
         echo "🔄 Configurando entorno para pruebas de regresión...\n";
         
-        // Crear rol
+
         $rolCliente = Role::create([
             'nombre' => 'cliente',
             'is_superadmin' => false
         ]);
 
-        // Crear usuario de prueba
+
         $this->usuario = User::create([
             'first_name' => 'Test',
             'last_name' => 'Regresion',
