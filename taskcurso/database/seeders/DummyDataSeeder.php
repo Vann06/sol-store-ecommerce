@@ -164,5 +164,45 @@ class DummyDataSeeder extends Seeder
                 }
             }
         }
+        
+        $estadosPedidos = ['Imprimiendo', 'Pintando', 'Enviando', 'Entregado'];
+        for ($i = 1; $i <= 10; $i++) {
+            $pedido = \App\Models\Pedido::create([
+                'id_usuario' => rand(1, 2), 
+                'fecha_pedido' => now()->subDays(rand(1, 30)),
+                'estado' => $estadosPedidos[array_rand($estadosPedidos)],
+                'created_by' => $adminUser->id,
+                'updated_by' => $adminUser->id,
+            ]);
+
+            if ($pedido->estado === 'Entregado') {
+                \App\Models\HistorialVenta::create([
+                    'id_pedido' => $pedido->id,
+                    'fecha_venta' => $pedido->fecha_pedido,
+                    'monto_total' => rand(50, 500) + (rand(0, 99) / 100),
+                ]);
+            }
+        }
+
+        for ($mes = 1; $mes <= 12; $mes++) {
+            $ventasDelMes = rand(3, 8);
+            for ($v = 1; $v <= $ventasDelMes; $v++) {
+                $fechaVenta = now()->setMonth($mes)->setDay(rand(1, 28));
+                $pedidoVenta = \App\Models\Pedido::create([
+                    'id_usuario' => rand(1, 2),
+                    'fecha_pedido' => $fechaVenta,
+                    'estado' => 'Entregado',
+                    'created_by' => $adminUser->id,
+                    'updated_by' => $adminUser->id,
+                ]);
+
+                \App\Models\HistorialVenta::create([
+                    'id_pedido' => $pedidoVenta->id,
+                    'fecha_venta' => $fechaVenta,
+                    'monto_total' => rand(25, 300) + (rand(0, 99) / 100),
+                ]);
+            }
+        }
+
     }
 }
