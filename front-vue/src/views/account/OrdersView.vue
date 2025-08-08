@@ -545,5 +545,16 @@ const goToShop = () => {
     justify-content: center;
   }
 }
+
+.loading-message,
+.error-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error-message {
+  color: #d32f2f;
+}
 </style>
   
