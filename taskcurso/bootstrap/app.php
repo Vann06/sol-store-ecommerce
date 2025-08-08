@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class, // ← Middleware JWT
             'optional.sanctum' => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
+        
+        // Excluir rutas problemáticas de CSRF temporalmente
+        $middleware->validateCsrfTokens(except: [
+            'admin/reports/exportar/pdf',
+            'admin/reports/filtros/fechas',
+            'admin/reports',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

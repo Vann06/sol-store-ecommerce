@@ -31,7 +31,7 @@ class Pedido extends Model
      */
     public function usuario()
     {
-    return $this->belongsTo(User::class, 'id_usuario');
+        return $this->belongsTo(User::class, 'id_usuario');
     }
 
     /**
@@ -39,7 +39,7 @@ class Pedido extends Model
      */
     public function creador()
     {
-        return $this->belongsTo(Usuario::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -47,7 +47,7 @@ class Pedido extends Model
      */
     public function editor()
     {
-        return $this->belongsTo(Usuario::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**

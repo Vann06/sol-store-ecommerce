@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Usuario;
+use App\Models\User;
 use App\Models\Category;
 use App\Models\Theme;
 use App\Models\DetalleProducto;
@@ -60,7 +60,7 @@ class Producto extends Model
      */
     public function creador()
     {
-        return $this->belongsTo(Usuario::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -68,7 +68,7 @@ class Producto extends Model
      */
     public function editor()
     {
-        return $this->belongsTo(Usuario::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -76,7 +76,7 @@ class Producto extends Model
      */
     public function eliminador()
     {
-        return $this->belongsTo(Usuario::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     /**

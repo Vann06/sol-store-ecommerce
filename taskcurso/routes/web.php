@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PermissionAdminController;
 use App\Http\Controllers\Admin\SettingAdminController;
 use App\Http\Controllers\Admin\CouponAdminController;
 use App\Http\Controllers\Admin\InventarioAdminController;
+use App\Http\Controllers\Admin\ReportAdminController;
 use App\Http\Controllers\Admin\OrderController;
 
 
@@ -33,6 +34,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Inventario admin web
     Route::resource('inventario', InventarioAdminController::class)
         ->names('inventario');
+
+    // Reports admin web
+    Route::resource('reports', ReportAdminController::class)->names('reports');
+    Route::get('reports/metricas/calcular', [ReportAdminController::class, 'calcularMetricas'])
+        ->name('reports.metricas');
+    Route::get('reports/graficos/mostrar', [ReportAdminController::class, 'mostrarGraficos'])
+        ->name('reports.graficos');
+    Route::post('reports/filtros/fechas', [ReportAdminController::class, 'filtrarFechas'])
+        ->name('reports.filtros');
+    Route::post('reports/exportar/pdf', [ReportAdminController::class, 'exportarPdf'])
+        ->name('reports.pdf');
+    Route::get('reports/validacion/roles', [ReportAdminController::class, 'validarAccesosPorRol'])
+        ->name('reports.roles');
+    Route::get('reports/formatos/probar', [ReportAdminController::class, 'probarExportacionFormato'])
+        ->name('reports.formatos');
+    Route::get('reports/navegacion/vista', [ReportAdminController::class, 'estilizarVistaReportes'])
+        ->name('reports.navegacion');
 
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
     Route::resource('categories', CategoryAdminController::class)->names('categories');
