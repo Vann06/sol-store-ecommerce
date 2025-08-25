@@ -22,6 +22,7 @@
     box-sizing: border-box;
     background: linear-gradient(135deg, #fdf8f0 0%, #f4ead6 50%, #f0e4d0 100%);
     margin-top: 80px; 
+    padding-top: var(--header-height);
   }
   
   .account-content {
@@ -83,4 +84,3 @@
     }
   }
   </style>
-  

@@ -1,0 +1,18 @@
+:root {
+  /* ajusta a la altura real del header fijo */
+  --header-height: 96px;
+}
+
+/* Quitar reglas globales que empujaban todo */
+/* html { scroll-padding-top: var(--header-height); } */
+/* body, #app, main { padding-top: var(--header-height); } */
+
+/* Utilízala solo donde la necesites (Carrito) */
+.under-fixed-header {
+  padding-top: var(--header-height);
+}
+
+/* Para elementos sticky dentro de esa vista */
+.sticky-under-header {
+  top: calc(var(--header-height) + 20px) !important;
+}

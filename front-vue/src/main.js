@@ -4,6 +4,7 @@ import router from './router'
 import axios from 'axios'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import './assets/fixed-header.css' // utilidades .under-fixed-header y CSS var
 
 // Axios setup
 axios.defaults.baseURL = 'http://localhost:8000'

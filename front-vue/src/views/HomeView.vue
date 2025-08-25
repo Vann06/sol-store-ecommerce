@@ -24,8 +24,6 @@
         <FeaturedThemes />
         <FeaturedProducts />
         
-        <!-- Debug del carrito (temporal) -->
-        <CartDebug />
         
         <WhatsappButton />
       </main>
