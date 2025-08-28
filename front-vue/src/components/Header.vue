@@ -27,7 +27,7 @@
           </ul>
         </nav>
 
-        <div class="header__tools">
+  <div class="header__tools">
           <div class="search-box">
             <input
               type="text"
@@ -38,9 +38,7 @@
             <img src="/img/search-icon.svg" alt="Search" class="icon-img" @click="handleSearch"/>
           </div>
 
-          <RouterLink to="/cart" class="icon-button">
-            <img src="/img/cart-icon.svg" alt="Cart" class="icon-img" />
-          </RouterLink>
+          <CartWidget />
 
           <!-- SI ESTÁ LOGUEADO -->
           <div v-if="isLoggedIn" class="user-logged">
@@ -70,6 +68,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import {computed} from 'vue'
 import { useLogout } from '@/composables/useLogout'
+import CartWidget from '@/components/CartWidget.vue'
 
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isAuthenticated)

@@ -23,8 +23,8 @@
       </div>
     </div>
 
-    <!-- Lista de pedidos -->
-    <div class="orders-container" v-if="filteredOrders.length > 0">
+  <!-- Lista de pedidos -->
+  <div class="orders-container" v-if="!isLoading && filteredOrders.length > 0">
       <div 
         v-for="order in filteredOrders" 
         :key="order.id" 
@@ -56,12 +56,20 @@
           <div class="order-items">
             <h4><i class="fa fa-box"></i> Productos</h4>
             <div class="items-list">
-              <div v-for="item in order.items" :key="item.id" class="order-item">
-                <img :src="item.image" :alt="item.name" class="item-image">
+              <div
+                v-for="d in (order.raw?.detalles || [])"
+                :key="d.id"
+                class="order-item"
+              >
+                <img
+                  :src="d.detalle_producto?.producto?.imagen || '/img/no-results.svg'"
+                  :alt="d.detalle_producto?.producto?.nombre || 'Producto'"
+                  class="item-image"
+                >
                 <div class="item-info">
-                  <h5>{{ item.name }}</h5>
-                  <p>Cantidad: {{ item.quantity }}</p>
-                  <p class="item-price">${{ item.price }}</p>
+                  <h5>{{ d.detalle_producto?.producto?.nombre || 'Producto' }}</h5>
+                  <p>Cantidad: {{ d.cantidad }}</p>
+                  <p class="item-price">${{ Number(d.precio_unitario || 0).toFixed(2) }}</p>
                 </div>
               </div>
             </div>
@@ -86,7 +94,7 @@
     </div>
 
     <!-- Estado vacío -->
-    <div v-else class="empty-state">
+  <div v-else class="empty-state" v-if="!isLoading">
       <div class="empty-icon">
         <i class="fa fa-shopping-bag"></i>
       </div>
@@ -99,44 +107,20 @@
     </div>
   </div>
 </template><script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useOrdersStore } from '@/stores/orders'
 
 const router = useRouter()
 const activeFilter = ref('all')
 const expandedOrders = ref([])
+const store = useOrdersStore()
 
-// Datos de ejemplo (en producción vendrían del backend)
-const orders = ref([
-  {
-    id: 'ORD-2024-001',
-    date: '2024-01-15T10:30:00Z',
-    status: 'delivered',
-    total: 129.99,
-    items: [
-      { id: 1, name: 'Camiseta Premium', quantity: 2, price: 29.99, image: '/img/product1.jpg' },
-      { id: 2, name: 'Pantalón Casual', quantity: 1, price: 69.99, image: '/img/product2.jpg' }
-    ]
-  },
-  {
-    id: 'ORD-2024-002',
-    date: '2024-01-20T14:15:00Z',
-    status: 'processing',
-    total: 89.50,
-    items: [
-      { id: 3, name: 'Zapatos Deportivos', quantity: 1, price: 89.50, image: '/img/product3.jpg' }
-    ]
-  },
-  {
-    id: 'ORD-2024-003',
-    date: '2024-01-22T09:45:00Z',
-    status: 'shipped',
-    total: 45.00,
-    items: [
-      { id: 4, name: 'Gorra Snapback', quantity: 3, price: 15.00, image: '/img/product4.jpg' }
-    ]
-  }
-])
+onMounted(async () => {
+  await store.fetchAll()
+})
+
+const isLoading = computed(() => store.loading)
 
 const orderStatuses = [
   { key: 'all', label: 'Todos', icon: 'fa fa-list' },
@@ -147,10 +131,9 @@ const orderStatuses = [
 ]
 
 const filteredOrders = computed(() => {
-  if (activeFilter.value === 'all') {
-    return orders.value
-  }
-  return orders.value.filter(order => order.status === activeFilter.value)
+  const list = store.items || []
+  if (activeFilter.value === 'all') return list
+  return list.filter(order => order.status === activeFilter.value)
 })
 
 const toggleOrderDetail = (orderId) => {
@@ -163,8 +146,9 @@ const toggleOrderDetail = (orderId) => {
 }
 
 const getOrderCount = (status) => {
-  if (status === 'all') return orders.value.length
-  return orders.value.filter(order => order.status === status).length
+  const list = store.items || []
+  if (status === 'all') return list.length
+  return list.filter(order => order.status === status).length
 }
 
 const getStatusIcon = (status) => {

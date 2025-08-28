@@ -15,7 +15,7 @@
           :class="['address-card', { 'default': address.is_default }]"
         >
           <div class="address-header">
-            <h4>{{ address.title }}</h4>
+            <h4>{{ getTitle(address) }}</h4>
             <div class="address-badges">
               <span v-if="address.is_default" class="badge default-badge">
                 <i class="fa fa-star"></i> Predeterminada
@@ -258,43 +258,18 @@
       <span>{{ message }}</span>
     </div>
   </div>
-</template><script setup>
-import { ref, reactive, computed } from 'vue'
+ </template><script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAddressesStore } from '@/stores/addresses'
 
 const loading = ref(false)
 const message = ref('')
 const messageType = ref('')
 const editingAddress = ref(null)
-
-// Datos de ejemplo (en producción vendrían del backend)
-const addresses = ref([
-  {
-    id: 1,
-    title: 'Casa Principal',
-    type: 'home',
-    street: 'Av. Reforma 123, Colonia Centro',
-    city: 'Ciudad de México',
-    state: 'CDMX',
-    zip_code: '06000',
-    country: 'MX',
-    phone: '+52 55 1234 5678',
-    notes: 'Casa blanca con portón negro',
-    is_default: true
-  },
-  {
-    id: 2,
-    title: 'Oficina',
-    type: 'work',
-    street: 'Calle Insurgentes 456, Piso 5',
-    city: 'Ciudad de México',
-    state: 'CDMX',
-    zip_code: '03100',
-    country: 'MX',
-    phone: '+52 55 9876 5432',
-    notes: 'Entregar en recepción',
-    is_default: false
-  }
-])
+const router = useRouter()
+const addressesStore = useAddressesStore()
+const addresses = computed(() => addressesStore.items)
 
 const formData = reactive({
   title: '',
@@ -337,8 +312,11 @@ const getTypeLabel = (type) => {
 }
 
 const formatAddress = (address) => {
+  if (address?.direccion) return address.direccion
   return `${address.street}, ${address.city}, ${address.state} ${address.zip_code}`
 }
+
+const getTitle = (address) => address?.title || 'Dirección'
 
 const editAddress = (address) => {
   editingAddress.value = address.id
@@ -347,97 +325,40 @@ const editAddress = (address) => {
 
 const setDefault = async (addressId) => {
   loading.value = true
-  try {
-    // Aquí harías la llamada al backend
-    // await axios.put(`/api/addresses/${addressId}/set-default`)
-    
-    // Simular llamada
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Actualizar estado local
-    addresses.value.forEach(addr => {
-      addr.is_default = addr.id === addressId
-    })
-    
-    showMessage('Dirección predeterminada actualizada', 'success')
-  } catch (error) {
-    showMessage('Error al actualizar dirección predeterminada', 'error')
-  } finally {
-    loading.value = false
-  }
+  const res = await addressesStore.setDefault(addressId)
+  if (res.success) showMessage('Dirección predeterminada actualizada', 'success')
+  else showMessage(res.error || 'Error al actualizar dirección predeterminada', 'error')
+  loading.value = false
 }
 
 const deleteAddress = async (addressId) => {
   if (!confirm('¿Estás seguro de que quieres eliminar esta dirección?')) return
   
   loading.value = true
-  try {
-    // Aquí harías la llamada al backend
-    // await axios.delete(`/api/addresses/${addressId}`)
-    
-    // Simular llamada
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Actualizar estado local
-    const index = addresses.value.findIndex(addr => addr.id === addressId)
-    if (index > -1) {
-      addresses.value.splice(index, 1)
-    }
-    
-    showMessage('Dirección eliminada correctamente', 'success')
-  } catch (error) {
-    showMessage('Error al eliminar la dirección', 'error')
-  } finally {
-    loading.value = false
-  }
+  const res = await addressesStore.remove(addressId)
+  if (res.success) showMessage('Dirección eliminada correctamente', 'success')
+  else showMessage(res.error || 'Error al eliminar la dirección', 'error')
+  loading.value = false
 }
 
 const saveAddress = async () => {
   loading.value = true
-  try {
-    if (editingAddress.value) {
-      // Actualizar dirección existente
-      // await axios.put(`/api/addresses/${editingAddress.value}`, formData)
-      
-      // Simular llamada
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Actualizar estado local
-      const index = addresses.value.findIndex(addr => addr.id === editingAddress.value)
-      if (index > -1) {
-        addresses.value[index] = { ...formData, id: editingAddress.value }
-      }
-      
-      showMessage('Dirección actualizada correctamente', 'success')
-    } else {
-      // Crear nueva dirección
-      // const response = await axios.post('/api/addresses', formData)
-      
-      // Simular llamada
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Agregar al estado local
-      const newId = Math.max(...addresses.value.map(a => a.id)) + 1
-      addresses.value.push({ ...formData, id: newId })
-      
-      showMessage('Dirección guardada correctamente', 'success')
-    }
-    
-    // Si se marca como predeterminada, actualizar las demás
-    if (formData.is_default) {
-      addresses.value.forEach(addr => {
-        if (addr.id !== editingAddress.value) {
-          addr.is_default = false
-        }
-      })
-    }
-    
-    resetForm()
-  } catch (error) {
-    showMessage('Error al guardar la dirección', 'error')
-  } finally {
-    loading.value = false
+  let res
+  if (editingAddress.value) {
+    res = await addressesStore.update(editingAddress.value, {
+      direccion: formatAddress(formData),
+      is_default: !!formData.is_default
+    })
+  } else {
+    res = await addressesStore.add({
+      direccion: formatAddress(formData),
+      is_default: !!formData.is_default
+    })
   }
+  if (res.success) showMessage('Dirección guardada correctamente', 'success')
+  else showMessage(res.error || 'Error al guardar la dirección', 'error')
+  loading.value = false
+  resetForm()
 }
 
 const cancelEdit = () => {
@@ -468,6 +389,9 @@ const showMessage = (text, type) => {
     messageType.value = ''
   }, 5000)
 }
+
+// Cargar desde backend
+onMounted(() => { addressesStore.fetchAll() })
 </script>
 
 <style scoped>

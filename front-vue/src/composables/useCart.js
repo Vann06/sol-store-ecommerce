@@ -235,6 +235,8 @@ export function useCart() {
     cartSummary,
     isAuthenticated,
     operationStates,
+  // Mensajería
+  showMessage,
 
     // Métodos principales
     addToCart,

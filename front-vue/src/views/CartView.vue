@@ -9,6 +9,7 @@
       />
 
       <div class="cart-content">
+  <!-- Nota: Se eliminó el aviso de dirección para no bloquear el checkout -->
         <!-- Productos en el carrito -->
         <section class="cart-items" aria-live="polite">
           <!-- Loading / Skeleton -->
@@ -123,6 +124,7 @@
             class="checkout-btn"
             :disabled="items.length === 0 || loading"
             data-testid="checkout-btn"
+            @click="handleCheckout"
           >
             Finalizar compra
           </button>
@@ -134,12 +136,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
+import { useRouter } from 'vue-router'
+import { useOrdersStore } from '@/stores/orders'
+import { useCart } from '@/composables/useCart'
+import { useAddressesStore } from '@/stores/addresses'
+import { useUserStore } from '@/stores/userStore'
 
-// estado mínimo para que la vista no rompa
-const loading = ref(false)
-const items = ref([])
+const router = useRouter()
+const userStore = useUserStore()
+const ordersStore = useOrdersStore()
+const cart = useCart()
+const addressesStore = useAddressesStore()
+
+const loading = computed(() => cart.isLoading.value)
+const items = computed(() => cart.items.value)
 
 // helpers usados en el template
 function formatCurrency(n) {
@@ -150,11 +162,10 @@ function onImgError(e) {
   e.target.src = 'https://via.placeholder.com/96x96?text=IMG'
 }
 function updateQuantity(item, next) {
-  const n = Math.max(1, Number(next) || 1)
-  item.cantidad = n
+  cart.updateQuantity(item.id, next)
 }
 function removeItem(item) {
-  items.value = items.value.filter(i => i !== item)
+  cart.removeFromCart(item.id)
 }
 
 // totales
@@ -163,6 +174,44 @@ const subtotal = computed(() =>
 )
 const tax = computed(() => subtotal.value * 0.16)
 const total = computed(() => subtotal.value + tax.value)
+
+async function handleCheckout() {
+  if (!userStore?.isAuthenticated) {
+    router.push({ path: '/account/login', query: { redirect: '/cart' } })
+    return
+  }
+  if (!items.value || items.value.length === 0) {
+    cart.showMessage('Tu carrito está vacío', 'warning')
+    return
+  }
+
+  // usar dirección predeterminada si existe (persistida en backend)
+  if (!addressesStore.items.length) {
+    // carga perezosa en caso de que aún no se hayan cargado
+    await addressesStore.fetchAll()
+  }
+  const direccion_id = addressesStore.defaultId || null
+  if (!direccion_id) {
+    cart.showMessage('Agrega una dirección de envío en tu cuenta', 'warning')
+    router.push('/account/address')
+    return
+  }
+
+  const res = await ordersStore.checkout({ direccion_id })
+
+  if (!res.success && res.status === 401) {
+    router.push({ path: '/account/login', query: { redirect: '/cart' } })
+    return
+  }
+
+  if (res.success) {
+    cart.showMessage('Pedido creado correctamente', 'success')
+    cart.clearCart() // Vacía el carrito tras pedido
+  router.push('/account/orders').catch(() => router.push('/'))
+  } else {
+    cart.showMessage(res.error || 'No se pudo crear el pedido', 'error')
+  }
+}
 </script>
 
 <style scoped>
@@ -198,6 +247,14 @@ const total = computed(() => subtotal.value + tax.value)
   grid-template-columns: 1.5fr 0.9fr;
   gap: 28px;
 }
+
+/* Aviso de dirección faltante */
+.address-warning { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 16px; border-left: 4px solid #f0c040; }
+.warning-icon { font-size: 22px; }
+.warning-text h4 { margin: 0 0 2px; font-size: 16px; }
+.warning-text p { margin: 0; color: #6b7280; font-size: 14px; }
+.address-btn { border: 1px solid #7a0019; color: #7a0019; background: #fff; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.address-btn:hover { background: #fff7ea; }
 
 @media (max-width: 1024px) {
   .cart-content { grid-template-columns: 1fr; }
@@ -298,9 +355,6 @@ const total = computed(() => subtotal.value + tax.value)
 
 /* Empty state */
 .empty-state { text-align: center; padding: 32px; background: #fff; border-radius: 20px; border: 1px dashed rgba(122,0,25,0.25); }
-.badge-gradient {
-  /* ya existe el bloque, sólo aseguramos tamaño del icono */
-}
 .badge-gradient .icon-cart {
   width: 36px;
   height: 36px;

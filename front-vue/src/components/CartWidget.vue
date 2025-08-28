@@ -1,24 +1,15 @@
 <template>
   <div class="cart-widget">
-    <button 
-      class="cart-button"
-      @click="toggleCart"
-      :class="{ 'cart-button-active': isOpen }"
-    >
-      <div class="cart-icon">
-        <i class="fas fa-shopping-cart"></i>
-        <span 
-          v-if="totalItems > 0" 
-          class="cart-badge"
-          :class="{ 'cart-badge-pulse': justAdded }"
-        >
-          {{ totalItems > 99 ? '99+' : totalItems }}
-        </span>
-      </div>
-      <div class="cart-text">
-        <span class="cart-label">Carrito</span>
-        <span class="cart-total">{{ formatPrice(totalPrice) }}</span>
-      </div>
+    <button class="cart-icon-btn" @click="toggleCart">
+      <svg class="cart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+        <g id="shopping_cart" data-name="shopping cart">
+          <path fill="currentColor" d="M29.74,8.32A1,1,0,0,0,29,8H13a1,1,0,0,0,0,2H27.91l-.81,9.48a1.87,1.87,0,0,1-2,1.52H12.88a1.87,1.87,0,0,1-2-1.52L10,8.92l0-.08s0-.06,0-.08L9.33,6.2A3.89,3.89,0,0,0,7,3.52L3.37,2.07a1,1,0,0,0-.74,1.86L6.25,5.38a1.89,1.89,0,0,1,1.14,1.3L8,9.16l.9,10.49a3.87,3.87,0,0,0,4,3.35H13v2.18a3,3,0,1,0,2,0V23h8v2.18a3,3,0,1,0,2,0V23h.12a3.87,3.87,0,0,0,4-3.35L30,9.08A1,1,0,0,0,29.74,8.32ZM14,29a1,1,0,1,1,1-1A1,1,0,0,1,14,29Zm10,0a1,1,0,1,1,1-1A1,1,0,0,1,24,29Z"/>
+          <path fill="currentColor" d="M15,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
+          <path fill="currentColor" d="M20,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
+          <path fill="currentColor" d="M25,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
+        </g>
+      </svg>
+      <span v-if="totalItems > 0" class="cart-badge">{{ totalItems }}</span>
     </button>
 
     <!-- Dropdown del carrito -->
@@ -95,15 +86,15 @@
           
           <div class="cart-actions">
             <BaseButton 
-              variant="outline-primary" 
-              size="small"
+              variant="outline" 
+              size="sm"
               @click="goToCart"
             >
               Ver carrito
             </BaseButton>
             <BaseButton 
               variant="primary" 
-              size="small"
+              size="sm"
               @click="goToCheckout"
               :disabled="!canCheckout"
             >
@@ -176,12 +167,12 @@ const goToCart = () => {
 }
 
 const goToCheckout = () => {
-  router.push('/checkout')
+  router.push('/cart')
   closeCart()
 }
 
 const goToProducts = () => {
-  router.push('/productos')
+  router.push('/')
   closeCart()
 }
 
@@ -231,69 +222,27 @@ watch(totalItems, (newCount, oldCount) => {
   position: relative;
 }
 
-.cart-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.cart-button:hover,
-.cart-button-active {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.cart-icon {
+.cart-icon-btn {
   position: relative;
-  font-size: 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .cart-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #e53e3e;
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #7d1c2b;
-}
-
-.cart-badge-pulse {
-  animation: pulse-badge 0.6s ease-in-out;
-}
-
-.cart-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.cart-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.cart-total {
-  font-size: 0.75rem;
-  opacity: 0.9;
-  font-weight: 600;
+  top: 0px;
+  right: -2px;
+  background: #e53935;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 2px 7px;
+  min-width: 22px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  pointer-events: none;
 }
 
 /* Dropdown */

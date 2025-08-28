@@ -75,14 +75,8 @@ export const useCartStore = defineStore('cart', {
       this.error = null
 
       try {
-        const token = this.getAuthToken()
-        console.log('🔑 Token available:', !!token)
-        
-        if (!token) {
-          console.log('❌ No token, clearing cart')
-          this.items = []
-          return { success: false, message: 'Usuario no autenticado' }
-        }
+  const token = this.getAuthToken()
+  console.log('🔑 Token available:', !!token)
 
         console.log('📡 Making request to:', `${API_BASE_URL}/carrito`)
         const response = await axios.get(`${API_BASE_URL}/carrito`, {
@@ -132,11 +126,7 @@ export const useCartStore = defineStore('cart', {
       this.error = null
 
       try {
-        const token = this.getAuthToken()
-        if (!token) {
-          console.log('❌ No token for addToCart')
-          throw new Error('Debes iniciar sesión para agregar productos al carrito')
-        }
+  // Token no obligatorio, backend soporta invitados
 
         // Validaciones
         if (!productId) {
@@ -205,10 +195,7 @@ export const useCartStore = defineStore('cart', {
       this.error = null
 
       try {
-        const token = this.getAuthToken()
-        if (!token) {
-          throw new Error('Usuario no autenticado')
-        }
+  // Permitir invitados (backend resuelve por sesión/fingerprint)
 
         if (newQuantity < 1) {
           // Si la cantidad es 0 o menor, eliminar el item
@@ -258,10 +245,7 @@ export const useCartStore = defineStore('cart', {
       this.error = null
 
       try {
-        const token = this.getAuthToken()
-        if (!token) {
-          throw new Error('Usuario no autenticado')
-        }
+  // Permitir invitados
 
         // Guardar referencia del item para posible rollback
         const itemIndex = this.items.findIndex(item => item.id === itemId)
@@ -304,17 +288,15 @@ export const useCartStore = defineStore('cart', {
     },
 
     // Limpiar carrito completamente
-    async clearCart() {
+  async clearCart() {
       this.loading = true
       this.error = null
 
       try {
-        const token = this.getAuthToken()
-        if (!token) {
-          throw new Error('Usuario no autenticado')
-        }
+  // Permitir invitados
 
-        await axios.delete(`${API_BASE_URL}/carrito/limpiar`, {
+  // Backend route is /carrito/vaciar
+  await axios.delete(`${API_BASE_URL}/carrito/vaciar`, {
           headers: this.getAuthHeaders()
         })
 

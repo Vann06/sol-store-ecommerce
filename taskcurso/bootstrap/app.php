@@ -12,11 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Registrar el middleware opcional de Sanctum
+        // Registrar alias de middleware
         $middleware->alias([
+            // Forzar que 'auth' use nuestro middleware que no redirige a rutas web inexistentes
+            'auth' => \App\Http\Middleware\Authenticate::class,
             'optional.sanctum' => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->create();
