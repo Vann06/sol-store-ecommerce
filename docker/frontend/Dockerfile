@@ -29,8 +29,8 @@ RUN npm install && \
 RUN npm ci
 >>>>>>> bf1ed8b (dockerChange)
 
-# Instalar Playwright y sus dependencias
-RUN npx playwright install --with-deps chromium
+# Nota: no instalamos los navegadores de Playwright aquí (fallan en Alpine durante build).
+# El servicio `playwright` usa su propia imagen para ejecutar tests y descargar navegadores.
 
 # Copia el resto del código fuente de la aplicación al contenedor
 COPY . .

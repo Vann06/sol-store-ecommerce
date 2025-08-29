@@ -1,19 +1,40 @@
 # 1. Base: PHP 8.2 con Apache
 FROM php:8.2-apache
 
-# 2. Instalar dependencias del sistema y extensiones de PHP necesarias
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libpq-dev \
-    libzip-dev \
-  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip \
-  && rm -rf /var/lib/apt/lists/*
+# Ensure Debian APT sources use HTTPS (some environments block plain HTTP). This
+# replaces http://deb.debian.org with https://deb.debian.org in default sources
+# before running apt-get so builds with --no-cache don't fail with 403.
+RUN printf '%s\n' \
+    "deb https://deb.debian.org/debian trixie main contrib non-free" \
+    "deb https://deb.debian.org/debian trixie-updates main contrib non-free" \
+    "deb https://deb.debian.org/debian-security trixie-security main contrib non-free" \
+    > /etc/apt/sources.list && \
+        apt-get update -o Acquire::Retries=3 && \
+        apt-get install -y --no-install-recommends apt-transport-https ca-certificates gnupg dirmngr \
+        && rm -rf /var/lib/apt/lists/*
+
+# Install system deps and PHP extensions (use HTTPS mirrors and retries)
+RUN apt-get update -o Acquire::Retries=3 \
+    && apt-get install -y --no-install-recommends \
+        git \
+        curl \
+        libpng-dev \
+        libonig-dev \
+        libxml2-dev \
+        zip \
+        unzip \
+        libpq-dev \
+        libzip-dev \
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ImageMagick and the PHP imagick extension for server-side PNG rendering
+RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-recommends \
+    imagemagick \
+    libmagickwand-dev \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && rm -rf /var/lib/apt/lists/*
 
 # 3. Habilitar mod_rewrite para URLs amigables
 RUN a2enmod rewrite
@@ -25,14 +46,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # 6. Instalar dependencias para pruebas
-RUN apt-get update && apt-get install -y \
-    default-mysql-client \
-    gnupg \
-    unzip \
-    libnss3 \
-    libgbm-dev \
-    libxshmfence1 \
-    libasound2
+RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-recommends \
+        default-mysql-client \
+        gnupg \
+        unzip \
+        libnss3 \
+        libgbm-dev \
+        libxshmfence1 \
+        libasound2 \
+    && rm -rf /var/lib/apt/lists/*
 
 <<<<<<< HEAD
 # 7. Instalar dependencias de Composer y Pail

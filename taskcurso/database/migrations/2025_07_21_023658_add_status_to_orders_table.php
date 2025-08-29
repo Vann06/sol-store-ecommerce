@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->enum('status', ['pendiente', 'en produccion', 'enviado', 'entregado'])->default('pendiente');
-        });
+        // En este proyecto la tabla de pedidos se llama 'pedidos'
+        if (Schema::hasTable('pedidos')) {
+            Schema::table('pedidos', function (Blueprint $table) {
+                if (!Schema::hasColumn('pedidos', 'status')) {
+                    $table->enum('status', ['pendiente', 'en produccion', 'enviado', 'entregado'])->default('pendiente');
+                }
+            });
+        }
     }
 
 
@@ -22,8 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        if (Schema::hasTable('pedidos') && Schema::hasColumn('pedidos', 'status')) {
+            Schema::table('pedidos', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+        }
     }
 }; 

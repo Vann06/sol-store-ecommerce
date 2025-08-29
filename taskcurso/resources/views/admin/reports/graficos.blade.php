@@ -23,7 +23,7 @@
                 Período: {{ ucfirst($chart->options['group_by_period'] ?? 'month') }}
             </div>
         </div>
-        <div class="chart-container" style="height: 400px;">
+        <div class="chart-container" style="height: 400px; position: relative; overflow: hidden;">
             @if(isset($chart))
                 {!! $chart->renderHtml() !!}
             @else
@@ -54,7 +54,7 @@
                         📄 Exportar como PDF
                     </button>
                 </form>
-                <a href="{{ route('admin.reports.metricas') }}" class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm">
+                <a href="{{ route('admin.reports.metricas.view') }}" class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm">
                     📈 Ver Métricas
                 </a>
                 <a href="{{ route('admin.reports.navegacion') }}" class="block w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-center text-sm">
@@ -93,4 +93,76 @@
     {!! $chart->renderChartJsLibrary() !!}
     {!! $chart->renderJs() !!}
 @endif
+@endsection
+
+@push('styles')
+<style>
+/* Controlar altura de gráficas y prevenir overflow */
+.chart-container {
+    max-height: 400px !important;
+    min-height: 300px !important;
+    height: 400px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 380px !important;
+    object-fit: contain;
+}
+
+/* Asegurar que las gráficas no interfieran con otros elementos */
+.bg-white.dark\:bg-gray-800.p-6.rounded-lg.shadow.mb-8 {
+    margin-bottom: 2rem !important;
+    z-index: 1;
+}
+
+/* Responsividad mejorada */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+    .chart-container canvas {
+        max-height: 280px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .chart-container {
+        height: 250px !important;
+        max-height: 250px !important;
+    }
+    .chart-container canvas {
+        max-height: 230px !important;
+    }
+}
+</style>
+@endpush
+
+@section('inline-scripts')
+<script>
+// Ensure Chart.js canvases fill their container height and trigger a redraw.
+function ensureChartsFitInContainer() {
+    document.querySelectorAll('.chart-container').forEach(function(container){
+        const canvas = container.querySelector('canvas');
+        if (!canvas) return;
+        const style = getComputedStyle(container);
+        const h = container.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);
+        canvas.style.width = '100%';
+        canvas.style.height = h + 'px';
+    });
+    // Let Chart.js respond to resize event
+    window.dispatchEvent(new Event('resize'));
+}
+
+// Run after chart library had a chance to render
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureChartsFitInContainer, 200); });
+window.addEventListener('resize', function(){ setTimeout(ensureChartsFitInContainer, 80); });
+</script>
 @endsection

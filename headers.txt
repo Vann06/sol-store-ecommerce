@@ -1,0 +1,11 @@
+HTTP/1.1 302 Found
+Date: Thu, 28 Aug 2025 06:11:49 GMT
+Server: Apache/2.4.65 (Debian)
+X-Powered-By: PHP/8.2.29
+Cache-Control: no-cache, private
+Location: http://localhost:8000/admin/reports
+Set-Cookie: XSRF-TOKEN=eyJpdiI6ImVNdnNaVHhxUExFeFB1M3c0QmxjRkE9PSIsInZhbHVlIjoiaFVuTEdjTmRYZFlLMzMzZUlpRmdZUXF1RDNvNExkakpNaUEydGE1MHdTNGVUVjhxeEdKQU1IN1pjeStyRXVoS3g0a2pYNGJjaEUzekwxU0pQMVBLemRLVFJ0ZWFkaExOYWxweWxQL0FURGsvTFF0VHZ2WDU4WXQrb2JkUWt0ZFYiLCJtYWMiOiI2NGNiNmNhY2E5ZTkwNzk0NWZkYjI3YTk3Nzc5Y2Y5MTY1Y2IyMGZjYTVkMThlYzNlYTg1NDE3OWQ3MDlkMjY5IiwidGFnIjoiIn0%3D; expires=Thu, 28 Aug 2025 08:11:56 GMT; Max-Age=7200; path=/; domain=backend; samesite=lax
+Set-Cookie: laravel_session=eyJpdiI6IjQ3YzlkUjdPbm5PdFduclkxVlAwSEE9PSIsInZhbHVlIjoiN0ZWMTBMVmpNWWxYYkViSis1elVQRW5rc0RRWHgvMjYwbkFVbFYwVEZ5bmJ6bXR5KzNMVlZQczQ2b2ZNQnJvS0NvdG9IK2FtU05vRG56Y2J4ZjhwMFBOTUxNQm9qemJWZWFJQlZFZVRPTFh3WkVjazNWNWs0eFdyekt0VUVWdXoiLCJtYWMiOiJjMzQyYTg5ODZkNGRkZjk5MzU5ZDRmYzdjZjAxMDUzMTcwZDU4NzhkNmFmMzNkMGFiZWI0MjdlMDFkMDg4Y2U1IiwidGFnIjoiIn0%3D; expires=Thu, 28 Aug 2025 08:11:56 GMT; Max-Age=7200; path=/; domain=backend; httponly; samesite=lax
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=utf-8
+

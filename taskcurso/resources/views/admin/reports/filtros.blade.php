@@ -83,11 +83,11 @@
                 </button>
             </div>
         </div>
-        <div class="chart-container" style="height: 400px;">
+        <div class="chart-container" style="height: 420px;">
             @if(isset($chartFiltrado))
                 {!! $chartFiltrado->renderHtml() !!}
             @else
-                <div class="flex items-center justify-center h-full">
+                <div class="flex items-center justify-center" style="min-height:320px;">
                     <div class="text-center">
                         <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -122,17 +122,17 @@
 
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h4 class="text-lg font-semibold mb-4">Acciones Rápidas</h4>
-            <div class="space-y-2">
-                <a href="{{ route('admin.reports.metricas') }}" class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm">
-                    📈 Ver Métricas Detalladas
-                </a>
-                <a href="{{ route('admin.reports.graficos') }}" class="block w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-center text-sm">
-                    📉 Ver Más Gráficos
-                </a>
-                <button onclick="shareReport()" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
-                    👤 Compartir Reporte
-                </button>
-            </div>
+                <div class="space-y-2">
+                    <a href="{{ route('admin.reports.metricas.view') }}" class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm">
+                        📈 Ver Métricas Detalladas
+                    </a>
+                    <a href="{{ route('admin.reports.graficos') }}" class="block w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-center text-sm">
+                        📉 Ver Más Gráficos
+                    </a>
+                    <button onclick="shareReport()" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
+                        👤 Compartir Reporte
+                    </button>
+                </div>
         </div>
 
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -151,6 +151,31 @@
         </div>
     </div>
 </div>
+@endsection
+
+@push('styles')
+<style>
+.chart-container canvas { width:100% !important; height:100% !important; }
+</style>
+@endpush
+
+@section('inline-scripts')
+<script>
+function ensureChartsFitInContainer() {
+    document.querySelectorAll('.chart-container').forEach(function(container){
+        const canvas = container.querySelector('canvas');
+        if (!canvas) return;
+        const style = getComputedStyle(container);
+        const h = container.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);
+        canvas.style.width = '100%';
+        canvas.style.height = h + 'px';
+    });
+    window.dispatchEvent(new Event('resize'));
+}
+
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureChartsFitInContainer, 200); });
+window.addEventListener('resize', function(){ setTimeout(ensureChartsFitInContainer, 80); });
+</script>
 @endsection
 
 @section('javascript')
@@ -194,7 +219,28 @@ function setQuickFilter(period) {
 }
 
 function exportChart() {
-    alert('🚧 Funcionalidad de exportación de imagen en desarrollo');
+    // Get the current date range for the image URL
+    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
+    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
+    
+    // Create the image download URL
+    const imageUrl = '{{ route("admin.reports.chart.image") }}?fecha_inicio=' + fechaInicio + '&fecha_fin=' + fechaFin;
+    
+    // Create a temporary link element to trigger download
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'grafica_filtrada_' + fechaInicio + '_' + fechaFin + '.png';
+    link.target = '_blank';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success message
+    setTimeout(() => {
+        alert('📥 Descarga iniciada. Si el archivo no se descarga automáticamente, verifique la configuración del navegador.');
+    }, 500);
 }
 
 function shareReport() {

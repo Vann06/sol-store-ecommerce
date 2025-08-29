@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    // Use 'file' by default for development/demo to avoid requiring the
+    // database sessions table. Production may override with SESSION_DRIVER.
+    'driver' => env('SESSION_DRIVER', 'file'),
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +158,10 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    // If running in a local/dev environment the docker internal hostname (e.g. "backend")
+    // should not be used as the cookie domain because browsers on the host (localhost)
+    // will not send the cookie. Use null to let the browser default to the current host.
+    'domain' => (env('SESSION_DOMAIN') && env('SESSION_DOMAIN') !== 'backend') ? env('SESSION_DOMAIN') : null,
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +174,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Default to false in development; production can override with SESSION_SECURE_COOKIE=true
+    'secure' => env('SESSION_SECURE_COOKIE', false),
 
     /*
     |--------------------------------------------------------------------------

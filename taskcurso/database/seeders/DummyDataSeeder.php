@@ -21,8 +21,10 @@ class DummyDataSeeder extends Seeder
 {
     public function run(): void
     {
-        \DB::table('detalle_pedidos')->truncate();
-        \DB::table('pedidos')->truncate();
+        if (app()->environment(['local', 'testing'])) {
+            \DB::table('detalle_pedidos')->truncate();
+            \DB::table('pedidos')->truncate();
+        }
 
         $cliente = Role::firstOrCreate(['nombre' => 'cliente'], ['is_superadmin' => false]);
         $admin = Role::firstOrCreate(['nombre' => 'admin'], ['is_superadmin' => true]);
@@ -144,16 +146,29 @@ class DummyDataSeeder extends Seeder
             ],
         ];
 
+        // Create a few deterministic sample pedidos (idempotent)
         foreach ($pedidosDummy as $pedidoData) {
             $productosAsociados = $pedidoData['productos'];
             unset($pedidoData['productos']);
 
-            $pedido = Pedido::create($pedidoData);
+            // Avoid creating duplicate pedidos by looking up an existing one
+            // matching user, estado and fecha_pedido (date only)
+            $existing = Pedido::where('id_usuario', $pedidoData['id_usuario'])
+                ->where('estado', $pedidoData['estado'])
+                ->whereDate('fecha_pedido', $pedidoData['fecha_pedido']->format('Y-m-d'))
+                ->first();
+
+            if ($existing) {
+                $pedido = $existing;
+            } else {
+                $pedido = Pedido::create($pedidoData);
+            }
 
             foreach ($productosAsociados as $producto) {
                 $detalleProducto = $detallesCreados[$producto->id] ?? null;
 
                 if ($detalleProducto) {
+                    // ensure detalle_pedidos is not duplicated
                     DetallePedido::firstOrCreate(
                         ['id_pedido' => $pedido->id, 'id_detalle_producto' => $detalleProducto->id],
                         [
@@ -166,28 +181,56 @@ class DummyDataSeeder extends Seeder
         }
         
         $estadosPedidos = ['Imprimiendo', 'Pintando', 'Enviando', 'Entregado'];
+        // Create a small set of random pedidos (idempotent by checking date+user)
         for ($i = 1; $i <= 10; $i++) {
-            $pedido = \App\Models\Pedido::create([
-                'id_usuario' => rand(1, 2), 
-                'fecha_pedido' => now()->subDays(rand(1, 30)),
-                'estado' => $estadosPedidos[array_rand($estadosPedidos)],
-                'created_by' => $adminUser->id,
-                'updated_by' => $adminUser->id,
-            ]);
+            $fecha_random = now()->subDays(rand(1, 30));
+            // choose an existing user id (prefer clienteUser, adminUser)
+            $user_id_random = (rand(0, 1) === 0) ? $clienteUser->id : $adminUser->id;
+            $estado_random = $estadosPedidos[array_rand($estadosPedidos)];
+
+            $existing = \App\Models\Pedido::where('id_usuario', $user_id_random)
+                ->where('estado', $estado_random)
+                ->whereDate('fecha_pedido', $fecha_random->format('Y-m-d'))
+                ->first();
+
+            if ($existing) {
+                $pedido = $existing;
+            } else {
+                $pedido = \App\Models\Pedido::create([
+                    'id_usuario' => $user_id_random,
+                    'fecha_pedido' => $fecha_random,
+                    'estado' => $estado_random,
+                    'created_by' => $adminUser->id,
+                    'updated_by' => $adminUser->id,
+                ]);
+            }
 
             if ($pedido->estado === 'Entregado') {
-                \App\Models\HistorialVenta::create([
+                // Avoid duplicating historial_venta for same pedido
+                \App\Models\HistorialVenta::firstOrCreate([
                     'id_pedido' => $pedido->id,
                     'fecha_venta' => $pedido->fecha_pedido,
+                ], [
                     'monto_total' => rand(50, 500) + (rand(0, 99) / 100),
                 ]);
             }
         }
 
+        // Monthly sales data: create only when not present to avoid bulk duplicates
         for ($mes = 1; $mes <= 12; $mes++) {
-            $ventasDelMes = rand(3, 8);
+            // Reduce monthly generated sales for lighter demo data
+            // previously rand(3,8) produced many pedidos; use rand(0,2) to keep demo small
+            $ventasDelMes = rand(0, 2);
             for ($v = 1; $v <= $ventasDelMes; $v++) {
-                $fechaVenta = now()->setMonth($mes)->setDay(rand(1, 28));
+                $fechaVenta = now()->setMonth($mes)->setDay(rand(1, 28))->startOfDay();
+
+                $existingVenta = \App\Models\HistorialVenta::whereDate('fecha_venta', $fechaVenta->format('Y-m-d'))
+                    ->first();
+
+                if ($existingVenta) {
+                    continue; // skip - already have a sale for that date
+                }
+
                 $pedidoVenta = \App\Models\Pedido::create([
                     'id_usuario' => rand(1, 2),
                     'fecha_pedido' => $fechaVenta,
