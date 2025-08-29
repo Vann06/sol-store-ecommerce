@@ -98,9 +98,46 @@
 <body>
     <div class="header">
         <h1>{{ $datos['titulo'] ?? 'Reporte de Ventas' }}</h1>
-        <p>Generado el: {{ $fecha_generacion->format('d/m/Y H:i:s') }}</p>
+    <p>Generado el: {{ isset($fecha_generacion) ? $fecha_generacion->format('d/m/Y H:i:s') : date('d/m/Y H:i:s') }}</p>
         <p>SOL Store - Sistema de Reportes</p>
     </div>
+
+    {{-- Sección de Gráfico Mejorada para PDFs --}}
+    @if(!empty($chartPngBase64))
+        <div class="section chart-section">
+            <h2>Gráfico de Datos</h2>
+            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                <img src="data:image/png;base64,{{ $chartPngBase64 }}" alt="Gráfico de Datos" style="max-width:100%; width:800px; height:400px; object-fit:contain; display:block; margin:0 auto;" />
+            </div>
+        </div>
+    @elseif(!empty($chartImageUrl))
+        <div class="section chart-section">
+            <h2>Gráfico de Datos</h2>
+            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                {{-- DomPDF puede obtener imágenes remotas cuando isRemoteEnabled es true --}}
+                <img src="{{ $chartImageUrl }}" alt="Gráfico de Datos" style="max-width:100%; width:800px; height:400px; object-fit:contain; display:block; margin:0 auto;" />
+            </div>
+        </div>
+    @elseif(!empty($chartSvg))
+        <div class="section chart-section">
+            <h2>Gráfico de Datos</h2>
+            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                {{-- SVG inline optimizado para DomPDF --}}
+                <div style="display:inline-block; width:800px; height:400px; background:#ffffff; border:1px solid #d1d5db;">
+                    {!! $chartSvg !!}
+                </div>
+            </div>
+        </div>
+    @else
+        {{-- Fallback cuando no hay gráfico disponible --}}
+        <div class="section chart-section">
+            <h2>Gráfico de Datos</h2>
+            <div style="text-align:center; margin: 20px 0; padding: 40px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                <p style="color: #6b7280; font-size: 14px;">Gráfico no disponible para este reporte</p>
+                <p style="color: #9ca3af; font-size: 12px; margin-top: 10px;">Los datos se muestran en las tablas siguientes</p>
+            </div>
+        </div>
+    @endif
 
     @if($tipo === 'general' && isset($datos['resumen']))
         <div class="section">
@@ -129,6 +166,7 @@
     @if($tipo === 'ventas' && isset($datos['ventas']))
         <div class="section">
             <h2>Detalle de Ventas</h2>
+            {{-- El gráfico ya se muestra al inicio del PDF (si aplica). Aquí solo va la tabla de detalle. --}}
             <table>
                 <thead>
                     <tr>
@@ -142,7 +180,7 @@
                     @foreach($datos['ventas'] as $venta)
                     <tr>
                         <td>{{ $venta->id }}</td>
-                        <td>{{ $venta->fecha_venta->format('d/m/Y') }}</td>
+                        <td>{{ isset($venta->fecha_venta) ? ($venta->fecha_venta instanceof \Carbon\Carbon ? $venta->fecha_venta->format('d/m/Y') : \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y')) : 'N/A' }}</td>
                         <td>Q{{ number_format($venta->monto_total, 2) }}</td>
                         <td>{{ $venta->id_pedido }}</td>
                     </tr>
@@ -212,9 +250,9 @@
                     <tr>
                         <td>{{ $pedido->id }}</td>
                         <td>{{ $pedido->id_usuario }}</td>
-                        <td>{{ $pedido->fecha_pedido ? $pedido->fecha_pedido->format('d/m/Y') : 'N/A' }}</td>
+                        <td>{{ isset($pedido->fecha_pedido) ? ($pedido->fecha_pedido instanceof \Carbon\Carbon ? $pedido->fecha_pedido->format('d/m/Y') : \Carbon\Carbon::parse($pedido->fecha_pedido)->format('d/m/Y')) : 'N/A' }}</td>
                         <td>{{ ucfirst($pedido->estado) }}</td>
-                        <td>{{ $pedido->created_at->format('d/m/Y H:i') }}</td>
+                        <td>{{ isset($pedido->created_at) ? ($pedido->created_at instanceof \Carbon\Carbon ? $pedido->created_at->format('d/m/Y H:i') : \Carbon\Carbon::parse($pedido->created_at)->format('d/m/Y H:i')) : 'N/A' }}</td>
                     </tr>
                     @endforeach
                 </tbody>

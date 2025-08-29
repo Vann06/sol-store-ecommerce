@@ -4,18 +4,36 @@
 <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <div>
-            <h1 class="text-2xl font-semibold text-red-700">Reportes de Ventas</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Admin › Reportes</p>
+            <h1 class="text-2xl font-semibold text-red-700">📊 Reportes de Ventas</h1>
+            <nav class="flex text-sm text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <span class="text-gray-400">Admin</span>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <span class="mx-2">›</span>
+                            <span class="font-medium text-red-600">Reportes</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
         </div>
         <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.reports.create') }}" class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800">
-                + Generar Reporte
+            <a href="{{ route('admin.reports.navegacion') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                🧿 Navegación
+            </a>
+            <a href="{{ route('admin.reports.metricas.view') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                📈 Métricas
+            </a>
+            <a href="{{ route('admin.reports.graficos') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                📉 Gráficos
             </a>
             <form method="POST" action="{{ route('admin.reports.pdf') }}" class="inline">
                 @csrf
                 <input type="hidden" name="tipo" value="general">
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    📄 Exportar PDF
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    📄 PDF
                 </button>
             </form>
         </div>
