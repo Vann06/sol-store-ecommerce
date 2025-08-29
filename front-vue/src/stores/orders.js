@@ -103,15 +103,14 @@ export const useOrdersStore = defineStore('orders', {
 
 // Helpers locales
 function mapEstado(estado) {
-  // Backend usa valores como 'Imprimiendo', 'pendiente', 'pagado', 'enviado', 'cancelado'
   const e = (estado || '').toString().toLowerCase()
-  if (!e) return 'processing'
-  if (e.includes('imprim')) return 'processing'
-  if (e === 'pendiente') return 'processing'
   if (e === 'procesando') return 'processing'
-  if (e === 'pagado') return 'shipped'
   if (e === 'enviado') return 'shipped'
+  if (e === 'entregado') return 'delivered'
   if (e === 'cancelado') return 'cancelled'
+  // Legacy mappings
+  if (e.includes('imprim') || e === 'pendiente') return 'processing'
+  if (e === 'pagado') return 'shipped'
   return 'processing'
 }
 

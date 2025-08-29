@@ -156,7 +156,7 @@ const items = computed(() => cart.items.value)
 // helpers usados en el template
 function formatCurrency(n) {
   const num = Number(n || 0)
-  return num.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
+  return num.toLocaleString('es-GT', { style: 'currency', currency: 'GTQ', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 function onImgError(e) {
   e.target.src = 'https://via.placeholder.com/96x96?text=IMG'

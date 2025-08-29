@@ -35,8 +35,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('faqs', FaqAdminController::class)->names('faqs');
     Route::resource('categories', CategoryAdminController::class)->names('categories');
     Route::resource('themes', ThemeAdminController::class)->names('themes');
+    Route::resource('orders', OrderAdminController::class)->names('orders');
     //Route::resource('users', UserAdminController::class)->names('users');
-    //Route::resource('orders', OrderAdminController::class)->names('orders');
     //Route::resource('roles', RoleAdminController::class)->names('roles');
     //Route::resource('permissions', PermissionAdminController::class)->names('permissions');
     //Route::resource('settings', SettingAdminController::class)->names('settings');

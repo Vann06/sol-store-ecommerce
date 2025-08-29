@@ -192,10 +192,13 @@ export function useCart() {
 
   // Formateo de precio
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CL', {
+    if (price == null || isNaN(price)) return ''
+    return new Intl.NumberFormat('es-GT', {
       style: 'currency',
-      currency: 'CLP'
-    }).format(price)
+      currency: 'GTQ',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(Number(price))
   }
 
   // Calcular descuentos (si los hay)

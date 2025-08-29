@@ -45,7 +45,7 @@ class PedidoController extends Controller
             $pedido = Pedido::create([
                 'id_usuario' => $user->id,
                 'fecha_pedido' => now(),
-                'estado' => 'Imprimiendo',
+                'estado' => 'Procesando',
             ]);
 
             foreach ($detalles as $d) {
@@ -110,7 +110,7 @@ class PedidoController extends Controller
             return response()->json(['error' => 'No autorizado'], 403);
         }
         $estado = $request->input('estado');
-        if (!in_array($estado, ['pendiente','pagado','enviado','cancelado'])) {
+        if (!in_array($estado, ['Procesando','Enviado','Entregado','Cancelado'])) {
             return response()->json(['error' => 'Estado inválido'], 422);
         }
         $pedido = Pedido::findOrFail($id);
