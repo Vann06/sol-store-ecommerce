@@ -78,4 +78,32 @@ exit
 
 ---
 
-¡Y listo! Ya tienes todo funcionando localmente 🚀
+## 📊 **Microsoft Clarity Analytics**
+
+El proyecto incluye integración con Microsoft Clarity para analítica web avanzada:
+
+- ✅ **Mapas de calor** de interacciones de usuario
+- ✅ **Grabaciones de sesión** completas  
+- ✅ **Tracking de eventos** de e-commerce
+- ✅ **Análisis de conversión** y abandono
+- ✅ **Debug panel** en desarrollo
+
+### Configuración de Clarity
+
+1. **Variables de entorno** (ya configurado):
+   ```env
+   VITE_CLARITY_PROJECT_ID=t62uyfc02j
+   VITE_CLARITY_ENABLED=true
+   ```
+
+2. **Panel de Debug** (solo desarrollo):
+   - Aparece en esquina superior derecha
+   - Muestra estado de inicialización
+   - Permite probar eventos
+   - Historial de eventos recientes
+
+3. **Documentación completa**: Ver [`CLARITY_IMPLEMENTATION.md`](CLARITY_IMPLEMENTATION.md)
+
+---
+
+¡Y listo! Ya tienes todo funcionando localmente con analytics incluido 🚀📈

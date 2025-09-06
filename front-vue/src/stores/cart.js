@@ -147,6 +147,19 @@ export const useCartStore = defineStore('cart', {
 
         console.log('✅ Add to cart response:', response.data)
 
+        // Track add to cart event para Clarity
+        if (typeof window !== 'undefined' && window.clarity && productData) {
+          window.clarity('event', 'add_to_cart', {
+            product_id: productId,
+            product_name: productData.nombre || 'Unknown Product',
+            category: productData.categoria || 'uncategorized',
+            quantity: quantity,
+            price: productData.precio || 0,
+            value: (productData.precio || 0) * quantity,
+            cart_total_items: this.totalItems + quantity
+          })
+        }
+
         // Actualizar el carrito local si es posible para mejor UX
         if (productData) {
           const existingItem = this.items.find(item => 
@@ -247,9 +260,21 @@ export const useCartStore = defineStore('cart', {
       try {
   // Permitir invitados
 
-        // Guardar referencia del item para posible rollback
+        // Guardar referencia del item para posible rollback y tracking
         const itemIndex = this.items.findIndex(item => item.id === itemId)
         const removedItem = itemIndex !== -1 ? this.items[itemIndex] : null
+
+        // Track remove from cart event para Clarity antes de eliminar
+        if (typeof window !== 'undefined' && window.clarity && removedItem) {
+          window.clarity('event', 'remove_from_cart', {
+            product_id: removedItem.producto_id || removedItem.id,
+            product_name: removedItem.producto?.nombre || 'Unknown Product',
+            category: removedItem.producto?.categoria || 'uncategorized',
+            quantity: removedItem.cantidad || 1,
+            price: removedItem.producto?.precio || removedItem.precio_unitario || 0,
+            cart_total_items: this.totalItems - (removedItem.cantidad || 1)
+          })
+        }
 
         // Eliminar optimísticamente del estado local
         if (itemIndex !== -1) {
