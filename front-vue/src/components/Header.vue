@@ -27,7 +27,7 @@
           </ul>
         </nav>
 
-        <div class="header__tools">
+  <div class="header__tools">
           <div class="search-box">
             <input
               type="text"
@@ -38,9 +38,7 @@
             <img src="/img/search-icon.svg" alt="Search" class="icon-img" @click="handleSearch"/>
           </div>
 
-          <RouterLink to="/cart" class="icon-button">
-            <img src="/img/cart-icon.svg" alt="Cart" class="icon-img" />
-          </RouterLink>
+          <CartWidget />
 
           <!-- SI ESTÁ LOGUEADO -->
           <div v-if="isLoggedIn" class="user-logged">
@@ -69,11 +67,14 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import {computed} from 'vue'
-import axios from 'axios'
+import { useLogout } from '@/composables/useLogout'
+import CartWidget from '@/components/CartWidget.vue'
 
 const userStore = useUserStore()
-const isLoggedIn = computed(() => userStore.isLoggedIn)
-const user = computed(() => userStore.getUser)
+const isLoggedIn = computed(() => userStore.isAuthenticated)
+const user = computed(() => userStore.user)
+const userName = computed(() => userStore.userName)
+const { logout } = useLogout()
 
 const isMenuOpen = ref(false)
 const toggleMenu = () => {
@@ -87,18 +88,6 @@ function handleSearch() {
   if (searchText.value.trim() !== ''){
     router.push({ name: 'search', query: { q: searchText.value.trim() } })
   }
-}
-
-const logout = async () => {
-  try {
-    await axios.post('/api/logout') // si usas Sanctum
-  } catch (e) {
-    // opcional
-  }
-  userStore.clearUser()
-  localStorage.removeItem('auth_token')
-  delete axios.defaults.headers.common['Authorization']
-  router.push('/account/login')
 }
 </script>
 
@@ -196,6 +185,48 @@ const logout = async () => {
 .icon-img {
   width: 20px;
   height: 20px;
+}
+
+/* Estilos para usuario logueado */
+.user-logged {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #7d1c2b;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #7d1c2b;
+  color: white;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: #333;
+  transition: opacity 0.3s ease;
+}
+
+.icon-button:hover {
+  opacity: 0.7;
 }
 
 /* Botón hamburguesa oculto por defecto */

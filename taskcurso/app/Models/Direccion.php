@@ -9,13 +9,18 @@ class Direccion extends Model
 {
     use HasFactory;
 
-    // Si tu tabla no se llama "direcciones", descomenta:
-    // protected $table = 'direcciones';
+    // Tabla explícita (plural en español)
+    protected $table = 'direcciones';
 
     protected $fillable = [
         'id_usuario',
         'direccion',
         'id_municipio',
+        'is_default',
+    ];
+
+    protected $casts = [
+        'is_default' => 'boolean',
     ];
 
     /**

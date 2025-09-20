@@ -4,6 +4,8 @@ import router from './router'
 import axios from 'axios'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import clarityPlugin from './plugins/clarity'
+import './assets/fixed-header.css' // utilidades .under-fixed-header y CSS var
 
 // Axios setup
 axios.defaults.baseURL = 'http://localhost:8000'
@@ -20,5 +22,11 @@ pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
 app.use(router)
+app.use(clarityPlugin)
+
+// Inicializar store de usuario después de configurar Pinia
+import { useUserStore } from '@/stores/userStore'
+const userStore = useUserStore()
+userStore.initialize()
 
 app.mount('#app')

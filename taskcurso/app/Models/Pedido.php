@@ -73,4 +73,27 @@ class Pedido extends Model
     {
         return $this->hasOne(Envio::class, 'id_pedido');
     }
+
+    /**
+     * El usuario que realizó el pedido (usando modelo User)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_usuario');
+    }
+
+    /**
+     * Acceso directo a la dirección (a través de envio)
+     */
+    public function direccion()
+    {
+        return $this->hasOneThrough(
+            Direccion::class,
+            Envio::class,
+            'id_pedido',      // Foreign key on Envio
+            'id',             // Foreign key on Direccion (local key referenced by Envio)
+            'id',             // Local key on Pedido
+            'id_direccion'    // Local key on Envio referencing Direccion
+        );
+    }
 }

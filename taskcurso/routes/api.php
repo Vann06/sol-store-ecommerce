@@ -11,6 +11,8 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\DireccionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +24,13 @@ Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update
 // Autenticación (sin sesión)
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Rutas protegidas JWT
+Route::middleware('jwt.auth')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+});
 
 // Productos públicos
 Route::get('/productos', [ProductController::class, 'apiIndex']);
@@ -57,11 +66,20 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
 // Rutas autenticadas obligatorias
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('jwt.auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/auth/check', [AuthController::class, 'checkAuth']);
-    
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    // Direcciones
+    Route::get('/direcciones', [DireccionController::class, 'index']);
+    Route::post('/direcciones', [DireccionController::class, 'store']);
+    Route::put('/direcciones/{id}', [DireccionController::class, 'update']);
+    Route::delete('/direcciones/{id}', [DireccionController::class, 'destroy']);
+    Route::post('/direcciones/{id}/predeterminada', [DireccionController::class, 'setDefault']);
+
     // Transferir carrito al hacer login
     Route::post('/carrito/transferir', [CarritoController::class, 'transferirCarritoLogin']);
     
@@ -69,6 +87,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('checkout')->group(function () {
         // Aquí irán las rutas del checkout
     });
+    
+    Route::post('/pedidos/checkout', [PedidoController::class, 'checkout']);
+    Route::get('/pedidos', [PedidoController::class, 'misPedidos']);
+    Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
+    Route::put('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
 });
 
 

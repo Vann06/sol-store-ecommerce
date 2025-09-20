@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/stores/userStore'
 
 
 import HomeView from '../views/HomeView.vue'
@@ -10,10 +10,14 @@ import OrdersView from '@/views/account/OrdersView.vue'
 import AddressView from '@/views/account/AddressView.vue'
 import PasswordView from '@/views/account/PasswordView.vue'
 import AccountDetailView from '@/views/account/AccountDetailView.vue'
+import LogoutView from '@/views/account/LogoutView.vue'
 import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 import CartView from '@/views/CartView.vue'
 import AboutView from '@/views/AboutView.vue'
+import ContactView from '@/views/ContactView.vue'
+import CategoriesView from '@/views/CategoriesView.vue'
+import OrderDetailView from '@/views/account/OrderDetailView.vue'
 
 
 const routes = [
@@ -43,6 +47,11 @@ const routes = [
         component: OrdersView
       },
       {
+        path: 'orders/:id',
+        name: 'order-detail',
+        component: OrderDetailView
+      },
+      {
         path: 'address',
         name: 'address',
         component: AddressView
@@ -56,6 +65,11 @@ const routes = [
         path: 'details',
         name: 'accountDetails',
         component: AccountDetailView
+      },
+      {
+        path: 'logout',
+        name: 'logout',
+        component: LogoutView
       }
     ]
   },
@@ -85,6 +99,16 @@ const routes = [
     path: '/about',
     name: 'about',
     component: AboutView
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: ContactView
+  },
+  {
+    path: '/categories',
+    name: 'categories',
+    component: CategoriesView
   }
   //MAS RUTAS
 ]
@@ -99,11 +123,11 @@ router.beforeEach((to, from, next) => {
   const store = useUserStore()
 
   // Si NO esta logeado lo manda a la seccion de login
-  if (to.meta.requiresAuth && !store.user){
+  if (to.meta.requiresAuth && !store.isAuthenticated){
     return next('/account/login')
   }
   // Si SI esta logeado lo manda a su cuenta personal
-  if (to.meta.requiresGuest && store.user){
+  if (to.meta.requiresGuest && store.isAuthenticated){
     return next('/account/orders')
   }
 
