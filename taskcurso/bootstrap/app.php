@@ -1,4 +1,5 @@
 <?php
+// filepath: taskcurso/bootstrap/app.php
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,8 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Registrar alias de middleware
         $middleware->alias([
-            // Forzar que 'auth' use nuestro middleware que no redirige a rutas web inexistentes
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class, // ← Middleware JWT
             'optional.sanctum' => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
     })

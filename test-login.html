@@ -1,0 +1,106 @@
+// test-login.html - Archivo de prueba para el login JWT
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test JWT Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Prueba de JWT Login</h1>
+    <div id="status"></div>
+    <button onclick="testLogin()">Probar Login</button>
+    <button onclick="testMe()">Probar /me</button>
+    <button onclick="clearTokens()">Limpiar Tokens</button>
+    
+    <div id="result" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc;"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        async function testLogin() {
+            try {
+                document.getElementById('status').innerText = 'Enviando login...';
+                
+                const response = await axios.post(`${API_BASE}/login`, {
+                    email: 'admin@demo.com',
+                    password: 'admin123'
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.data.access_token) {
+                    localStorage.setItem('access_token', response.data.access_token);
+                    document.getElementById('status').innerText = 'Login exitoso!';
+                    document.getElementById('result').innerHTML = `
+                        <h3>Token guardado:</h3>
+                        <p><strong>Usuario:</strong> ${response.data.user.first_name} ${response.data.user.last_name}</p>
+                        <p><strong>Email:</strong> ${response.data.user.email}</p>
+                        <p><strong>Role:</strong> ${response.data.user.role}</p>
+                        <p><strong>Token:</strong> ${response.data.access_token.substring(0, 50)}...</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error en login!';
+                document.getElementById('result').innerHTML = `
+                    <h3 style="color: red;">Error:</h3>
+                    <pre>${JSON.stringify(error.response?.data || error.message, null, 2)}</pre>
+                `;
+                console.error('Error login:', error);
+            }
+        }
+        
+        async function testMe() {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    alert('No hay token. Haz login primero.');
+                    return;
+                }
+                
+                document.getElementById('status').innerText = 'Probando /me...';
+                
+                const response = await axios.get(`${API_BASE}/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                document.getElementById('status').innerText = 'Usuario autenticado!';
+                document.getElementById('result').innerHTML = `
+                    <h3>/me exitoso:</h3>
+                    <pre>${JSON.stringify(response.data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error en /me!';
+                document.getElementById('result').innerHTML = `
+                    <h3 style="color: red;">Error:</h3>
+                    <pre>${JSON.stringify(error.response?.data || error.message, null, 2)}</pre>
+                `;
+                console.error('Error /me:', error);
+            }
+        }
+        
+        function clearTokens() {
+            localStorage.removeItem('access_token');
+            document.getElementById('status').innerText = 'Tokens limpiados';
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        // Check if we have a token on load
+        window.onload = function() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('status').innerText = 'Token encontrado en localStorage';
+            } else {
+                document.getElementById('status').innerText = 'No hay token guardado';
+            }
+        };
+    </script>
+</body>
+</html>

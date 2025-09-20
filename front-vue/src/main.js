@@ -24,4 +24,9 @@ app.use(pinia)
 app.use(router)
 app.use(clarityPlugin)
 
+// Inicializar store de usuario después de configurar Pinia
+import { useUserStore } from '@/stores/userStore'
+const userStore = useUserStore()
+userStore.initialize()
+
 app.mount('#app')

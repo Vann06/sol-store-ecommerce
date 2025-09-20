@@ -21,6 +21,11 @@ if ! grep -q '^APP_KEY=' .env || [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)
     php artisan key:generate --force || true
 fi
 
+if ! grep -q '^JWT_SECRET=' .env || [ -z "$(grep '^JWT_SECRET=' .env | cut -d '=' -f2)" ]; then
+    echo "Generando JWT_SECRET..."
+    php artisan jwt:secret --force || true
+fi
+
 # Permisos para storage y cache (puede ser bind mount desde host)
 echo "Ajustando permisos de storage y cache..."
 mkdir -p storage bootstrap/cache

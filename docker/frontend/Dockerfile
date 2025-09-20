@@ -10,7 +10,8 @@ COPY package*.json ./
 # Instala las dependencias definidas en el package.json (incluyendo Vue y Tailwind)
 RUN npm install && \
      npm install vue-router@4 axios && \
-     npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/vue-fontawesome@latest
+     npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/vue-fontawesome@latest && \
+     npm install js-cookie @types/js-cookie
 
 
 # Copia el resto del código fuente de la aplicación al contenedor

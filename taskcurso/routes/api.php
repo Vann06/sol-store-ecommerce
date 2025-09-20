@@ -25,6 +25,13 @@ Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Rutas protegidas JWT
+Route::middleware('jwt.auth')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+});
+
 // Productos públicos
 Route::get('/productos', [ProductController::class, 'apiIndex']);
 Route::get('/productos/recientes', [ProductController::class, 'productosRecientes']);
@@ -59,11 +66,13 @@ Route::get('/categorias', [CategoryController::class, 'apiIndex']);
 Route::get('/tematicas', [ThemeController::class, 'apiIndex']);
 
 // Rutas autenticadas obligatorias
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('jwt.auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/auth/check', [AuthController::class, 'checkAuth']);
-    
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
     // Direcciones
     Route::get('/direcciones', [DireccionController::class, 'index']);
     Route::post('/direcciones', [DireccionController::class, 'store']);

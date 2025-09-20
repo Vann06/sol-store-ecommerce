@@ -1,322 +1,338 @@
 <template>
-    <section class="login-box">
-      <img src="/img/logo_2.png" alt="Logo" class="logo" />
-      <h2 class="admin-title">Login</h2>
+  <section class="login-box">
+    <img src="/img/logo_2.png" alt="Logo" class="logo" />
+    <h2 class="admin-title">Login</h2>
 
-      <!-- Mostrar errores -->
-      <div v-if="userStore.error" class="error-message">
-        <i class="fas fa-exclamation-circle"></i>
-        {{ userStore.error }}
-      </div>
-  
-      <form @submit.prevent="handleLogin">
-        <label>Email</label>
-        <input 
-          type="email" 
-          v-model="email" 
-          required 
-          :disabled="loading"
-          placeholder="tu@email.com"
-        />
-  
-        <label>Password</label>
-        <input 
-          type="password" 
-          v-model="password" 
-          required 
-          :disabled="loading"
-          placeholder="Tu contraseña"
-        />
-  
-        <button 
-          type="submit" 
-          class="btn-primary"
-          :disabled="loading"
-          :class="{ 'loading': loading }"
-        >
-          <i v-if="loading" class="fas fa-spinner fa-spin"></i>
-          {{ loading ? 'Iniciando sesión...' : 'Login' }}
-        </button>
-      </form>
-    </section>
-  </template>
-  
-  <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+    <!-- Mensaje de la query string (sesión expirada, etc.) -->
+    <div v-if="routeMessage" class="info-message">
+      <i class="fas fa-info-circle"></i>
+      {{ routeMessage }}
+    </div>
+
+    <!-- Mostrar errores -->
+    <div v-if="error" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+    </div>
+
+    <form @submit.prevent="handleLogin">
+      <label>Email</label>
+      <input 
+        type="email" 
+        v-model="email" 
+        required 
+        :disabled="loading"
+        placeholder="tu@email.com"
+        autocomplete="email"
+      />
+
+      <label>Password</label>
+      <input 
+        type="password" 
+        v-model="password" 
+        required 
+        :disabled="loading"
+        placeholder="Tu contraseña"
+        autocomplete="current-password"
+      />
+
+      <button 
+        type="submit" 
+        class="btn-primary"
+        :disabled="loading"
+        :class="{ 'loading': loading }"
+      >
+        <i v-if="loading" class="fas fa-spinner fa-spin"></i>
+        {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <router-link to="/account/create" class="signup-link">
+        ¿No tienes cuenta? Regístrate aquí
+      </router-link>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useCartStore } from '@/stores/cart'
-import { useMessages } from '@/composables/useMessages'
-import axios from 'axios'
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const error = ref('')
+const routeMessage = ref('')
+
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const cartStore = useCartStore()
-const { showMessage } = useMessages()
+
+// Verificar si hay mensaje en la query string
+onMounted(() => {
+  if (route.query.message) {
+    routeMessage.value = route.query.message
+  }
+  
+  // Limpiar errores previos del store
+  userStore.clearError()
+})
 
 const handleLogin = async () => {
   if (loading.value) return
   
+  // Validación básica
   if (!email.value || !password.value) {
-    showMessage('Por favor complete todos los campos', 'error')
+    error.value = 'Por favor complete todos los campos'
     return
   }
   
   loading.value = true
+  error.value = ''
   userStore.clearError()
 
   try {
-    // Usar axios para mejor manejo de errores y timeouts
-    const response = await axios.post('http://localhost:8000/api/login', {
+    console.log('🔐 Enviando credenciales con JWT...')
+
+    // Usar el método login del userStore que ahora tiene JWT
+    const result = await userStore.login({
       email: email.value,
       password: password.value
-    }, {
-      timeout: 10000, // 10 segundos de timeout
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
     })
 
-    console.log('Login response:', response.data) // Para debug
+    if (result.success) {
+      console.log('✅ Login exitoso con JWT:', result.data)
 
-    // Verificar múltiples estructuras de respuesta posibles del backend Laravel
-    let token = null
-    let userData = null
-
-    if (response.data) {
-      // Posibles estructuras:
-      // { token: "...", user: {...} }
-      // { access_token: "...", user: {...} }
-      // { data: { token: "...", user: {...} } }
-      // { success: true, data: { token: "...", user: {...} } }
-
-      const data = response.data.data || response.data
-
-      token = data.token || data.access_token || data.auth_token
-      userData = data.user
-
-      // Si no encontramos token, verificar en response directo
-      if (!token) {
-        token = response.data.token || response.data.access_token
+      // Cargar carrito después del login exitoso
+      try {
+        await cartStore.fetchCart()
+        console.log('🛒 Carrito cargado exitosamente')
+      } catch (cartError) {
+        console.warn('⚠️ No se pudo cargar el carrito:', cartError)
+        // No fallar el login si no se puede cargar el carrito
       }
 
-      // Si no encontramos userData, verificar en response directo  
-      if (!userData) {
-        userData = response.data.user
+      // Redirigir según el rol del usuario
+      const user = result.data.user
+      const redirectTo = route.query.redirect
+
+      if (user.role === 'admin') {
+        // Admin va al panel administrativo
+        console.log('👑 Redirigiendo admin al panel...')
+        window.location.href = 'http://localhost:8000/admin/products'
+      } else {
+        // Usuario normal
+        console.log('👤 Redirigiendo usuario a:', redirectTo || '/')
+        
+        const destination = redirectTo || '/'
+        await router.push({
+          path: destination,
+          query: { 
+            message: `¡Bienvenido ${user.first_name || user.name || 'Usuario'}!`,
+            messageType: 'success'
+          }
+        })
       }
-    }
 
-    // Validar que tenemos lo necesario
-    if (!token) {
-      console.error('No token in response:', response.data)
-      throw new Error('No se recibió token de autenticación del servidor')
-    }
-
-    if (!userData || !userData.id) {
-      console.error('No user data in response:', response.data)  
-      throw new Error('No se recibieron datos del usuario del servidor')
-    }
-
-    // Login exitoso - usar el nuevo método del store
-    userStore.setUserAndToken(userData, token)
-
-    // Configurar axios para futuras peticiones
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-    // Cargar carrito si está disponible
-    try {
-      await cartStore.fetchCart()
-    } catch (cartError) {
-      console.warn('Could not load cart after login:', cartError.message)
-      // No fallar el login si no se puede cargar el carrito
-    }
-
-    // Redirigir según el rol del usuario
-    if (userData.role === 'admin') {
-      window.location.href = 'http://localhost:8000/admin/products'
     } else {
-      // Redirigir al home después del login exitoso
-      router.push({ 
-        path: '/', 
-        query: { 
-          message: `¡Bienvenido ${userData.first_name || userData.name || 'Usuario'}!`,
-          messageType: 'success'
-        } 
-      })
+      // Error en el login
+      error.value = result.error || 'Error al iniciar sesión'
+      console.error('❌ Login fallido:', error.value)
     }
 
-  } catch (error) {
-    console.error('Login error:', error)
+  } catch (err) {
+    console.error('❌ Error inesperado en login:', err)
     
-    let errorMessage = 'Error al iniciar sesión'
-    
-    if (error.code === 'ECONNABORTED') {
-      errorMessage = 'Tiempo de espera agotado. Verifica tu conexión.'
-    } else if (error.response) {
-      // Error del servidor
-      const status = error.response.status
-      const data = error.response.data
+    // Manejo de errores específicos
+    if (err.code === 'ECONNABORTED') {
+      error.value = 'Tiempo de espera agotado. Verifica tu conexión.'
+    } else if (err.response) {
+      const status = err.response.status
+      const data = err.response.data
       
       if (status === 401) {
-        errorMessage = 'Email o contraseña incorrectos'
+        error.value = 'Email o contraseña incorrectos'
       } else if (status === 422) {
-        // Errores de validación Laravel
-        if (data.errors) {
-          errorMessage = Object.values(data.errors).flat().join(', ')
-        } else if (data.message) {
-          errorMessage = data.message
-        }
+        error.value = data.message || 'Datos de login inválidos'
       } else if (status >= 500) {
-        errorMessage = 'Error en el servidor. Intenta más tarde.'
-      } else if (data && data.message) {
-        errorMessage = data.message
+        error.value = 'Error en el servidor. Intenta más tarde.'
+      } else {
+        error.value = data.message || 'Error al conectar con el servidor'
       }
-    } else if (error.request) {
-      errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.'
-    } else if (error.message) {
-      errorMessage = error.message
+    } else {
+      error.value = err.message || 'Error inesperado'
     }
-    
-    userStore.setError(errorMessage)
-    showMessage(errorMessage, 'error')
+
   } finally {
     loading.value = false
   }
 }
-
 </script>
-  
-  <style scoped>
+
+<style scoped>
+.login-box {
+  flex: 1;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo {
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.admin-title {
+  color: #7d1c2b;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  border-left: 4px solid #dc2626;
+  width: 100%;
+  max-width: 300px;
+  font-size: 14px;
+}
+
+.info-message {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1d4ed8;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  border-left: 4px solid #3b82f6;
+  width: 100%;
+  max-width: 300px;
+  font-size: 14px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 300px;
+}
+
+label {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #7d1c2b;
+  margin-bottom: 6px;
+}
+
+input {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #f9fafb;
+}
+
+input:focus {
+  outline: none;
+  border-color: #e5bf60;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(229, 191, 96, 0.1);
+}
+
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+input::placeholder {
+  color: #9ca3af;
+}
+
+.btn-primary {
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #a27345 0%, #7d1c2b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(125, 28, 43, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary.loading {
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+}
+
+.auth-links {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.signup-link {
+  color: #7d1c2b;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.signup-link:hover {
+  color: #a27345;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .login-box {
-    flex: 1;
-    padding: 60px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .logo {
-    height: 60px;
-    margin-bottom: 10px;
+    padding: 40px 20px;
   }
   
   .admin-title {
-    color: #7d1c2b;
-    margin-bottom: 20px;
-    font-size: 2rem;
-    font-weight: 700;
-  }
-
-  .error-message {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: #dc2626;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    border-left: 4px solid #dc2626;
-    width: 100%;
-    max-width: 300px;
-    font-size: 14px;
+    font-size: 1.75rem;
   }
   
   form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 300px;
+    max-width: 280px;
   }
-  
-  label {
-    margin-top: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #7d1c2b;
-    margin-bottom: 6px;
-  }
-  
-  input {
-    padding: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background: #f9fafb;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: #e5bf60;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(229, 191, 96, 0.1);
-  }
-
-  input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: #f3f4f6;
-  }
-
-  input::placeholder {
-    color: #9ca3af;
-  }
-  
-  .btn-primary {
-    margin-top: 20px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 14px;
-    min-height: 48px;
-  }
-  
-  .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #a27345 0%, #7d1c2b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(125, 28, 43, 0.3);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .btn-primary.loading {
-    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .login-box {
-      padding: 40px 20px;
-    }
-    
-    .admin-title {
-      font-size: 1.75rem;
-    }
-    
-    form {
-      max-width: 280px;
-    }
-  }
-  </style>
-  
+}
+</style>  

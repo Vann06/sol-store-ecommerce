@@ -6,12 +6,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     protected $table = 'usuarios'; 
 
@@ -44,6 +44,7 @@ class User extends Authenticatable
      *  
      *  @return array<string, string>
      */
+
     protected function casts(): array
     {
         return [
@@ -51,8 +52,32 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'email' => $this->email,
+            'role' => $this->roles()->first()?->nombre ?? 'cliente',
+        ];
+    }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'usuarios_roles', 'id_usuario', 'id_rol');
+    }
+
+    public function direcciones()
+    {
+        return $this->hasMany(Direccion::class);
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
     }
 }
