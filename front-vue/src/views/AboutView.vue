@@ -307,7 +307,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 /* ======= HERO SECTION (SolStore: Donde la Creatividad Cobra Vida en 3D) ======= */
 .hero-section {
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-              url('@/assets/images/3d-printer-hero.jpg');
+              url('@/assets/3d-printer-hero.jpg');
   background-size: cover;
   background-position: center;
   height: 400px;
