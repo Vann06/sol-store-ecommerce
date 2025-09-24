@@ -106,9 +106,9 @@ const routes = [
     component: ContactView
   },
   {
-    path: '/categories',
-    name: 'categories',
-    component: CategoriesView
+    path: '/catalogo',
+    name: 'catalogo',
+    component: () => import('@/views/Catalogo.vue')
   }
   //MAS RUTAS
 ]

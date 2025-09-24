@@ -20,6 +20,7 @@
         <nav class="header__nav">
           <ul>
             <li><RouterLink to="/">Home</RouterLink></li>
+            <li><RouterLink to="/catalogo">Catálogo</RouterLink></li>
             <li><RouterLink to="/categories">Categories ▾</RouterLink></li>
             <li><RouterLink to="/about">About</RouterLink></li>
             <li><RouterLink to="/contact">Contact</RouterLink></li>
