@@ -15,7 +15,7 @@ import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 import CartView from '@/views/CartView.vue'
 import AboutView from '@/views/AboutView.vue'
-import ContactView from '@/views/ContactView.vue'
+import Contacto from '@/views/Contacto.vue'
 import CategoriesView from '@/views/CategoriesView.vue'
 import OrderDetailView from '@/views/account/OrderDetailView.vue'
 
@@ -103,7 +103,7 @@ const routes = [
   {
     path: '/contact',
     name: 'contact',
-    component: ContactView
+    component: () => import('@/views/Contacto.vue')
   },
   {
     path: '/categories',
