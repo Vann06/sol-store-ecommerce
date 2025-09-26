@@ -8,9 +8,11 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">Admin › Reportes › Filtros</p>
         </div>
         <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.reports.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                ← Volver a Reportes
-            </a>
+            @if(!empty($backUrl))
+            <a href="{{ $backUrl }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Volver</a>
+            @else
+            <a href="{{ route('admin.reports.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Volver a Reportes</a>
+            @endif
         </div>
     </div>
 
@@ -33,7 +35,7 @@
     <!-- Nuevo filtro -->
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
         <h3 class="text-lg font-semibold mb-4">Aplicar Nuevo Filtro</h3>
-        <form method="POST" action="{{ route('admin.reports.filtros') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form method="POST" action="{{ route('admin.reports.filtros') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             @csrf
             <div>
                 <label class="block text-sm font-medium mb-2">Fecha Inicio</label>

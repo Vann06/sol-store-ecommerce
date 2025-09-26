@@ -119,28 +119,36 @@ class DummyDataSeeder extends Seeder
             'faq_category_id' => $faqCatCuenta->id
         ]);
 
+        // Map legacy estados to the database-allowed values to avoid CHECK constraint failures on Postgres.
+        $estadoMap = [
+            'Imprimiendo' => 'Procesando',
+            'Pintando' => 'Procesando',
+            'Enviando' => 'Enviado',
+            'Entregado' => 'Entregado',
+        ];
+
         $pedidosDummy = [
             [
                 'id_usuario' => $clienteUser->id,
-                'estado' => 'Imprimiendo',
+                'estado' => $estadoMap['Imprimiendo'],
                 'fecha_pedido' => Carbon::now()->subDays(3),
                 'productos' => [$productosCreados[0]],
             ],
             [
                 'id_usuario' => $clienteUser->id,
-                'estado' => 'Pintando',
+                'estado' => $estadoMap['Pintando'],
                 'fecha_pedido' => Carbon::now()->subDays(2),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
             [
                 'id_usuario' => $adminUser->id,
-                'estado' => 'Enviando',
+                'estado' => $estadoMap['Enviando'],
                 'fecha_pedido' => Carbon::now()->subDay(),
                 'productos' => [$productosCreados[1]],
             ],
             [
                 'id_usuario' => $adminUser->id,
-                'estado' => 'Entregado',
+                'estado' => $estadoMap['Entregado'],
                 'fecha_pedido' => Carbon::now(),
                 'productos' => [$productosCreados[0], $productosCreados[1]],
             ],
@@ -180,7 +188,8 @@ class DummyDataSeeder extends Seeder
             }
         }
         
-        $estadosPedidos = ['Imprimiendo', 'Pintando', 'Enviando', 'Entregado'];
+    // Use mapped/allowed estados for generated pedidos to match DB CHECK constraint.
+    $estadosPedidos = [$estadoMap['Imprimiendo'], $estadoMap['Pintando'], $estadoMap['Enviando'], $estadoMap['Entregado']];
         // Create a small set of random pedidos (idempotent by checking date+user)
         for ($i = 1; $i <= 10; $i++) {
             $fecha_random = now()->subDays(rand(1, 30));

@@ -193,15 +193,16 @@
                 <tbody>
                     @forelse($pedidosRecientes ?? [] as $pedido)
                         <tr class="border-b border-gray-100 dark:border-gray-700">
-                            <td class="py-2 px-4">{{ $pedido->id }}</td>
-                            <td class="py-2 px-4">{{ $pedido->usuario->first_name ?? 'N/A' }} {{ $pedido->usuario->last_name ?? '' }}</td>
+                            <td class="py-2 px-4">{{ optional($pedido)->id }}</td>
+                            @php $u = optional(optional($pedido)->usuario); $estado = optional($pedido)->estado; @endphp
+                            <td class="py-2 px-4">{{ $u->first_name ?? 'N/A' }} {{ $u->last_name ?? '' }}</td>
                             <td class="py-2 px-4">
                                 <span class="px-2 py-1 text-xs rounded-full 
-                                    {{ $pedido->estado === 'Entregado' ? 'bg-green-100 text-green-800' : ($pedido->estado === 'Enviando' ? 'bg-blue-100 text-blue-800' : ($pedido->estado === 'Pintando' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800')) }}">
-                                    {{ $pedido->estado }}
+                                    {{ ($estado === 'Entregado') ? 'bg-green-100 text-green-800' : (($estado === 'Enviando') ? 'bg-blue-100 text-blue-800' : (($estado === 'Pintando') ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800')) }}">
+                                    {{ $estado ?? 'N/A' }}
                                 </span>
                             </td>
-                            <td class="py-2 px-4">{{ $pedido->created_at->format('d/m/Y') }}</td>
+                            <td class="py-2 px-4">{{ optional(optional($pedido)->created_at)->format('d/m/Y') ?? '' }}</td>
                             <td class="py-2 px-4">
                                 <a href="#" class="text-blue-600 hover:text-blue-800">Ver detalles</a>
                             </td>

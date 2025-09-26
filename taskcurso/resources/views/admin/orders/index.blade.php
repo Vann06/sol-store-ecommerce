@@ -1,6 +1,11 @@
 @extends('layouts.admin')
 
 @section('content')
+@php
+    // Defensive defaults in case a controller doesn't pass these variables
+    $allowed = $allowed ?? ['Procesando','Enviado','Entregado','Cancelado'];
+    $filtros = $filtros ?? ['estado' => request()->input('estado', request()->input('status')), 'search' => request()->input('search', request()->input('client'))];
+@endphp
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold dark:text-white">Pedidos</h1>
 </div>
