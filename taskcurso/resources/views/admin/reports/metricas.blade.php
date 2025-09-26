@@ -27,6 +27,9 @@
         <div class="flex items-center justify-between mb-3">
             <h3 class="font-medium text-gray-800 dark:text-gray-100">Pedidos por mes</h3>
             <div class="space-x-2">
+                @if(!empty($backUrl))
+                <a href="{{ $backUrl }}" class="inline-block px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm rounded mr-2">&larr; Volver</a>
+                @endif
                 <form action="{{ route('admin.reports.pdf') }}" method="POST" target="_blank" class="inline-block">
                     @csrf
                     <input type="hidden" name="tipo" value="ventas">
@@ -41,14 +44,21 @@
         <div class="chart-area" style="height:360px; display:flex; align-items:center; justify-content:center;">
             <div style="width:100%; max-width:900px;">
                 <div class="chart-inline">
-                    @if(!empty($chartSvg))
+                    @if(!empty($chart) && method_exists($chart, 'renderHtml'))
+                        {{-- Render the LaravelChart object (when package is installed) --}}
+                        {!! $chart->renderHtml() !!}
+                        @push('scripts')
+                            {!! $chart->renderChartJsLibrary() !!}
+                            {!! $chart->renderJs() !!}
+                        @endpush
+                    @elseif(!empty($chartSvg))
                         @php
-                            // Make SVG background white for better visibility
-                            $inlineSvg = str_replace("<rect width='100%' height='100%' fill='#ffffff'/>", "<rect width='100%' height='100%' fill='#ffffff'/>", $chartSvg);
+                            // Remove hard-coded white background rect so CSS can control it for dark mode
+                            $inlineSvg = str_replace("<rect width='100%' height='100%' fill='#ffffff'/>", '', $chartSvg);
                             // Ensure text adapts to theme using CSS classes instead of inline fills
-                            $inlineSvg = str_replace(["fill='#0f172a'", "fill='#374151'", "fill='#111827'"], 'class="chart-text"', $inlineSvg);
+                            $inlineSvg = str_replace(["fill='#0f172a'", "fill='#374151'", "fill='#111827'", "fill='#ffffff'"], 'class="chart-text"', $inlineSvg);
                             // Replace grid lines with theme-aware class
-                            $inlineSvg = str_replace(["stroke='#9CA3AF'"], 'class="chart-grid"', $inlineSvg);
+                            $inlineSvg = str_replace(["stroke='#9CA3AF'", "stroke='#6B7280'"], 'class="chart-grid"', $inlineSvg);
                         @endphp
                         {!! $inlineSvg !!}
                     @else
@@ -125,4 +135,7 @@
 }
 </style>
 @endpush
+@section('javascript')
+    @stack('scripts')
+@endsection
 @endsection

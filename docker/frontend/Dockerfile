@@ -18,16 +18,13 @@ WORKDIR /app
 # Copia los archivos de definición de dependencias
 COPY package*.json ./
 
-<<<<<<< HEAD
 # Instala las dependencias definidas en el package.json (incluyendo Vue y Tailwind)
 RUN npm install && \
      npm install vue-router@4 axios && \
      npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/vue-fontawesome@latest && \
      npm install js-cookie @types/js-cookie
-=======
 # Instalar dependencias del proyecto
 RUN npm ci
->>>>>>> bf1ed8b (dockerChange)
 
 # Nota: no instalamos los navegadores de Playwright aquí (fallan en Alpine durante build).
 # El servicio `playwright` usa su propia imagen para ejecutar tests y descargar navegadores.

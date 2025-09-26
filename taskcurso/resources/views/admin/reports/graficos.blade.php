@@ -8,9 +8,11 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">Admin › Reportes › Gráficos</p>
         </div>
         <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.reports.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                ← Volver a Reportes
-            </a>
+            @if(!empty($backUrl))
+            <a href="{{ $backUrl }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Volver</a>
+            @else
+            <a href="{{ route('admin.reports.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Volver a Reportes</a>
+            @endif
         </div>
     </div>
 
@@ -50,6 +52,12 @@
                 <form method="POST" action="{{ route('admin.reports.pdf') }}" class="w-full">
                     @csrf
                     <input type="hidden" name="tipo" value="ventas">
+                    @if(request()->has('fecha_inicio'))
+                        <input type="hidden" name="fecha_inicio" value="{{ request('fecha_inicio') }}">
+                    @endif
+                    @if(request()->has('fecha_fin'))
+                        <input type="hidden" name="fecha_fin" value="{{ request('fecha_fin') }}">
+                    @endif
                     <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
                         📄 Exportar como PDF
                     </button>

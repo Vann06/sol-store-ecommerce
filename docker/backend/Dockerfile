@@ -56,22 +56,11 @@ RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-reco
         libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-<<<<<<< HEAD
-# 7. Instalar dependencias de Composer y Pail
-RUN composer config --global disable-tls true \
- && composer install --no-dev --optimize-autoloader \
- && composer require laravel/pail --no-interaction \
- && composer require doctrine/dbal --no-interaction \
- && composer require cloudinary-labs/cloudinary-laravel --no-interaction \
- && composer require tymon/jwt-auth --no-interaction \
- && composer require laravel/sanctum --no-interaction \
- && composer dump-autoload -o
 
  RUN php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider" --tag="cloudinary-laravel-config" \
  && php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider" --force || true
 
 # 8. Ajustar permisos en storage y bootstrap/cache
-=======
 # 7. Instalar Xdebug para cobertura de pruebas
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
@@ -85,7 +74,6 @@ RUN chmod +x /wait-for-it.sh
 RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 # 11. Ajustar permisos en storage y bootstrap/cache
->>>>>>> bf1ed8b (dockerChange)
 RUN mkdir -p storage bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache

@@ -20,7 +20,9 @@ class WebAuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        // Use the session-based 'web' guard explicitly. The app's defaults may use
+        // the 'api' (jwt) guard which doesn't support Auth::attempt/session auth.
+        if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended('/admin/reports');
         }

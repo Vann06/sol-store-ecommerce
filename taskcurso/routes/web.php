@@ -44,6 +44,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('reports.metricas.view');
         Route::get('reports/graficos/mostrar', [ReportAdminController::class, 'mostrarGraficos'])
             ->name('reports.graficos');
+        // Allow GET requests to the filtros endpoint so users can navigate directly
+        // to the filters page without causing a 405 when visiting the URL.
+        Route::get('reports/filtros/fechas', [ReportAdminController::class, 'filtrarFechas'])
+            ->name('reports.filtros.view');
         Route::post('reports/filtros/fechas', [ReportAdminController::class, 'filtrarFechas'])
             ->name('reports.filtros');
         Route::post('reports/exportar/pdf', [ReportAdminController::class, 'exportarPdf'])
@@ -86,9 +90,8 @@ Route::get('/login', [WebAuthController::class, 'showLoginForm'])->name('login')
 Route::post('/login', [WebAuthController::class, 'login']);
 Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('orders', OrderController::class)->names('orders')->parameters(['orders' => 'pedido']);
-    // Accept both POST and PUT for status update to be tolerant with form submits
-    Route::match(['post','put'], 'orders/{pedido}/status', [OrderController::class, 'updateStatus'])
-        ->name('orders.updateStatus');
-});
+// Legacy order routes were previously registered here; the admin group above
+// already uses `OrderAdminController`. To avoid route conflicts after the
+// rebase we rely on the admin resource registered earlier. If legacy routes
+// are required for backwards compatibility, they should be aliased explicitly
+// or migrated to use the admin controller.

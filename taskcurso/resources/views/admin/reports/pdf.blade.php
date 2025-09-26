@@ -107,7 +107,25 @@
         <div class="section chart-section">
             <h2>Gráfico de Datos</h2>
             <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                <img src="data:image/png;base64,{{ $chartPngBase64 }}" alt="Gráfico de Datos" style="max-width:100%; width:800px; height:400px; object-fit:contain; display:block; margin:0 auto;" />
+                {{-- Use explicit width/height attributes for DomPDF compatibility (avoid object-fit) --}}
+                <img src="data:image/png;base64,{{ $chartPngBase64 }}" alt="Gráfico de Datos" width="800" height="400" style="display:block; margin:0 auto;" />
+            </div>
+        </div>
+    @elseif(!empty($chartSvgPdf))
+        <div class="section chart-section">
+            <h2>Gráfico de Datos</h2>
+            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                {{-- Embed PDF-safe SVG as a data URI image to improve DomPDF rendering reliability --}}
+                <div style="display:inline-block; width:800px; height:400px; background:#ffffff; border:1px solid #d1d5db;">
+                    {{-- Use an SVG data-URI image (utf8-encoded) for better DomPDF rendering on the fast path --}}
+                    @php
+                        // DomPDF is more reliable with base64-encoded SVG data URIs.
+                        $svgForData = strpos(trim($chartSvgPdf), '<?xml') === 0 ? $chartSvgPdf : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" . $chartSvgPdf;
+                        $svgDataUri = 'data:image/svg+xml;base64,' . base64_encode($svgForData);
+                    @endphp
+                    {{-- Use explicit width/height for SVG data URI image to improve DomPDF rendering reliability --}}
+                    <img src="{{ $svgDataUri }}" alt="Gráfico de Datos" width="800" height="400" style="display:block; margin:0 auto;" />
+                </div>
             </div>
         </div>
     @elseif(!empty($chartImageUrl))
@@ -122,7 +140,7 @@
         <div class="section chart-section">
             <h2>Gráfico de Datos</h2>
             <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                {{-- SVG inline optimizado para DomPDF --}}
+                {{-- Inline SVG (transparent) - this will be used as a last resort --}}
                 <div style="display:inline-block; width:800px; height:400px; background:#ffffff; border:1px solid #d1d5db;">
                     {!! $chartSvg !!}
                 </div>

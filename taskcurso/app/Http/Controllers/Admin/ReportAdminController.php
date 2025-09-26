@@ -22,7 +22,8 @@ class ReportAdminController extends Controller
             session()->regenerateToken();
         }
         
-        $ventasPorMes = new LaravelChart([
+        if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+            $ventasPorMes = new LaravelChart([
             'chart_title' => 'Ventas por Mes',
             'chart_type' => 'line',
             'report_type' => 'group_by_date',
@@ -37,7 +38,7 @@ class ReportAdminController extends Controller
                     'legend' => [
                         'display' => true,
                         'position' => 'top',
-                        'labels' => ['fontColor' => '#374151']
+                        'labels' => ['color' => '#E5E7EB']
                     ]
                 ],
                 'scales' => [
@@ -45,28 +46,41 @@ class ReportAdminController extends Controller
                         'display' => true,
                         'grid' => [
                             'display' => true,
-                            'color' => 'rgba(156, 163, 175, 0.3)'
+                            'color' => 'rgba(156, 163, 175, 0.12)'
                         ],
                         'ticks' => [
-                            'fontColor' => '#9CA3AF'
+                            'color' => '#CBD5E1'
                         ]
                     ],
                     'y' => [
                         'display' => true,
                         'grid' => [
                             'display' => true,
-                            'color' => 'rgba(156, 163, 175, 0.3)'
+                            'color' => 'rgba(156, 163, 175, 0.12)'
                         ],
                         'ticks' => [
-                            'fontColor' => '#9CA3AF',
+                            'color' => '#CBD5E1',
                             'beginAtZero' => true
                         ]
                     ]
                 ]
             ]
-        ]);
+            ]);
+        } else {
+            // Fallback simple chart stub when package not available
+            $pedidosPorMes = HistorialVenta::selectRaw("DATE_PART('month', fecha_venta) as mes, COUNT(*) as total")
+                                ->whereYear('fecha_venta', now()->year)
+                                ->groupBy('mes')
+                                ->orderBy('mes')
+                                ->get()
+                                ->mapWithKeys(function ($row) { return [intval($row->mes) => $row->total]; });
 
-        $topProductos = new LaravelChart([
+            $svg = $this->buildChartSvg($pedidosPorMes, 600, 240, 'Ventas por Mes');
+            $ventasPorMes = $this->makeFallbackChart('Ventas por Mes', $svg);
+        }
+
+        if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+            $topProductos = new LaravelChart([
             'chart_title' => 'Top Productos por Stock',
             'chart_type' => 'bar',
             'report_type' => 'group_by_string',
@@ -77,14 +91,29 @@ class ReportAdminController extends Controller
                 'maintainAspectRatio' => false,
                 'responsive' => true,
                 'scales' => [
-                    'xAxes' => [[ 'ticks' => [ 'fontColor' => '#9CA3AF' ] ]],
-                    'yAxes' => [[ 'ticks' => [ 'fontColor' => '#9CA3AF' ] ]]
+                    'x' => [[ 'ticks' => [ 'color' => '#CBD5E1' ] ]],
+                    'y' => [[ 'ticks' => [ 'color' => '#CBD5E1' ] ]]
                 ],
-                'legend' => [ 'labels' => [ 'fontColor' => '#374151' ] ]
+                'plugins' => [ 'legend' => [ 'labels' => [ 'color' => '#E5E7EB' ] ] ]
             ]
-        ]);
+            ]);
+        } else {
+            // Fallback: build a simple HTML list as chart placeholder
+            $top = Producto::withCount('detalleProducto')
+                ->orderBy('detalle_producto_count', 'desc')
+                ->take(10)
+                ->get();
 
-        $pedidosPorEstado = new LaravelChart([
+            $html = '<div class="px-4 py-2"><ul class="list-disc pl-5">';
+            foreach ($top as $p) {
+                $html .= '<li>' . e($p->nombre) . ' (' . intval($p->detalle_producto_count) . ')</li>';
+            }
+            $html .= '</ul></div>';
+            $topProductos = $this->makeFallbackChart('Top Productos por Stock', null, $html);
+        }
+
+        if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+            $pedidosPorEstado = new LaravelChart([
             'chart_title' => 'Pedidos por Estado',
             'chart_type' => 'pie',
             'report_type' => 'group_by_string',
@@ -94,9 +123,28 @@ class ReportAdminController extends Controller
             'extra_options' => [
                 'maintainAspectRatio' => false,
                 'responsive' => true,
-                'legend' => [ 'labels' => [ 'fontColor' => '#374151' ] ]
+                'plugins' => [ 'legend' => [ 'labels' => [ 'color' => '#E5E7EB' ] ] ]
             ]
-        ]);
+            ]);
+        } else {
+            $byState = Pedido::selectRaw('estado, COUNT(*) as total')
+                        ->groupBy('estado')
+                        ->pluck('total', 'estado');
+
+            // If there is data, create a pie SVG fallback for nicer visuals
+            if ($byState->isNotEmpty()) {
+                $pieSvg = $this->buildPieSvg($byState, 420, 320, 'Pedidos por Estado');
+                $pedidosPorEstado = $this->makeFallbackChart('Pedidos por Estado', $pieSvg);
+            } else {
+                // fallback to a textual list when no data
+                $html = '<div class="px-4 py-2"><ul class="list-disc pl-5">';
+                foreach ($byState as $st => $cnt) {
+                    $html .= '<li>' . e($st) . ': ' . intval($cnt) . '</li>';
+                }
+                $html .= '</ul></div>';
+                $pedidosPorEstado = $this->makeFallbackChart('Pedidos por Estado', null, $html);
+            }
+        }
 
         $totalVentas = HistorialVenta::sum('monto_total');
         $totalPedidos = Pedido::count();
@@ -106,10 +154,26 @@ class ReportAdminController extends Controller
                                      ->whereYear('fecha_venta', now()->year)
                                      ->sum('monto_total');
 
+        // Eager load usuario and ensure the records expose a created_at attribute
+        // in case the table uses a different timestamp column name.
         $pedidosRecientes = Pedido::with(['usuario'])
+                                 ->select('*')
                                  ->orderBy('created_at', 'desc')
                                  ->take(5)
-                                 ->get();
+                                 ->get()
+                                 ->map(function ($p) {
+                                     // Normalize created_at to a Carbon instance if a different field exists
+                                     if (empty($p->created_at) && !empty($p->fecha_pedido)) {
+                                         $p->created_at = Carbon::parse($p->fecha_pedido);
+                                     }
+
+                                     // Ensure usuario is an object to avoid blade null property errors
+                                     if (empty($p->usuario) && !empty($p->id_usuario)) {
+                                         $p->usuario = User::find($p->id_usuario);
+                                     }
+
+                                     return $p;
+                                 });
 
         return view('admin.reports.index', compact(
             'ventasPorMes',
@@ -124,19 +188,82 @@ class ReportAdminController extends Controller
         ));
     }
 
+    /**
+     * Build a simple pie chart SVG from a map of label => value.
+     * $data: collection label => value
+     */
+    private function buildPieSvg($data, $width = 420, $height = 320, $title = '')
+    {
+        $total = array_sum($data->toArray()) ?: 1;
+        $cx = intval($width / 2);
+        $cy = intval(($height / 2) + 10);
+        $r = min($cx, $cy) - 20;
+
+        $start = 0;
+        $slices = '';
+        $labels = '';
+        $colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#06b6d4', '#f97316'];
+        $i = 0;
+        foreach ($data as $label => $value) {
+            $angle = ($value / $total) * 2 * M_PI;
+            $end = $start + $angle;
+
+            $x1 = $cx + intval($r * cos($start));
+            $y1 = $cy + intval($r * sin($start));
+            $x2 = $cx + intval($r * cos($end));
+            $y2 = $cy + intval($r * sin($end));
+
+            $large = ($angle > M_PI) ? 1 : 0;
+            $color = $colors[$i % count($colors)];
+
+            $path = "M {$cx} {$cy} L {$x1} {$y1} A {$r} {$r} 0 {$large} 1 {$x2} {$y2} Z";
+            $slices .= "<path d='" . $path . "' fill='" . $color . "' stroke='#ffffff' stroke-width='1'/>";
+
+            // label positions (mid-angle)
+            $mid = $start + $angle / 2;
+            $lx = $cx + intval(($r + 30) * cos($mid));
+            $ly = $cy + intval(($r + 30) * sin($mid));
+            $pct = round(($value / $total) * 100);
+            $labels .= "<text x='" . $lx . "' y='" . $ly . "' font-size='12' fill='#0f172a' text-anchor='middle' font-family='Helvetica, Arial, sans-serif'>{$label} ({$pct}%)</text>";
+
+            $start = $end;
+            $i++;
+        }
+
+     // Use currentColor for text so inline SVG inherits surrounding text color (helps dark mode)
+     $titleText = $title ? "<text x='" . ($width/2) . "' y='18' font-size='16' fill='currentColor' text-anchor='middle' font-family='Helvetica, Arial, sans-serif' font-weight='600'>{$title}</text>" : '';
+
+     // Don't draw a white background rectangle so the SVG remains transparent
+     $svg = "<svg width='{$width}' height='{$height}' viewBox='0 0 {$width} {$height}' xmlns='http://www.w3.org/2000/svg'>" .
+         $titleText .
+         "<g>{$slices}</g>" .
+         "<g>{$labels}</g>" .
+         "</svg>";
+
+        return $svg;
+    }
+
     public function calcularMetricas()
     {
         $totalVentas = HistorialVenta::sum('monto_total');
-        // Use DATE_PART/EXTRACT for PostgreSQL compatibility instead of MySQL MONTH()
-        $pedidosPorMes = Pedido::selectRaw("DATE_PART('month', created_at) as mes, COUNT(*) as total")
+        // Use DB-specific month extraction for compatibility (MySQL vs PostgreSQL)
+        $driver = config('database.default');
+        if (in_array($driver, ['pgsql', 'postgres', 'postgresql'])) {
+            $mesExpr = "DATE_PART('month', created_at)::int";
+        } else {
+            // default to MySQL style
+            $mesExpr = "MONTH(created_at)";
+        }
+
+        $pedidosPorMes = Pedido::selectRaw("{$mesExpr} as mes, COUNT(*) as total")
                   ->whereYear('created_at', now()->year)
                   ->groupBy('mes')
                   ->pluck('total', 'mes');
 
-        $topProductos = Producto::withCount('detalleProducto')
-                               ->orderBy('detalle_producto_count', 'desc')
-                               ->take(10)
-                               ->get();
+    $topProductos = Producto::withCount('detalleProducto')
+                   ->orderBy('detalle_producto_count', 'desc')
+                   ->take(10)
+                   ->get();
 
         return response()->json([
             'total_ventas' => $totalVentas,
@@ -149,8 +276,17 @@ class ReportAdminController extends Controller
     public function metricas()
     {
         $totalVentas = HistorialVenta::sum('monto_total');
-        $pedidosPorMes = Pedido::selectRaw("DATE_PART('month', created_at) as mes, COUNT(*) as total")
-                        ->whereYear('created_at', now()->year)
+        // Build month extraction expression compatible with current DB
+        $driver = config('database.default');
+        if (in_array($driver, ['pgsql', 'postgres', 'postgresql'])) {
+            $mesExpr = "DATE_PART('month', created_at)::int";
+        } else {
+            $mesExpr = "MONTH(created_at)";
+        }
+
+        // Use HistorialVenta->fecha_venta for sales metrics (more accurate for ventas)
+        $pedidosPorMes = HistorialVenta::selectRaw("DATE_PART('month', fecha_venta) as mes, COUNT(*) as total")
+                        ->whereYear('fecha_venta', now()->year)
                         ->groupBy('mes')
                         ->orderBy('mes')
                         ->get()
@@ -163,11 +299,37 @@ class ReportAdminController extends Controller
                                ->take(10)
                                ->get();
 
-    // Generar SVG con helper (mejor estilo: ejes, grid, labels y leyenda)
-    // Usamos mayor tamaño para que el gráfico sea legible en la UI
-    $chartSvg = $this->buildChartSvg($pedidosPorMes, 780, 320, 'Pedidos por mes');
+        // Prefer using LaravelCharts for consistent charts across pages
+        if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+            $chartOptions = [
+                'chart_title' => 'Pedidos por mes',
+                'chart_type' => 'bar',
+                'report_type' => 'group_by_date',
+                'model' => HistorialVenta::class,
+                'group_by_field' => 'fecha_venta',
+                'group_by_period' => 'month',
+                'chart_color' => '239, 68, 68',
+                'extra_options' => [
+                    'maintainAspectRatio' => false,
+                    'responsive' => true,
+                    'plugins' => ['legend' => ['labels' => ['color' => '#E5E7EB']]],
+                    'scales' => [
+                        'x' => ['ticks' => ['color' => '#CBD5E1']],
+                        'y' => ['ticks' => ['color' => '#CBD5E1']]
+                    ]
+                ]
+            ];
 
-        return view('admin.reports.metricas', compact('totalVentas', 'pedidosPorMes', 'topProductos', 'chartSvg'));
+            $chart = new LaravelChart($chartOptions);
+            $chartSvg = null;
+        } else {
+            // fallback to server-side SVG
+            $chart = null;
+            $chartSvg = $this->buildChartSvg($pedidosPorMes, 780, 320, 'Pedidos por mes');
+        }
+
+        $backUrl = route('admin.reports.index');
+        return view('admin.reports.metricas', compact('totalVentas', 'pedidosPorMes', 'topProductos', 'chart', 'chartSvg', 'backUrl'));
     }
 
     public function mostrarGraficos()
@@ -182,9 +344,23 @@ class ReportAdminController extends Controller
             'chart_color' => '239, 68, 68'
         ];
 
-        $chart = new LaravelChart($chartOptions);
+        if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+            $chart = new LaravelChart($chartOptions);
+        } else {
+            // Fallback: create a small SVG based on recent ventas
+            $data = HistorialVenta::selectRaw("DATE_PART('month', fecha_venta) as mes, COUNT(*) as total")
+                        ->whereYear('fecha_venta', now()->year)
+                        ->groupBy('mes')
+                        ->orderBy('mes')
+                        ->get()
+                        ->mapWithKeys(function ($row) { return [intval($row->mes) => $row->total]; });
 
-        return view('admin.reports.graficos', compact('chart'));
+            $svg = $this->buildChartSvg($data, 700, 300, 'Ventas Mensuales');
+            $chart = $this->makeFallbackChart('Ventas Mensuales', $svg);
+        }
+
+        $backUrl = route('admin.reports.index');
+        return view('admin.reports.graficos', compact('chart', 'backUrl'));
     }
 
     public function filtrarFechas(Request $request)
@@ -193,76 +369,89 @@ class ReportAdminController extends Controller
         if (!session()->has('_token')) {
             session()->regenerateToken();
         }
-        
         try {
-            $fechaInicio = $request->input('fecha_inicio') 
-                ? Carbon::parse($request->input('fecha_inicio')) 
+            $fechaInicio = $request->input('fecha_inicio')
+                ? Carbon::parse($request->input('fecha_inicio'))
                 : now()->subDays(7);
-            $fechaFin = $request->input('fecha_fin') 
-                ? Carbon::parse($request->input('fecha_fin')) 
+            $fechaFin = $request->input('fecha_fin')
+                ? Carbon::parse($request->input('fecha_fin'))
                 : now();
             $mes = $request->input('mes');
             $personalizado = $request->boolean('personalizado');
 
             if ($mes) {
-                // Crear Carbon a partir del año actual y mes seleccionado
-                $fechaInicio = Carbon::create(Carbon::now()->year, intval($mes), 1)->startOfMonth();
-                $fechaFin = Carbon::create(Carbon::now()->year, intval($mes), 1)->endOfMonth();
+                $fechaInicio = Carbon::create(now()->year, intval($mes), 1)->startOfMonth();
+                $fechaFin = Carbon::create(now()->year, intval($mes), 1)->endOfMonth();
             } else if (!$personalizado) {
-                $fechaInicio = Carbon::now()->subDays(7);
-                $fechaFin = Carbon::now();
-        }
-        
-        // Verificar si hay datos en el rango de fechas
-        $ventasCount = HistorialVenta::whereBetween('fecha_venta', [$fechaInicio->format('Y-m-d'), $fechaFin->format('Y-m-d')])->count();
-        
-        // Si no hay datos reales, crear algunos datos de prueba para demostración
-        if ($ventasCount == 0) {
-            $this->crearDatosPrueba($fechaInicio, $fechaFin);
-        }
+                $fechaInicio = now()->subDays(7);
+                $fechaFin = now();
+            }
 
-        $chartFiltrado = new LaravelChart([
-            'chart_title' => 'Ventas Filtradas (' . $fechaInicio->format('d/m/Y') . ' - ' . $fechaFin->format('d/m/Y') . ')',
-            'chart_type' => 'line',
-            'report_type' => 'group_by_date',
-            'model' => HistorialVenta::class,
-            'group_by_field' => 'fecha_venta',
-            'group_by_period' => 'day',
-            'conditions' => [
-                [
-                    'name' => 'Período Personalizado',
-                    'condition' => 'fecha_venta >= "' . $fechaInicio->format('Y-m-d') . '" AND fecha_venta <= "' . $fechaFin->format('Y-m-d') . '"',
-                    'color' => 'red'
-                ]
-            ],
-            'extra_options' => [
-                'maintainAspectRatio' => false,
-                'responsive' => true,
-                'plugins' => [
-                    'legend' => [
-                        'display' => true,
-                        'position' => 'top'
+            $ventasCount = HistorialVenta::whereBetween('fecha_venta', [$fechaInicio->format('Y-m-d'), $fechaFin->format('Y-m-d')])->count();
+            if ($ventasCount == 0) {
+                $this->crearDatosPrueba($fechaInicio, $fechaFin);
+            }
+
+            if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+                $chartFiltrado = new LaravelChart([
+                    'chart_title' => 'Ventas Filtradas (' . $fechaInicio->format('d/m/Y') . ' - ' . $fechaFin->format('d/m/Y') . ')',
+                    'chart_type' => 'line',
+                    'report_type' => 'group_by_date',
+                    'model' => HistorialVenta::class,
+                    'group_by_field' => 'fecha_venta',
+                    'group_by_period' => 'day',
+                    'conditions' => [
+                        [
+                            'name' => 'Período Personalizado',
+                            'condition' => 'fecha_venta >= "' . $fechaInicio->format('Y-m-d') . '" AND fecha_venta <= "' . $fechaFin->format('Y-m-d') . '"',
+                            'color' => 'red'
+                        ]
+                    ],
+                    'extra_options' => [
+                        'maintainAspectRatio' => false,
+                        'responsive' => true,
+                        'plugins' => [
+                            'legend' => [
+                                'display' => true,
+                                'position' => 'top'
+                            ]
+                        ]
                     ]
-                ]
-            ]
-        ]);
+                ]);
+            } else {
+                $pedidos = HistorialVenta::selectRaw("DATE(fecha_venta) as dia, COUNT(*) as total")
+                            ->whereBetween('fecha_venta', [$fechaInicio->format('Y-m-d'), $fechaFin->format('Y-m-d')])
+                            ->groupBy('dia')
+                            ->orderBy('dia')
+                            ->get()
+                            ->mapWithKeys(function ($r) { return [Carbon::parse($r->dia)->day => $r->total]; });
 
-                return view('admin.reports.filtros', compact('chartFiltrado', 'fechaInicio', 'fechaFin'));
+                $svg = $this->buildChartSvg($pedidos, 780, 320, 'Ventas Filtradas');
+                $chartFiltrado = $this->makeFallbackChart('Ventas Filtradas', $svg);
+            }
+
+            $backUrl = route('admin.reports.index');
+            return view('admin.reports.filtros', compact('chartFiltrado', 'fechaInicio', 'fechaFin', 'backUrl'));
         } catch (\Exception $e) {
-            // En caso de error, usar valores por defecto
+            // En caso de error, usar valores por defecto y mostrar mensaje
             $fechaInicio = now()->subDays(7);
             $fechaFin = now();
-            
-            $chartFiltrado = new LaravelChart([
-                'chart_title' => 'Sin datos disponibles',
-                'chart_type' => 'line',
-                'report_type' => 'group_by_date',
-                'model' => HistorialVenta::class,
-                'group_by_field' => 'fecha_venta',
-                'group_by_period' => 'day',
-            ]);
-            
-            return view('admin.reports.filtros', compact('chartFiltrado', 'fechaInicio', 'fechaFin'))
+
+            if (class_exists(\LaravelDaily\LaravelCharts\Classes\LaravelChart::class)) {
+                $chartFiltrado = new LaravelChart([
+                    'chart_title' => 'Sin datos disponibles',
+                    'chart_type' => 'line',
+                    'report_type' => 'group_by_date',
+                    'model' => HistorialVenta::class,
+                    'group_by_field' => 'fecha_venta',
+                    'group_by_period' => 'day',
+                ]);
+            } else {
+                $chartFiltrado = $this->makeFallbackChart('Sin datos disponibles', $this->buildChartSvg(collect(), 780, 320, 'Sin datos'));
+            }
+
+            $backUrl = route('admin.reports.index');
+            return view('admin.reports.filtros', compact('chartFiltrado', 'fechaInicio', 'fechaFin', 'backUrl'))
                 ->with('error', 'Error al procesar los filtros. Mostrando datos por defecto.');
         }
     }
@@ -274,7 +463,9 @@ class ReportAdminController extends Controller
             session()->regenerateToken();
         }
         
-        $tipoReporte = $request->input('tipo', 'general');
+    $tipoReporte = $request->input('tipo', 'general');
+    // If 'fast' is true, skip server-side rasterization to save CPU/time.
+    $fast = $request->boolean('fast', false);
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio')) : now()->subMonth();
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin')) : now();
 
@@ -285,8 +476,9 @@ class ReportAdminController extends Controller
     $chartPngBase64 = null;
         if (in_array($tipoReporte, ['general', 'ventas', 'pedidos'])) {
             // Reuse the metricas-style data for pedidos por mes
-            $pedidosPorMes = Pedido::selectRaw("DATE_PART('month', created_at) as mes, COUNT(*) as total")
-                                ->whereBetween('created_at', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()])
+                // Use sales records (HistorialVenta) so the PDF shows ventas by fecha_venta
+                $pedidosPorMes = HistorialVenta::selectRaw("DATE_PART('month', fecha_venta) as mes, COUNT(*) as total")
+                                    ->whereBetween('fecha_venta', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()])
                                 ->groupBy('mes')
                                 ->orderBy('mes')
                                 ->get()
@@ -297,46 +489,69 @@ class ReportAdminController extends Controller
             // increase size for pdf export so the rasterized PNG is clearer
             $chartSvg = $this->buildChartSvg($pedidosPorMes, 900, 360, 'Pedidos por mes');
 
-                    // Prefer to embed a PNG in the PDF when Imagick is available because
-                    // DomPDF tends to rasterize images more reliably than complex SVGs
-                    // across different environments. Create a base64 PNG and pass it to
-                    // the view; fallback to inline SVG if PNG creation fails.
-                    if (class_exists('Imagick')) {
-                        try {
-                            $im = new \Imagick();
-                            // Read the SVG; use readImageBlob to accept the raw SVG string
-                            $im->readImageBlob($chartSvg);
-                            // Ensure a non-transparent background by flattening layers
-                            try {
-                                // Remove alpha and flatten to white background
-                                $im->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
-                            } catch (\Throwable $inner) {
-                                // ignore if constant not available
-                            }
-                            try {
-                                $im->setImageBackgroundColor('white');
-                                $flat = $im->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
-                                if ($flat instanceof \Imagick) {
-                                    $flat->setImageFormat('png24');
-                                    $blob = $flat->getImageBlob();
-                                } else {
-                                    $im->setImageFormat('png24');
-                                    $blob = $im->getImageBlob();
-                                }
-                            } catch (\Throwable $inner) {
-                                // Fallback if layer flattening fails
-                                $im->setImageFormat('png24');
-                                $blob = $im->getImageBlob();
-                            }
+            // Prepare a PDF-friendly SVG that includes a white background rectangle
+            // so rasterizers and DomPDF render it consistently on a white page.
+            $chartSvgPdf = preg_replace('/<svg([^>]*)>/i', '<svg$1><rect width="100%" height="100%" fill="#ffffff"/>', $chartSvg, 1);
 
-                            if (!empty($blob)) {
-                                $chartPngBase64 = base64_encode($blob);
-                            }
-                        } catch (\Exception $e) {
-                            // if conversion fails, keep chartPngBase64 null and let the
-                            // view render the SVG fallback
-                        }
+            // Replace 'currentColor' with an explicit dark color for PDF/rasterization
+            // to avoid DomPDF or rasterizers inheriting unexpected colors.
+            $chartSvgPdf = str_replace("currentColor", "#0f172a", $chartSvgPdf);
+
+            // Attempt to rasterize via Imagick when available to produce a PNG for the PDF.
+            // This is more reliable than relying on DomPDF to fetch or render SVGs.
+            if (class_exists('Imagick')) {
+                try {
+                    $svgBlob = (strpos($chartSvgPdf, '<?xml') === 0) ? $chartSvgPdf : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" . $chartSvgPdf;
+
+                    $im = new \Imagick();
+                    // Set density before reading to influence raster quality
+                    try { $im->setOption('density', '150'); } catch (\Throwable $_) {}
+
+                    $im->readImageBlob($svgBlob);
+
+                    // Prefer png32 to keep quality; fallback to png24 if needed
+                    try {
+                        $im->setImageFormat('png32');
+                    } catch (\Throwable $_) {
+                        try { $im->setImageFormat('png24'); } catch (\Throwable $_) {}
                     }
+
+                    // Ensure alpha channel is active (defensive)
+                    try {
+                        if (method_exists($im, 'getImageAlphaChannel') && $im->getImageAlphaChannel() === \Imagick::ALPHACHANNEL_UNDEFINED) {
+                            try { $im->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE); } catch (\Throwable $_) {}
+                        }
+                    } catch (\Throwable $_) {}
+
+                    $blob = $im->getImageBlob();
+
+                    if (!empty($blob)) {
+                        $chartPngBase64 = base64_encode($blob);
+                    }
+
+                    // free resources: only clear/destroy the Imagick instance we created
+                    try { if (isset($im) && is_object($im)) { $im->clear(); $im->destroy(); } } catch (\Throwable $_) {}
+                } catch (\Exception $e) {
+                    // keep chartPngBase64 null; we'll embed the PDF-safe inline SVG instead
+                }
+            }
+
+            // Optional debug dump: write the intermediate SVG/PNG for inspection when requested
+            try {
+                if ($request->boolean('debug_dump', false)) {
+                    if (!empty($chartSvgPdf)) {
+                        @file_put_contents(storage_path('logs/report_chartSvgPdf.svg'), $chartSvgPdf);
+                    }
+                    if (!empty($chartPngBase64)) {
+                        @file_put_contents(storage_path('logs/report_chartPng.png'), base64_decode($chartPngBase64));
+                    }
+                    if (!empty($chartSvg)) {
+                        @file_put_contents(storage_path('logs/report_chartSvg.svg'), $chartSvg);
+                    }
+                }
+            } catch (\Throwable $_) {
+                // ignore any filesystem errors during debug dump
+            }
         }
 
         // Configurar DomPDF con opciones mejoradas para mejor renderizado
@@ -353,31 +568,127 @@ class ReportAdminController extends Controller
         } catch (\Throwable $e) {
             // Fallback para versiones anteriores de DomPDF
             try {
-                Pdf::setOptions(['isRemoteEnabled' => true]);
-            } catch (\Throwable $inner) {
-                // ignore if option not available
+                                // Best-effort: if Imagick exists, convert the PNG directly to a single-page PDF
+                                // which guarantees the image appears in the PDF. This is fast and portable.
+                                if (class_exists('Imagick')) {
+                                    try {
+                                        $im = new \Imagick();
+                                        $im->readImageBlob($chartBlob);
+                                        // Ensure proper PDF output
+                                        $im->setImageFormat('pdf');
+                                        $pdfBlob = $im->getImagesBlob();
+                                        // cleanup
+                                        try { $im->clear(); $im->destroy(); } catch (\Throwable $_) {}
+
+                                        return response($pdfBlob, 200, [
+                                            'Content-Type' => 'application/pdf',
+                                            'Content-Disposition' => 'attachment; filename="reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf"'
+                                        ]);
+                                    } catch (\Throwable $e) {
+                                        // If Imagick fails, fall back to DomPDF embedding below
+                                    }
+                                }
+
+                                // Fallback: render minimal HTML with embedded PNG (DomPDF)
+                                $onlyPngHtml = '<!doctype html><html><head><meta charset="utf-8"><title>Reporte</title></head><body style="font-family:Arial,sans-serif;margin:20px">'
+                                    . '<h2 style="color:#dc2626">' . e($datos['titulo'] ?? 'Reporte') . '</h2>'
+                                    . '<p>Generado el: ' . now()->format('d/m/Y H:i:s') . '</p>'
+                                    . '<div style="text-align:center;margin-top:10px"><img src="data:image/png;base64,' . $chartPngBase64 . '" width="800" height="400" alt="Grafico"></div>'
+                                    . '<div style="margin-top:20px">' . $detailsHtml . '</div>'
+                                    . '</body></html>';
+
+                                $pdf = Pdf::loadHTML($onlyPngHtml);
+                                $pdf->setPaper('A4', 'portrait');
+                                return $pdf->download('reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf');
+        }
+        // Force embedding the rasterized PNG when available — reliability over CPU
+        if (!empty($chartPngBase64)) {
+            $chartImageUrl = null; // ensure view selects embedded PNG
+        } else {
+            // if no rasterized PNG available, keep chartImageUrl (fast remote fetch) if requested
+            if (!empty($chartImageUrl)) {
+                // leave as-is so DomPDF can fetch the image
             }
         }
 
-        // Build a chart image URL as a fallback for DomPDF to fetch.
-        $chartImageUrl = null;
-        if (in_array($tipoReporte, ['general', 'ventas', 'pedidos'])) {
-            $chartImageUrl = url('/admin/reports/chart-image') . '?fecha_inicio=' . $fechaInicio->format('Y-m-d') . '&fecha_fin=' . $fechaFin->format('Y-m-d');
+        // Generar el PDF con configuración mejorada
+        // If we have a rasterized PNG, produce a small guaranteed-PNG PDF first
+        if (!empty($chartPngBase64)) {
+            // Build a simple details section depending on report type so PDF includes tabular data
+            $detailsHtml = '';
+            if ($tipoReporte === 'ventas' && !empty($datos['ventas'])) {
+                $detailsHtml .= '<h3>Detalle de Ventas</h3>';
+                $detailsHtml .= '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse">';
+                $detailsHtml .= '<thead><tr><th>ID</th><th>Fecha</th><th>Monto</th><th>Pedido</th></tr></thead><tbody>';
+                foreach ($datos['ventas'] as $v) {
+                    $fecha = isset($v->fecha_venta) ? ( $v->fecha_venta instanceof \Carbon\Carbon ? $v->fecha_venta->format('d/m/Y') : \Carbon\Carbon::parse($v->fecha_venta)->format('d/m/Y') ) : 'N/A';
+                    $detailsHtml .= '<tr>' . '<td>' . e($v->id) . '</td>' . '<td>' . e($fecha) . '</td>' . '<td>Q' . number_format($v->monto_total,2) . '</td>' . '<td>' . e($v->id_pedido ?? '') . '</td>' . '</tr>';
+                }
+                $detailsHtml .= '</tbody></table>';
+            } elseif ($tipoReporte === 'pedidos' && !empty($datos['pedidos'])) {
+                $detailsHtml .= '<h3>Detalle de Pedidos</h3>';
+                $detailsHtml .= '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse">';
+                $detailsHtml .= '<thead><tr><th>ID</th><th>Usuario</th><th>Fecha Pedido</th><th>Estado</th></tr></thead><tbody>';
+                foreach ($datos['pedidos'] as $p) {
+                    $fecha = isset($p->fecha_pedido) ? ( $p->fecha_pedido instanceof \Carbon\Carbon ? $p->fecha_pedido->format('d/m/Y') : \Carbon\Carbon::parse($p->fecha_pedido)->format('d/m/Y') ) : 'N/A';
+                    $detailsHtml .= '<tr>' . '<td>' . e($p->id) . '</td>' . '<td>' . e($p->id_usuario ?? '') . '</td>' . '<td>' . e($fecha) . '</td>' . '<td>' . e(ucfirst($p->estado ?? '')) . '</td>' . '</tr>';
+                }
+                $detailsHtml .= '</tbody></table>';
+            } else {
+                // Generic resumen if present
+                if (!empty($datos['resumen'])) {
+                    $detailsHtml .= '<h3>Resumen</h3><pre>' . e(json_encode($datos['resumen'], JSON_PRETTY_PRINT)) . '</pre>';
+                } elseif (!empty($datos['total'])) {
+                    $detailsHtml .= '<h3>Totales</h3><p>Total registros: ' . e($datos['total']) . '</p>';
+                }
+            }
+
+            $chartBlob = base64_decode($chartPngBase64);
+
+            // Try direct PNG -> PDF conversion using Imagick (most reliable and fast).
+            if (class_exists('Imagick')) {
+                try {
+                    $imPdf = new \Imagick();
+                    $imPdf->readImageBlob($chartBlob);
+                    // ensure single-page PDF output
+                    $imPdf->setImageFormat('pdf');
+                    $pdfBlob = $imPdf->getImagesBlob();
+                    try { if (isset($imPdf) && is_object($imPdf)) { $imPdf->clear(); $imPdf->destroy(); } } catch (\Throwable $_) {}
+
+                    return response($pdfBlob, 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'attachment; filename="reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf"'
+                    ]);
+                } catch (\Throwable $_) {
+                    // If Imagick PDF conversion fails, fall through to DomPDF embedding below
+                }
+            }
+
+            // Fallback: render minimal HTML with embedded PNG (DomPDF)
+            $onlyPngHtml = '<!doctype html><html><head><meta charset="utf-8"><title>Reporte</title></head><body style="font-family:Arial,sans-serif;margin:20px'>
+                . '<h2 style="color:#dc2626">' . e($datos['titulo'] ?? 'Reporte') . '</h2>'
+                . '<p>Generado el: ' . now()->format('d/m/Y H:i:s') . '</p>'
+                . '<div style="text-align:center;margin-top:10px"><img src="data:image/png;base64,' . $chartPngBase64 . '" width="800" height="400" alt="Grafico"></div>'
+                . '<div style="margin-top:20px">' . $detailsHtml . '</div>'
+                . '</body></html>';
+
+            $pdf = Pdf::loadHTML($onlyPngHtml);
+            $pdf->setPaper('A4', 'portrait');
+            return $pdf->download('reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf');
         }
 
-        // Generar el PDF con configuración mejorada
+        // Otherwise render full view which may use SVG/data-uri or remote fetch
         $pdf = Pdf::loadView('admin.reports.pdf', [
             'datos' => $datos,
             'tipo' => $tipoReporte,
             'fecha_generacion' => now(),
-            'chartSvg' => $chartSvg,
+            'chartSvg' => $chartSvg ?? null,
+            'chartSvgPdf' => $chartSvgPdf ?? null,
             'chartPngBase64' => $chartPngBase64,
             'chartImageUrl' => $chartImageUrl
         ]);
-        
-        // Configurar el tamaño del papel y orientación si es necesario
-        $pdf->setPaper('A4', 'portrait');
 
+        $pdf->setPaper('A4', 'portrait');
         return $pdf->download('reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf');
     }
 
@@ -420,8 +731,9 @@ class ReportAdminController extends Controller
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio')) : now()->subMonth();
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin')) : now();
 
-        $pedidosPorMes = Pedido::selectRaw("DATE_PART('month', created_at) as mes, COUNT(*) as total")
-                            ->whereBetween('created_at', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()])
+        // Use ventas (HistorialVenta) to generate the chart image for ventas/pedidos
+        $pedidosPorMes = HistorialVenta::selectRaw("DATE_PART('month', fecha_venta) as mes, COUNT(*) as total")
+                            ->whereBetween('fecha_venta', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()])
                             ->groupBy('mes')
                             ->orderBy('mes')
                             ->get()
@@ -435,19 +747,37 @@ class ReportAdminController extends Controller
 
         // Intentar convertir a PNG si Imagick está disponible
         if (class_exists('Imagick')) {
-            try {
-                $im = new \Imagick();
-                $im->readImageBlob($chartSvg);
-                $im->setImageFormat('png24');
-                $blob = $im->getImageBlob();
-                return response($blob, 200, ['Content-Type' => 'image/png']);
-            } catch (\Exception $e) {
-                // Fallback a SVG
-                return response($chartSvg, 200, ['Content-Type' => 'image/svg+xml']);
-            }
+                try {
+                    $im = new \Imagick();
+                    $svgBlob = (strpos($chartSvg, '<?xml') === 0) ? $chartSvg : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" . $chartSvg;
+                    try { $im->setOption('density', '150'); } catch (\Throwable $_) {}
+                    $im->readImageBlob($svgBlob);
+
+                    try {
+                        $im->setImageFormat('png32');
+                    } catch (\Throwable $_) {
+                        try { $im->setImageFormat('png24'); } catch (\Throwable $_) {}
+                    }
+
+                    // If alpha isn't supported, attempt to enable it before exporting
+                    try {
+                        if (method_exists($im, 'getImageAlphaChannel') && $im->getImageAlphaChannel() === \Imagick::ALPHACHANNEL_UNDEFINED) {
+                            try { $im->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE); } catch (\Throwable $_) {}
+                        }
+                    } catch (\Throwable $_) {}
+
+                    $blob = $im->getImageBlob();
+                    $headers = ['Content-Type' => 'image/png', 'Content-Length' => strlen($blob)];
+                    return response($blob, 200, $headers);
+                } catch (\Exception $e) {
+                    // Fallback a SVG
+                    $svgHeaders = ['Content-Type' => 'image/svg+xml; charset=utf-8', 'Content-Length' => strlen($chartSvg)];
+                    return response($chartSvg, 200, $svgHeaders);
+                }
         }
 
-        return response($chartSvg, 200, ['Content-Type' => 'image/svg+xml']);
+        $svgHeaders = ['Content-Type' => 'image/svg+xml; charset=utf-8', 'Content-Length' => strlen($chartSvg)];
+        return response($chartSvg, 200, $svgHeaders);
     }
 
     /**
@@ -530,15 +860,15 @@ class ReportAdminController extends Controller
             $i++;
         }
 
-        $titleText = $title ? "<text x='" . ($width/2) . "' y='18' font-size='16' fill='#0f172a' text-anchor='middle' font-family='Helvetica, Arial, sans-serif' font-weight='600'>{$title}</text>" : '';
+     // Use currentColor for text so inline SVG inherits surrounding text color (helps dark mode)
+     $titleText = $title ? "<text x='" . ($width/2) . "' y='18' font-size='16' fill='currentColor' text-anchor='middle' font-family='Helvetica, Arial, sans-serif' font-weight='600'>{$title}</text>" : '';
 
-        // white background to avoid transparency issues when converting to PNG
-        $svg = "<svg width='{$width}' height='{$height}' viewBox='0 0 {$width} {$height}' xmlns='http://www.w3.org/2000/svg'>" .
-               "<rect width='100%' height='100%' fill='#ffffff'/>" .
-               "{$titleText}" .
-               "<g>{$ticks}</g>" .
-               "<g>{$bars}</g>" .
-               "</svg>";
+     // Transparent background so SVG respects dark mode. When rasterizing, we will try to preserve transparency.
+     $svg = "<svg width='{$width}' height='{$height}' viewBox='0 0 {$width} {$height}' xmlns='http://www.w3.org/2000/svg' role='img' aria-label='" . htmlentities($title) . "'>" .
+         "{$titleText}" .
+         "<g>{$ticks}</g>" .
+         "<g>{$bars}</g>" .
+         "</svg>";
 
         return $svg;
     }
@@ -656,5 +986,52 @@ class ReportAdminController extends Controller
                     ]
                 ];
         }
+    }
+
+    /**
+     * Crea un objeto 'chart-like' de reemplazo para las vistas cuando la
+     * clase LaravelChart no está disponible. El objeto expone:
+     * - options (array)
+     * - renderHtml() -> string (HTML/SVG)
+     * - renderJs() -> string (JS placeholder)
+     * - renderChartJsLibrary() -> string (script tag placeholder)
+     */
+    private function makeFallbackChart($title, $svg = null, $html = null)
+    {
+        $options = ['chart_title' => $title];
+
+        return new class($options, $svg, $html) {
+            public $options;
+            private $svg;
+            private $html;
+
+            public function __construct($options, $svg = null, $html = null)
+            {
+                $this->options = $options;
+                $this->svg = $svg;
+                $this->html = $html;
+            }
+
+            public function renderHtml()
+            {
+                if (!empty($this->svg)) {
+                    return $this->svg;
+                }
+                if (!empty($this->html)) {
+                    return $this->html;
+                }
+                return '<div class="p-4 text-gray-600">No hay datos para mostrar</div>';
+            }
+
+            public function renderJs()
+            {
+                return ''; // no-op for fallback
+            }
+
+            public function renderChartJsLibrary()
+            {
+                return ''; // no library to include
+            }
+        };
     }
 }
