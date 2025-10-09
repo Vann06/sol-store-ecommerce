@@ -23,7 +23,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import http from '@/http'
 import { useRouter } from 'vue-router'
 
 const categories = ref([])
@@ -54,7 +54,7 @@ const goToSearch = (queryId, type) => {
 }
 
 onMounted(async () => {
-  const res = await axios.get('/api/categorias')
+  const res = await http.get('/categorias')
   categories.value = res.data
 })
 </script>

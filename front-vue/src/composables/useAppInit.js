@@ -1,11 +1,11 @@
 import { onMounted } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { useCartStore } from '@/stores/cart'
-import axios from 'axios'
+import http from '@/http'
 
 /**
  * Composable para inicializar la aplicación
- * Se encarga de verificar el token almacenado y configurar axios
+ * Se encarga de verificar el token almacenado
  */
 export function useAppInit() {
   const userStore = useUserStore()
@@ -17,8 +17,7 @@ export function useAppInit() {
       const storedToken = localStorage.getItem('auth_token')
       
       if (storedToken) {
-        // Configurar axios primero
-        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
+        // El token se configura automáticamente via interceptores en http.js
         
         // Solo verificar el token si no hay usuario en el store
         if (!userStore.user) {
@@ -49,7 +48,7 @@ export function useAppInit() {
   const verifyToken = async (token) => {
     try {
       // Intentar obtener información del usuario con el token
-      const response = await axios.get('http://localhost:8000/api/user', {
+      const response = await http.get('/user', {
         headers: { Authorization: `Bearer ${token}` },
         timeout: 5000 // 5 segundos de timeout
       })
@@ -80,10 +79,7 @@ export function useAppInit() {
     // Limpiar localStorage
     localStorage.removeItem('auth_token')
     
-    // Limpiar axios headers
-    delete axios.defaults.headers.common['Authorization']
-    
-    // Limpiar stores
+    // Limpiar stores (el http.js maneja los headers automáticamente)
     userStore.logout() // Esto ya limpia el carrito también
   }
 

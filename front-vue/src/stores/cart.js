@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import http from '@/http'
 import { useUserStore } from './userStore'
-
-const API_BASE_URL = 'http://localhost:8000/api'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -78,8 +76,8 @@ export const useCartStore = defineStore('cart', {
   const token = this.getAuthToken()
   console.log('🔑 Token available:', !!token)
 
-        console.log('📡 Making request to:', `${API_BASE_URL}/carrito`)
-        const response = await axios.get(`${API_BASE_URL}/carrito`, {
+        console.log('📡 Making request to: /carrito')
+        const response = await http.get('/carrito', {
           headers: this.getAuthHeaders()
         })
 
@@ -138,7 +136,7 @@ export const useCartStore = defineStore('cart', {
         }
 
         console.log('📡 Making add to cart request...')
-        const response = await axios.post(`${API_BASE_URL}/carrito/agregar`, {
+        const response = await http.post('/carrito/agregar', {
           producto_id: productId,
           cantidad: quantity
         }, {
@@ -222,7 +220,7 @@ export const useCartStore = defineStore('cart', {
           item.cantidad = newQuantity
 
           try {
-            await axios.put(`${API_BASE_URL}/carrito/actualizar/${itemId}`, {
+            await http.put(`/carrito/actualizar/${itemId}`, {
               cantidad: newQuantity
             }, {
               headers: this.getAuthHeaders()
@@ -282,7 +280,7 @@ export const useCartStore = defineStore('cart', {
         }
 
         try {
-          await axios.delete(`${API_BASE_URL}/carrito/eliminar/${itemId}`, {
+          await http.delete(`/carrito/eliminar/${itemId}`, {
             headers: this.getAuthHeaders()
           })
 
@@ -321,7 +319,7 @@ export const useCartStore = defineStore('cart', {
   // Permitir invitados
 
   // Backend route is /carrito/vaciar
-  await axios.delete(`${API_BASE_URL}/carrito/vaciar`, {
+  await http.delete('/carrito/vaciar', {
           headers: this.getAuthHeaders()
         })
 

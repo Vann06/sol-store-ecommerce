@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import http from '@/http'
 import { useUserStore } from './userStore'
 
 export const useOrdersStore = defineStore('orders', {
@@ -25,18 +25,18 @@ export const useOrdersStore = defineStore('orders', {
       this.lastOrder = null
       // Soporta varios endpoints posibles del backend
       const tries = [
-        { method: 'post', url: '/api/pedidos/checkout' },
-        { method: 'post', url: '/api/orders/checkout' },
-        { method: 'post', url: '/api/pedidos' }
+        { method: 'post', url: '/pedidos/checkout' },
+        { method: 'post', url: '/orders/checkout' },
+        { method: 'post', url: '/pedidos' }
       ]
       try {
         let resp
         for (const t of tries) {
           try {
-            resp = await axios({
+            resp = await http({
               method: t.method,
               url: t.url,
-              data: t.url === '/api/pedidos/checkout'
+              data: t.url === '/pedidos/checkout'
                 ? { direccion_id }
                 : { direccion_envio },
               headers: this.authHeaders()
@@ -62,7 +62,7 @@ export const useOrdersStore = defineStore('orders', {
       this.loading = true
       this.error = null
       try {
-  const resp = await axios.get('/api/pedidos', { headers: this.authHeaders() })
+  const resp = await http.get('/pedidos', { headers: this.authHeaders() })
   // Quedarnos con pedidos que provienen del checkout (tienen detalles)
   const pedidos = (resp.data || []).filter(p => Array.isArray(p.detalles) && p.detalles.length > 0)
   // Normalizar estructura hacia el frontend
@@ -87,7 +87,7 @@ export const useOrdersStore = defineStore('orders', {
       this.loading = true
       this.error = null
       try {
-        const resp = await axios.get(`/api/pedidos/${id}`, { headers: this.authHeaders() })
+        const resp = await http.get(`/pedidos/${id}`, { headers: this.authHeaders() })
         this.current = resp.data
         return { success: true, data: resp.data }
       } catch (e) {

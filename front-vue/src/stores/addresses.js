@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import http from '@/http'
 import { useUserStore } from './userStore'
 
 export const useAddressesStore = defineStore('addresses', {
@@ -22,7 +22,7 @@ export const useAddressesStore = defineStore('addresses', {
       this.loading = true
       this.error = null
       try {
-        const r = await axios.get('/api/direcciones', { headers: this.authHeaders() })
+        const r = await http.get('/direcciones', { headers: this.authHeaders() })
         this.items = r.data || []
         return { success: true }
       } catch (e) {
@@ -32,7 +32,7 @@ export const useAddressesStore = defineStore('addresses', {
     },
     async add({ direccion, id_municipio = null, is_default = false }) {
       try {
-        const r = await axios.post('/api/direcciones', { direccion, id_municipio, is_default }, { headers: this.authHeaders() })
+        const r = await http.post('/direcciones', { direccion, id_municipio, is_default }, { headers: this.authHeaders() })
         if (is_default) this.items.forEach(a => a.is_default = false)
         this.items.push(r.data)
         return { success: true, data: r.data }
@@ -40,7 +40,7 @@ export const useAddressesStore = defineStore('addresses', {
     },
     async update(id, payload) {
       try {
-        const r = await axios.put(`/api/direcciones/${id}`, payload, { headers: this.authHeaders() })
+        const r = await http.put(`/direcciones/${id}`, payload, { headers: this.authHeaders() })
         if (payload.is_default) this.items.forEach(a => a.is_default = false)
         const i = this.items.findIndex(a => a.id === id)
         if (i > -1) this.items[i] = r.data
@@ -49,7 +49,7 @@ export const useAddressesStore = defineStore('addresses', {
     },
     async remove(id) {
       try {
-        await axios.delete(`/api/direcciones/${id}`, { headers: this.authHeaders() })
+        await http.delete(`/direcciones/${id}`, { headers: this.authHeaders() })
         this.items = this.items.filter(a => a.id !== id)
         return { success: true }
       } catch (e) { return { success: false, error: e.response?.data?.error || e.message } }
@@ -57,7 +57,7 @@ export const useAddressesStore = defineStore('addresses', {
     },
     async setDefault(id) {
       try {
-        const r = await axios.post(`/api/direcciones/${id}/predeterminada`, {}, { headers: this.authHeaders() })
+        const r = await http.post(`/direcciones/${id}/predeterminada`, {}, { headers: this.authHeaders() })
         this.items.forEach(a => a.is_default = a.id === id)
         return { success: true, data: r.data?.direccion }
       } catch (e) { return { success: false, error: e.response?.data?.error || e.message } }

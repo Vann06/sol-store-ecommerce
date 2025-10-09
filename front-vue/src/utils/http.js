@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 
+// NOTA: Este archivo parece ser una versión duplicada/legacy de /src/http.js
+// Considera usar /src/http.js en su lugar para mantener consistencia
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
   withCredentials: true, // Para cookies HttpOnly
   timeout: 10000,
   headers: {

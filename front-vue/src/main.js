@@ -1,19 +1,14 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import axios from 'axios'
+import http from './http'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import clarityPlugin from './plugins/clarity'
 import './assets/fixed-header.css' // utilidades .under-fixed-header y CSS var
 
-// Axios setup
-axios.defaults.baseURL = 'http://localhost:8000'
-axios.defaults.withCredentials = true
-const token = localStorage.getItem('auth_token')
-if (token) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-}
+// El cliente HTTP (http.js) ya maneja la configuración de axios automáticamente
+// incluyendo baseURL, withCredentials e interceptores para tokens
 
 // Crear instancia de Vue y Pinia correctamente
 const app = createApp(App)
