@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('refresh_tokens', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('usuarios')->onDelete('cascade');
+            $table->string('token', 500)->index();
+            $table->timestamp('expires_at')->index();
+            $table->string('user_agent')->nullable();
+            $table->string('ip_address', 45)->nullable();
             $table->timestamps();
+            
+            $table->index(['user_id', 'expires_at']);
         });
     }
 
