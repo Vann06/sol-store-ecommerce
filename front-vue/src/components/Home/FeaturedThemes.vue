@@ -23,7 +23,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import http from '@/http'
 import { useRouter } from 'vue-router'
 
 const themes = ref([])
@@ -40,7 +40,7 @@ const scrollLeft = () => themeGrid.value.scrollLeft -= 300
 const scrollRight = () => themeGrid.value.scrollRight += 300
 
 onMounted(async () => {
-  const res = await axios.get('/api/tematicas')
+  const res = await http.get('/tematicas')
   themes.value = res.data.slice(0, 6)
 })
 </script>

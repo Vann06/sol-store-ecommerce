@@ -50,7 +50,7 @@
   
   <script setup>
   import { ref } from 'vue'
-  import axios from 'axios'
+  import http from '@/http'
   
   const firstName = ref('')
   const lastName = ref('')
@@ -63,7 +63,7 @@ const handleSubmit = async () => {
   errors.value = {}
 
   try {
-    const response = await axios.post('http://localhost:8000/api/register', {
+    const response = await http.post('/register', {
       first_name: firstName.value,
       last_name: lastName.value,
       email: email.value,

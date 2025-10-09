@@ -1,6 +1,6 @@
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import axios from 'axios'
+import http from '@/http'
 
 export function useLogout() {
   const router = useRouter()
@@ -11,7 +11,7 @@ export function useLogout() {
       // Hacer logout en el backend
       const token = userStore.token || localStorage.getItem('auth_token')
       if (token) {
-        await axios.post('http://localhost:8000/api/logout', {}, {
+        await http.post('/logout', {}, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }
@@ -21,9 +21,6 @@ export function useLogout() {
     } finally {
       // Usar el nuevo método del store que limpia todo
       userStore.logout()
-      
-      // Limpiar headers de axios
-      delete axios.defaults.headers.common['Authorization']
       
       // Redirigir inmediatamente al home con mensaje de éxito
       await router.push({ 

@@ -1,8 +1,8 @@
 // http.js - Service HTTP para JWT authentication
 import axios from 'axios';
 
-// Base URL para el API (puerto 8000 donde está Laravel)
-const BASE_URL = 'http://localhost:8000/api';
+// Base URL para el API - usa variable de entorno o fallback
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // Crear instancia de axios
 const http = axios.create({
@@ -12,6 +12,9 @@ const http = axios.create({
     'Accept': 'application/json',
   },
 });
+
+// Exportar también la BASE_URL para uso directo si es necesario
+export { BASE_URL };
 
 // Request interceptor - añadir token JWT a todas las peticiones
 http.interceptors.request.use(

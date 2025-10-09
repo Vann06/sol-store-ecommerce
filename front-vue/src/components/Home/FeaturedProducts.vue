@@ -31,7 +31,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import http from '@/http'
 import { useRouter } from 'vue-router'
 
 const products = ref([])
@@ -45,7 +45,7 @@ const goToDetail = (id) => router.push({ name: 'product-detail', params: { id } 
 const addToCart = (product) => console.log('Añadido al carrito:', product)
 
 onMounted(async () => {
-  const res = await axios.get('/api/productos/recientes')
+  const res = await http.get('/productos/recientes')
   products.value = res.data
     .filter(p => p.status === 'activo')
     .slice(0, 12)

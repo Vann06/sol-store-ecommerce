@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
+import http from '@/http'
 
 const categories = ref([])
 const selectedCategoryName = ref(null)
@@ -88,7 +88,7 @@ const searchQuery = ref('') // Estado para la barra de búsqueda
 
 const fetchFAQs = async () => {
   try {
-    const { data } = await axios.get('/api/faqs') // Cambia por tu endpoint real
+    const { data } = await http.get('/faqs')
     categories.value = data
     if (categories.value.length > 0) {
       selectedCategoryName.value = categories.value[0].category

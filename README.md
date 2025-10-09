@@ -28,13 +28,33 @@ DOCKERIZANDO_2/
 - **Frontend:** Vue.js  
 - **Contenedores:** Docker y Docker Compose
 
-## ℹ️ Crea tus puntos env
-Asegurate de crear tus .env apartir de los .env.example para que todo funcione al 100
-en estas dos carpetas 
+## ℹ️ Configuración de Variables de Entorno
+
+### Backend (Laravel)
+Crea tu archivo `.env` en la carpeta `taskcurso/` a partir del `.env.example`
+
+### Frontend (Vue)
+El frontend ahora usa **configuración centralizada de API**:
+
+```bash
+cd front-vue
+
+# Para desarrollo con Docker (usa Nginx en puerto 80)
+cp .env.example .env
+
+# O usa el script automático:
+./switch-env.sh docker
+
+# Para desarrollo local sin Docker (puerto 8000 directo)
+./switch-env.sh local
 ```
-├── front-vue/
-├── taskcurso/
-```
+
+**Variable clave:** `VITE_API_BASE_URL`
+- Docker: `http://localhost/api`
+- Local: `http://localhost:8000/api`
+- Producción: `https://tu-dominio.com/api`
+
+📖 **Documentación completa:** [`front-vue/INDEX.md`](front-vue/INDEX.md)
 
 
 ## 🚀 Instrucciones para levantar el entorno
@@ -103,6 +123,38 @@ El proyecto incluye integración con Microsoft Clarity para analítica web avanz
    - Historial de eventos recientes
 
 3. **Documentación completa**: Ver [`CLARITY_IMPLEMENTATION.md`](CLARITY_IMPLEMENTATION.md)
+
+---
+
+## 🔧 **Configuración de API Centralizada** ⭐ NUEVO
+
+El frontend ahora usa una **URL base centralizada** para todas las llamadas a la API, facilitando el cambio entre entornos.
+
+### Cambio Rápido de Entorno
+
+```bash
+cd front-vue
+
+# Desarrollo con Docker
+./switch-env.sh docker
+
+# Desarrollo local (sin Docker)
+./switch-env.sh local
+
+# Producción
+./switch-env.sh production
+```
+
+### Beneficios
+- ✅ Cambio de URL en un solo lugar
+- ✅ Autenticación JWT automática
+- ✅ Manejo de errores centralizado
+- ✅ Múltiples entornos soportados
+
+### Documentación Frontend
+- 📖 [Índice completo](front-vue/INDEX.md)
+- 🚀 [Guía rápida](front-vue/QUICK_GUIDE.md)
+- ✅ [Checklist para developers](front-vue/DEVELOPER_CHECKLIST.md)
 
 ---
 
