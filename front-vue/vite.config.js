@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     allowedHosts: [
-	          'solstoredev.duckdns.org',
+	          'solstoregt.duckdns.org',
 	          ],
     host: true,      // o '0.0.0.0'
     port: 5173,
@@ -27,6 +27,6 @@ export default defineConfig({
   },
 	preview: {
 		    host: true,
-		    allowedHosts: ['solstoredev.duckdns.org'],
+		    allowedHosts: ['solstoregt.duckdns.org'],
 		  },
 })
