@@ -2,6 +2,12 @@
 
 **Sol_Store_Ecomerce** es una tienda de impresiones 3D que estamos desarrollando como página web para ofrecer productos personalizados. Este repositorio contiene todo el entorno de desarrollo necesario usando contenedores Docker.
 
+## New Changes on Development Testing
+
+- Se ha actualizado la configuración de Docker para mejorar el rendimiento.
+- Se han agregado nuevos scripts para facilitar la gestión de entornos.
+- Se han corregido errores en las pruebas unitarias.
+
 ## 👥 Colaboradores
 
 - Vianka  
