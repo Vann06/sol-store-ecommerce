@@ -61,28 +61,54 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
-
+import http from '@/http'
 const route = useRoute()
 const product = ref(null)
 const cantidad = ref(1)
 const cart = useCartStore()
 
+
 onMounted(async () => {
   const id = route.params.id
-  try {
-    const response = await fetch(`http://localhost:8000/api/productos/${id}`)
-    const data = await response.json()
-    product.value = {
-      ...data,
-      name: data.nombre,
-      price: parseFloat(data.precio_base),
-      category: data.category?.name || 'Sin categoría',
-      imagen_url: data.imagen || 'https://via.placeholder.com/500x600'
-    }
-    } catch (error) {
-        console.error('Error al cargar producto:', error)
+    try {
+        const { data: productData } = await http.get(`/productos/${id}`)
+
+	product.value = {
+	  ...productData,
+          name: productData.nombre ?? productData.name ?? 'Producto',
+	  price: productData.precio_base != null
+	    ? Number(productData.precio_base)
+	    : (productData.price ?? 0),
+	  category: productData.category?.name
+	    ?? productData.categoria?.name
+	    ?? 'Sin categoría',
+          imagen_url: productData.imagen	
+	    ?? productData.image
+	    ?? productData.image_url
+	    ?? 'https://via.placeholder.com/500x600',
+      }						
+    } catch (error) {													    
+      console.error('Error al cargar producto:', error)													      
     }
 })
+
+//onMounted(async () => {
+//  const id = route.params.id
+//  try {
+    //ec const response = await fetch(`http://localhost:8000/api/productos/${id}`)
+//    const { data: productData } = await http.get(`/productos/${id}`)
+ //   const data = await response.json()
+//    product.value = {
+//      ...productData,
+//      name: productData.nombre,
+//      price: parseFloat(productData.precio_base),
+//      category: productData.category?.name || 'Sin categoría',
+//      imagen_url: productData.imagen || 'https://via.placeholder.com/500x600'
+//    }
+//    } catch (error) {
+//        console.error('Error al cargar producto:', error)
+//    }
+//})
 
 function aumentarCantidad() {
   cantidad.value++

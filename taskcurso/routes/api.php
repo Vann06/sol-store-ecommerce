@@ -100,3 +100,5 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'pong']);
 });
 
+
+Route::get("/health", fn() => response()->json(["ok"=>true,"ts"=>now()]))->name("api.health");
