@@ -17,14 +17,14 @@ jobs:
 
       - name: Deploy STAGING
         run: |
-          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
-            set -e
-            cd ~/sol-store-ecommerce
-
-            # actualizar código de la rama develop
-            git pull origin develop
-
-            # levantar servicios (reconstruye si hubo cambios)
-            docker compose down
-            docker compose up -d --build
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id.key
+          chmod 600 id.key
+          ssh -i id.key ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} "echo OK"
+          set -e
+          cd ~/sol-store-ecommerce
+          #git pull origin develop
+          date
+          # levantar servicios (reconstruye si hubo cambios)
+          #docker compose down
+          #docker compose up -d --build
           '

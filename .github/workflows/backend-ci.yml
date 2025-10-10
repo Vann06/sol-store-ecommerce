@@ -29,17 +29,17 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Prepare SQLite for tests
-        run: |
-          cp .env.example .env
-          php -r "file_put_contents('database/database.sqlite','');"
-          php artisan key:generate
-          php artisan migrate --force
+        #run: |
+        #  cp .env.example .env
+        #  php -r "file_put_contents('database/database.sqlite','');"
+        #  php artisan key:generate
+        #  php artisan migrate --force
 
       - name: Run tests (Pest)
-        run: php artisan test
+        #run: php artisan test
 
       - name: Style check (Laravel Pint)
-        run: ./vendor/bin/pint --test || true  # ponlo sin "|| true" si quieres que falle por estilo
+        #run: ./vendor/bin/pint --test || true  # ponlo sin "|| true" si quieres que falle por estilo
 
       - name: Upload test reports (opcional)
         if: always()

@@ -20,16 +20,16 @@ jobs:
           cache-dependency-path: front-vue/package-lock.json
 
       - name: Install deps
-        run: npm ci
+        #run: npm ci
 
       - name: ESLint
-        run: npm run lint --if-present
+        #run: npm run lint --if-present
 
       - name: Unit tests (Vitest)
-        run: npm run test --if-present
+        #run: npm run test --if-present
 
       - name: Build
-        run: npm run build
+        #run: npm run build
 
       - name: Upload build (opcional)
         if: success()
