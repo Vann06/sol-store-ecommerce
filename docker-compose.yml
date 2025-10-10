@@ -34,7 +34,7 @@ services:
     environment:
       APP_ENV: ${APP_ENV}
       APP_DEBUG: ${APP_DEBUG}
-      APP_URL: "http://solstoredev.duckdns.org"
+      APP_URL: "http://solstoregt.duckdns.org"
       DB_CONNECTION: pgsql
       DB_HOST: database
       DB_PORT: 5432
