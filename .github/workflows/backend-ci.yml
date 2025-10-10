@@ -1,0 +1,50 @@
+name: CI - Backend (Laravel)
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: taskcurso
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo, pdo_sqlite, sqlite, zip
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install deps
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare SQLite for tests
+        run: |
+          cp .env.example .env
+          php -r "file_put_contents('database/database.sqlite','');"
+          php artisan key:generate
+          php artisan migrate --force
+
+      - name: Run tests (Pest)
+        run: php artisan test
+
+      - name: Style check (Laravel Pint)
+        run: ./vendor/bin/pint --test || true  # ponlo sin "|| true" si quieres que falle por estilo
+
+      - name: Upload test reports (opcional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          path: |
+            taskcurso/storage/logs/*.log

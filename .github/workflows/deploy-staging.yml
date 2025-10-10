@@ -1,0 +1,30 @@
+name: Deploy to Staging
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cargar llave SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy STAGING
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
+            set -e
+            cd ~/sol-store-ecommerce
+
+            # actualizar código de la rama develop
+            git pull origin develop
+
+            # levantar servicios (reconstruye si hubo cambios)
+            docker compose down
+            docker compose up -d --build
+          '
