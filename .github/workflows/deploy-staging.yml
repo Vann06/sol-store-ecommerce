@@ -15,16 +15,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy STAGING
+      - name: Agregar host a known_hosts
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id.key
-          chmod 600 id.key
-          ssh -i id.key ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} "echo OK"
-          set -e
-          cd ~/sol-store-ecommerce
-          #git pull origin develop
-          date
-          # levantar servicios (reconstruye si hubo cambios)
-          #docker compose down
-          #docker compose up -d --build
-          '
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy STAGING (mínimo para probar)
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} 'bash -lc "
+            set -e
+            echo OK-SSH
+            cd ~/sol-store-ecommerce
+            git pull origin develop || true
+            docker compose down
+            docker compose up -d --build
+            docker compose ps
+          "'
+
