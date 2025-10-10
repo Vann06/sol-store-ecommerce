@@ -1,7 +1,7 @@
 name: Deploy to Production
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "production" ]
 
 jobs:
   deploy:
@@ -18,13 +18,13 @@ jobs:
 
       - name: (Optional) known_hosts
         if: ${{ secrets.KNOWN_HOSTS != '' }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        #run: |
+        #  mkdir -p ~/.ssh
+        #  echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
       - name: Deploy on PRODUCTION
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
             set -e
 
             cd ~/sol-store-ecommerce

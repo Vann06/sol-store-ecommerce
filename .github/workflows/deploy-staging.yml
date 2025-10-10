@@ -17,7 +17,7 @@ jobs:
 
       - name: Deploy STAGING
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} bash -lc '
             set -e
             cd ~/sol-store-ecommerce
 
