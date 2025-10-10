@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173','http://solstoredev.duckdns.org:5173','http://35.226.128.220:5173'],
+    'allowed_origins' => ['http://localhost:5173','http://solstoregt.duckdns.org:5173','http://34.61.239.123:5173'],
 
     'allowed_origins_patterns' => [],
 
