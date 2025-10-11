@@ -1,0 +1,42 @@
+# ================================================
+# Dockerfile para CI/CD con Playwright
+# ================================================
+# Este Dockerfile incluye todas las dependencias
+# necesarias para ejecutar pruebas E2E con Playwright
+# 
+# ⚠️ ADVERTENCIA: Esta imagen es PESADA (~2GB)
+# Solo usar para CI/CD, NO para desarrollo local
+# ================================================
+
+# Usar imagen oficial de Playwright
+FROM mcr.microsoft.com/playwright:v1.54.2-jammy
+
+# Información del mantenedor
+LABEL maintainer="sol-store-team"
+LABEL description="Frontend container with Playwright for CI/CD"
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar dependencias de Node.js
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copiar el código fuente
+COPY . .
+
+# Instalar navegadores de Playwright con dependencias
+RUN npx playwright install --with-deps chromium firefox webkit
+
+# Exponer puerto para el servidor de desarrollo
+EXPOSE 5173
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV CI=true
+
+# Comando por defecto
+CMD ["npm", "run", "dev", "--", "--host"]

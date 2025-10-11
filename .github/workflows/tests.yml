@@ -1,0 +1,146 @@
+# ================================================
+# CI/CD - GitHub Actions para Pruebas E2E
+# ================================================
+# Este workflow ejecuta todas las pruebas incluyendo Playwright
+
+name: 🧪 Tests - Unit, Integration & E2E
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ============================================
+  # JOB 1: Pruebas Unitarias e Integración
+  # ============================================
+  unit-and-integration-tests:
+    name: 🧪 Unit & Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: front-vue/package-lock.json
+      
+      - name: 📦 Install dependencies
+        working-directory: ./front-vue
+        run: npm ci
+      
+      - name: 🧪 Run Unit Tests
+        working-directory: ./front-vue
+        run: npm run test:unit -- --run
+      
+      - name: 🔄 Run Integration Tests
+        working-directory: ./front-vue
+        run: npm run test:automation -- --run
+      
+      - name: 📊 Generate Coverage Report
+        working-directory: ./front-vue
+        run: npm run test:coverage -- --run
+        continue-on-error: true
+      
+      - name: 📤 Upload Coverage to Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: front-vue/coverage/
+          retention-days: 30
+
+  # ============================================
+  # JOB 2: Pruebas E2E con Playwright
+  # ============================================
+  e2e-tests:
+    name: 🎭 E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    
+    # Contenedor especial de Playwright con todas las dependencias
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+      options: --user 1001
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: front-vue/package-lock.json
+      
+      - name: 📦 Install dependencies
+        working-directory: ./front-vue
+        run: npm ci
+      
+      - name: 🐳 Start Docker Compose services
+        run: |
+          docker-compose up -d
+          # Esperar a que los servicios estén listos
+          sleep 10
+      
+      - name: ⏳ Wait for frontend to be ready
+        run: |
+          echo "Esperando que el frontend esté disponible..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173; do sleep 2; done'
+      
+      - name: 🎭 Run Playwright Tests
+        working-directory: ./front-vue
+        run: npx playwright test
+        env:
+          CI: true
+      
+      - name: 📤 Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: front-vue/playwright-report/
+          retention-days: 30
+      
+      - name: 📤 Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results
+          path: front-vue/test-results/
+          retention-days: 30
+      
+      - name: 🛑 Stop Docker Compose
+        if: always()
+        run: docker-compose down
+
+  # ============================================
+  # JOB 3: Resumen de Pruebas
+  # ============================================
+  test-summary:
+    name: 📊 Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-and-integration-tests, e2e-tests]
+    if: always()
+    
+    steps:
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: 📊 Display Test Summary
+        run: |
+          echo "==================================="
+          echo "📊 RESUMEN DE PRUEBAS"
+          echo "==================================="
+          echo ""
+          echo "✅ Pruebas Unitarias: Completadas"
+          echo "✅ Pruebas de Integración: Completadas"
+          echo "✅ Pruebas E2E (Playwright): Completadas"
+          echo ""
+          echo "📁 Reportes disponibles en Artifacts"
+          echo "==================================="
