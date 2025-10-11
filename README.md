@@ -4,10 +4,7 @@
 
 ## New Changes on Development Testing
 
-- Se ha actualizado la configuración de Docker para mejorar el rendimiento.
-- Se han agregado nuevos scripts para facilitar la gestión de entornos.
-- Se han corregido errores en las pruebas unitarias.
-- Debería de poder hacer su CI/CD correctamente
+- Refix of Deploy Staging workflow to a minimal version for testing.
 
 ## 👥 Colaboradores
 
