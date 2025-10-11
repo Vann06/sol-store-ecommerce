@@ -22,8 +22,8 @@ export default defineConfig({
   
   // Configuración global de pruebas
   use: {
-    // URL base de tu aplicación Vue
-    baseURL: 'http://localhost:5173',
+    // URL base de tu aplicación Vue (configurable por env)
+    baseURL: process.env.PW_BASE_URL || 'http://localhost:5173',
     
     // Capturar screenshots en fallos
     screenshot: 'only-on-failure',
