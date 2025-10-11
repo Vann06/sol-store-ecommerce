@@ -20,7 +20,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy STAGING (mínimo para probar)
+      - name: Deploy STAGING
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} 'bash -lc "
             set -e
