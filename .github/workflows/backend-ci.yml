@@ -60,12 +60,11 @@ jobs:
           sed -i 's/^DB_DATABASE=.*/DB_DATABASE=sol_store_test/' .env.testing
           sed -i 's/^DB_USERNAME=.*/DB_USERNAME=postgres/' .env.testing
           sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=postgres/' .env.testing
-          echo "JWT_SECRET=$(php -r 'echo bin2hex(random_bytes(32));')" >> .env.testing
 
       - name: App key + JWT secret
         run: |
           php artisan key:generate --env=testing --force
-          php artisan jwt:secret -n --env=testing --force || true
+          php artisan jwt:secret -n --force || true
 
       - name: Migrate + seed
         run: php artisan migrate:fresh --seed --env=testing
