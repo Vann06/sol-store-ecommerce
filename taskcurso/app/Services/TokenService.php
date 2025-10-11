@@ -23,7 +23,7 @@ class TokenService
         return [
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
-            'token_type' => 'Bearer',
+            'token_type' => 'bearer',
             'expires_in' => config('jwt.ttl') * 60, // en segundos
             'refresh_expires_in' => config('jwt.refresh_ttl') * 60,
         ];
