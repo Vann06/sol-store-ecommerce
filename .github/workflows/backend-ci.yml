@@ -1,0 +1,15 @@
+name: CI - Backend (solo tests en deploy)
+on:
+  push:
+    branches: [ "develop", "production" ]
+
+jobs:
+  backend-tests-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Usando backend ya levantado
+      - name: Correr tests en contenedor backend existente
+        run: |
+          docker compose exec -T backend sh -lc "php artisan test --env=testing"
