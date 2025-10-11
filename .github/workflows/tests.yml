@@ -23,16 +23,30 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
       
-      - name: 🟢 Setup Node.js
+      # Use cached dependencies only if lockfile exists
+      - name: 🟢 Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: front-vue/package-lock.json
+
+      - name: 🟢 Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       
-      - name: 📦 Install dependencies
+      - name: 📦 Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         working-directory: ./front-vue
         run: npm ci
+
+      - name: 📦 Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        working-directory: ./front-vue
+        run: npm install
       
       - name: 🧪 Run Unit Tests
         working-directory: ./front-vue
@@ -62,42 +76,60 @@ jobs:
     name: 🎭 E2E Tests (Playwright)
     runs-on: ubuntu-latest
     
-    # Contenedor especial de Playwright con todas las dependencias
-    container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy
-      options: --user 1001
-    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
       
-      - name: 🟢 Setup Node.js
+      # Use cached dependencies only if lockfile exists
+      - name: 🟢 Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: front-vue/package-lock.json
+
+      - name: 🟢 Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       
-      - name: 📦 Install dependencies
+      - name: 📦 Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         working-directory: ./front-vue
         run: npm ci
-      
-      - name: 🐳 Start Docker Compose services
+
+      - name: 📦 Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        working-directory: ./front-vue
+        run: npm install
+
+      - name: 🎭 Install Playwright browsers
+        working-directory: ./front-vue
+        run: npx playwright install --with-deps chromium
+
+      - name: 🚀 Start Vite dev server (fixed port)
+        working-directory: ./front-vue
         run: |
-          docker-compose up -d
-          # Esperar a que los servicios estén listos
-          sleep 10
-      
+          nohup npm run dev -- --host --port 5173 --strictPort > dev-server.log 2>&1 &
+          echo $! > vite.pid
+
       - name: ⏳ Wait for frontend to be ready
+        working-directory: ./front-vue
         run: |
           echo "Esperando que el frontend esté disponible..."
-          timeout 60 bash -c 'until curl -f http://localhost:5173; do sleep 2; done'
+          for i in {1..60}; do
+            if curl -fsS http://localhost:5173 > /dev/null; then
+              echo "Frontend listo"; exit 0; fi; sleep 2; done
+          echo "El frontend no inició a tiempo"; echo '--- dev-server.log ---'; cat dev-server.log; exit 1
       
       - name: 🎭 Run Playwright Tests
         working-directory: ./front-vue
-        run: npx playwright test
         env:
           CI: true
+          PW_BASE_URL: http://localhost:5173
+        run: npx playwright test --config=playwright.config.simple.js
       
       - name: 📤 Upload Playwright Report
         uses: actions/upload-artifact@v4
@@ -115,9 +147,11 @@ jobs:
           path: front-vue/test-results/
           retention-days: 30
       
-      - name: 🛑 Stop Docker Compose
+      - name: 🛑 Stop Vite dev server
         if: always()
-        run: docker-compose down
+        working-directory: ./front-vue
+        run: |
+          if [ -f vite.pid ]; then kill $(cat vite.pid) || true; fi
 
   # ============================================
   # JOB 3: Resumen de Pruebas

@@ -20,15 +20,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # Use cached dependencies only if lockfile exists
+      - name: Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: front-vue/package-lock.json
 
-      - name: Install dependencies
+      - name: Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         run: npm ci
+
+      - name: Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        run: npm install
 
       - name: Run Vitest (CI)
         run: npm run test -- --run
@@ -44,22 +57,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # Use cached dependencies only if lockfile exists
+      - name: Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: front-vue/package-lock.json
 
-      - name: Install dependencies
+      - name: Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
         run: npm ci
+
+      - name: Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        run: npm install
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Start Vite dev server
+      - name: Start Vite dev server (fixed port)
         run: |
-          nohup npm run dev > dev-server.log 2>&1 &
+          nohup npm run dev -- --host --port 5173 --strictPort > dev-server.log 2>&1 &
           echo $! > vite.pid
 
       - name: Wait for dev server to be ready (http://localhost:5173)
