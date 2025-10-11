@@ -26,6 +26,7 @@ services:
     command: sh -c "chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && apache2-foreground"
     volumes:
       - ./taskcurso:/var/www/html
+      - backend_vendor:/var/www/html/vendor
     ports:
       - "8000:80"
     depends_on:
@@ -95,3 +96,5 @@ networks:
 volumes:
   dbdata:
     name: sol-store-ecommerce_data
+  backend_vendor:
+    name: sol-store-ecommerce_backend_vendor

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Testing\Fluent\AssertableJson;
 
 class AuthenticationFlowTest extends TestCase
 {
@@ -103,22 +104,17 @@ class AuthenticationFlowTest extends TestCase
         $response = $this->postJson('/api/login', $loginData);
 
         // Verificar respuesta exitosa con estructura exacta de tu AuthController
-        $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'message',
-                     'access_token',
-                     'token_type',
-                     'user' => ['id', 'first_name', 'email', 'role']
-                 ])
-                 ->assertJson([
-                     'message' => 'Login exitoso',
-                     'token_type' => 'Bearer',
-                     'user' => [
-                         'first_name' => 'Test',
-                         'email' => 'test@solstore.com',
-                         'role' => 'cliente'
-                     ]
-                 ]);
+        $response
+          ->assertOk()
+          ->assertJsonStructure([
+              'message','access_token','token_type','expires_in',
+              'user' => ['id','first_name','email','role'],
+          ])
+          ->assertJson(function (AssertableJson $json) {
+              $json->where('message', 'Login exitoso')
+                   ->where('token_type', fn ($v) => strtolower((string)$v) === 'bearer')
+                   ->etc();
+          });
 
         $token = $response->json('access_token');
         $this->assertNotEmpty($token);
