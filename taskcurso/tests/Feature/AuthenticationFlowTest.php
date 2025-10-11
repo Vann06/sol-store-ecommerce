@@ -112,7 +112,7 @@ class AuthenticationFlowTest extends TestCase
                  ])
                  ->assertJson([
                      'message' => 'Login exitoso',
-                     'token_type' => 'Bearer',
+                     'token_type' => 'bearer',
                      'user' => [
                          'first_name' => 'Test',
                          'email' => 'test@solstore.com',
