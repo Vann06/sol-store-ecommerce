@@ -16,6 +16,18 @@ jobs:
       - name: Wait for backend to be ready
         run: sleep 10
 
+      - name: Check disk space
+        run: df -h
+
+      - name: Install unzip in container
+        run: docker compose exec -T backend apt-get update && docker compose exec -T backend apt-get install -y unzip
+
+      - name: Fix permissions in container
+        run: docker compose exec -T backend chown -R www-data:www-data /var/www/html
+
+      - name: Clear Composer cache
+        run: docker compose exec -T backend composer clear-cache
+
       - name: Install Composer dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
