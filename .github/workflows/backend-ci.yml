@@ -22,6 +22,12 @@ jobs:
       - name: Check available disk space
         run: df -h
 
+      - name: Fix vendor directory permissions
+        run: |
+          docker compose exec -T backend mkdir -p /var/www/html/vendor
+          docker compose exec -T backend chown -R www-data:www-data /var/www/html/vendor
+          docker compose exec -T backend chmod -R 775 /var/www/html/vendor
+
       - name: Install dev dependencies for testing
         env:
           COMPOSER_MEMORY_LIMIT: -1
