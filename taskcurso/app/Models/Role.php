@@ -9,6 +9,10 @@ class Role extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'is_superadmin' => 'boolean',
+    ];
+
     protected $table = 'roles'; 
 
     protected $fillable = [
