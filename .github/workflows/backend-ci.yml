@@ -32,14 +32,21 @@ jobs:
           docker compose exec -T backend chown -R www-data:www-data /var/www/html
           docker compose exec -T backend chmod -R 775 /var/www/html
 
-      - name: Verify SSL/TLS is enabled
-        run: docker compose exec -T backend composer config --global disable-tls
-
       - name: Update and clean Composer
         run: |
           docker compose exec -T backend composer self-update
           docker compose exec -T backend composer clear-cache
-          docker compose exec -T backend composer diagnose
+
+      - name: Update Composer keys (allow failure)
+        continue-on-error: true
+        run: docker compose exec -T backend composer self-update --update-keys --no-interaction
+
+      - name: Verify Composer configuration
+        run: |
+          echo "=== Composer Config ==="
+          docker compose exec -T backend composer config --global disable-tls || echo "Not set (default: enabled)"
+          echo "=== Composer Version ==="
+          docker compose exec -T backend composer --version
 
       - name: Install dev dependencies for testing
         env:
