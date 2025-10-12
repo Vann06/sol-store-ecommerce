@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build backend image with latest Dockerfile
+        run: docker compose build --no-cache backend
+
       - name: Levantar servicios backend y DB
         run: docker compose up -d database backend
 
@@ -25,13 +28,18 @@ jobs:
       - name: Prepare Composer environment
         run: |
           docker compose exec -T backend mkdir -p /var/www/html/vendor
-          docker compose exec -T backend chown -R www-data:www-data /var/www/html/vendor
-          docker compose exec -T backend chmod -R 775 /var/www/html/vendor
+          docker compose exec -T backend mkdir -p /var/www/html/vendor/composer
+          docker compose exec -T backend chown -R www-data:www-data /var/www/html
+          docker compose exec -T backend chmod -R 775 /var/www/html
+
+      - name: Verify SSL/TLS is enabled
+        run: docker compose exec -T backend composer config --global disable-tls
 
       - name: Update and clean Composer
         run: |
           docker compose exec -T backend composer self-update
           docker compose exec -T backend composer clear-cache
+          docker compose exec -T backend composer diagnose
 
       - name: Install dev dependencies for testing
         env:
