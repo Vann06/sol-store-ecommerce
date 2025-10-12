@@ -14,49 +14,25 @@ jobs:
         run: docker compose up -d database backend
 
       - name: Wait for backend to be ready
-        run: sleep 10
+        run: sleep 15
 
-      - name: Check disk space
+      - name: Verify container is running
+        run: docker compose ps
+
+      - name: Check available disk space
         run: df -h
 
-      - name: Install unzip in container
-        run: docker compose exec -T backend apt-get update && docker compose exec -T backend apt-get install -y unzip
-
-      - name: Fix permissions in container
-        run: docker compose exec -T backend chown -R www-data:www-data /var/www/html
-
-      - name: Clear Composer cache
-        run: docker compose exec -T backend composer clear-cache
-
-      - name: Configure Composer for CI
-        run: |
-          docker compose exec -T backend composer config --global process-timeout 600
-          docker compose exec -T backend composer config --global discard-changes true
-
-      - name: Install Composer dependencies
+      - name: Install dev dependencies for testing
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
-          docker compose exec -T backend bash -c "COMPOSER_MEMORY_LIMIT=-1 composer install \
-            --no-interaction \
-            --prefer-dist \
-            --no-dev \
-            --no-progress \
-            --no-scripts \
-            --no-autoloader"
-
-      - name: Install dev dependencies separately
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
-        run: |
-          docker compose exec -T backend bash -c "COMPOSER_MEMORY_LIMIT=-1 composer install \
-            --no-interaction \
-            --prefer-dist \
-            --no-progress \
-            --no-scripts"
-
-      - name: Generate optimized autoloader
-        run: docker compose exec -T backend composer dump-autoload --optimize
+          docker compose exec -T backend bash -c "
+            COMPOSER_MEMORY_LIMIT=-1 composer install \
+              --no-interaction \
+              --prefer-dist \
+              --no-progress \
+              --optimize-autoloader
+          "
 
       - name: Migrar y seedar entorno testing
         run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
