@@ -28,6 +28,11 @@ jobs:
       - name: Clear Composer cache
         run: docker compose exec -T backend composer clear-cache
 
+      - name: Configure Composer for CI
+        run: |
+          docker compose exec -T backend composer config --global process-timeout 600
+          docker compose exec -T backend composer config --global discard-changes true
+
       - name: Install Composer dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
@@ -35,8 +40,23 @@ jobs:
           docker compose exec -T backend bash -c "COMPOSER_MEMORY_LIMIT=-1 composer install \
             --no-interaction \
             --prefer-dist \
-            --optimize-autoloader \
+            --no-dev \
+            --no-progress \
+            --no-scripts \
+            --no-autoloader"
+
+      - name: Install dev dependencies separately
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
+        run: |
+          docker compose exec -T backend bash -c "COMPOSER_MEMORY_LIMIT=-1 composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress \
             --no-scripts"
+
+      - name: Generate optimized autoloader
+        run: docker compose exec -T backend composer dump-autoload --optimize
 
       - name: Migrar y seedar entorno testing
         run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
