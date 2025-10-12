@@ -13,8 +13,18 @@ jobs:
       - name: Levantar servicios backend y DB
         run: docker compose up -d database backend
 
+      - name: Wait for backend to be ready
+        run: sleep 10
+
       - name: Install Composer dependencies
-        run: docker compose exec -T backend composer install --no-interaction --prefer-dist --optimize-autoloader
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
+        run: |
+          docker compose exec -T backend bash -c "COMPOSER_MEMORY_LIMIT=-1 composer install \
+            --no-interaction \
+            --prefer-dist \
+            --optimize-autoloader \
+            --no-scripts"
 
       - name: Migrar y seedar entorno testing
         run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
