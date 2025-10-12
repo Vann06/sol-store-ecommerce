@@ -90,6 +90,7 @@
 import router from '@/router'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import http from '@/http'
 
 const route = useRoute()
 const hasSearched = ref(false)
@@ -162,8 +163,9 @@ async function performSearch() {
       params.append('orden', selectedOrder.value)
     }
 
-    const response = await fetch(`http://localhost:8000/api/productos?${params.toString()}`)
-    const data = await response.json()
+    //const response = await fetch(`http://localhost:8000/api/productos?${params.toString()}`)
+    const { data } = await http.get(`/productos?${params.toString()}`)
+    //const data = await response.json()
 
     allProducts.value = data.map(product => ({
       name: product.nombre,
@@ -223,8 +225,8 @@ watch(() => route.query, (query) => {
 onMounted(async () => {
   try {
     const [catRes, themeRes] = await Promise.all([
-      fetch('http://localhost:8000/api/categorias'),
-      fetch('http://localhost:8000/api/tematicas')
+      http.get('/categorias'),
+      http.get('/tematicas')
     ])
     categoriesList.value = await catRes.json()
     themesList.value = await themeRes.json()

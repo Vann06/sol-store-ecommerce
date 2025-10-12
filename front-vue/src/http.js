@@ -2,9 +2,19 @@
 import axios from 'axios';
 
 // Base URL para el API - usa variable de entorno o fallback
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-
+//ec const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000/api';
+const raw = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const BASE_URL = raw.replace(/\/+$/, ''); // evita // y trailing slash
+//ec const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 // Crear instancia de axios
+//
+
+export const api = axios.create({
+  baseURL: BASE_URL, // -> http://localhost:8000/api
+  timeout: 15000,
+});
+
+
 const http = axios.create({
   baseURL: BASE_URL,
   headers: {

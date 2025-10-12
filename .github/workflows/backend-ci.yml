@@ -38,3 +38,4 @@ jobs:
       - name: Logs si falla
         if: failure()
         run: docker compose logs --tail=200
+

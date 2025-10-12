@@ -26,9 +26,10 @@ WORKDIR /var/www/html
 # 6. Copiar el código de Laravel
 COPY . .
 
-# 7. Instalar dependencias de Composer y Pail
-RUN composer config --global disable-tls true \
- && composer install --no-dev --optimize-autoloader \
+# 7. Configurar Composer y instalar dependencias
+RUN composer self-update \
+ && composer clear-cache \
+ && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
  && composer require laravel/pail --no-interaction \
  && composer require doctrine/dbal --no-interaction \
  && composer require cloudinary-labs/cloudinary-laravel --no-interaction \
@@ -39,10 +40,10 @@ RUN composer config --global disable-tls true \
  RUN php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider" --tag="cloudinary-laravel-config" \
  && php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider" --force || true
 
-# 8. Ajustar permisos en storage y bootstrap/cache
-RUN mkdir -p storage bootstrap/cache \
- && chown -R www-data:www-data storage bootstrap/cache \
- && chmod -R 775 storage bootstrap/cache
+# 8. Ajustar permisos en storage, bootstrap/cache y vendor
+RUN mkdir -p storage bootstrap/cache vendor \
+ && chown -R www-data:www-data storage bootstrap/cache vendor \
+ && chmod -R 775 storage bootstrap/cache vendor
 
 # 9. Apuntar DocumentRoot a /public y suprimir warning de ServerName
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \

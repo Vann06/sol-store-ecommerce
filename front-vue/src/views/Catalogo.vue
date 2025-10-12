@@ -37,7 +37,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+//import axios from 'axios'
+import http from '@/http'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 
@@ -104,7 +105,8 @@ const filteredProducts = computed(() => {
 const fetchCategories = async () => {
   try {
     console.log('Cargando categorías desde API...')
-    const response = await axios.get('http://localhost:8000/api/categorias')
+    //ec const response = await axios.get('http://localhost:8000/api/categorias')
+    const response = await http.get('/categorias') 
     console.log('Respuesta API categorías:', response.data)
     
     if (Array.isArray(response.data) && response.data.length > 0) {
@@ -140,7 +142,8 @@ const fetchProducts = async () => {
   try {
     console.log('Iniciando carga de productos...')
     
-    const response = await axios.get('http://localhost:8000/api/productos')
+    //ec const response = await axios.get('http://localhost:8000/api/productos')
+    const response = await http.get('/productos')
     console.log('Respuesta de API productos:', response.data)
     
     if (Array.isArray(response.data) && response.data.length > 0) {
