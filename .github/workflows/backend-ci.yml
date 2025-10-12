@@ -37,16 +37,10 @@ jobs:
           docker compose exec -T backend composer self-update
           docker compose exec -T backend composer clear-cache
 
-      - name: Update Composer keys (allow failure)
-        continue-on-error: true
-        run: docker compose exec -T backend composer self-update --update-keys --no-interaction
-
-      - name: Verify Composer configuration
+      - name: Verify Composer is ready
         run: |
-          echo "=== Composer Config ==="
-          docker compose exec -T backend composer config --global disable-tls || echo "Not set (default: enabled)"
-          echo "=== Composer Version ==="
           docker compose exec -T backend composer --version
+          docker compose exec -T backend php -v
 
       - name: Install dev dependencies for testing
         env:
