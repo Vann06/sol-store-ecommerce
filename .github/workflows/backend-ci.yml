@@ -1,7 +1,8 @@
-name: CI - Backend (deploy branches, attach-only)
+name: CI - Backend 
+
 on:
   push:
-    branches: [ "develop", "production" ]
+    branches: [ "develop" ]
 
 jobs:
   backend-tests:
@@ -9,13 +10,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare .env.testing (best-effort)
+      # Opcional: libera espacio en el runner (previene "no space left on device")
+      - name: Free disk on runner
+        run: |
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
+
+      # Levanta DB + backend (sin rebuild pesado)
+      - name: Up services (database + backend)
+        run: |
+          docker compose up -d database backend
+          sleep 15
+          docker compose ps
+
+      # Prepara .env.testing dentro del contenedor (si no existe)
+      - name: Prepare .env.testing
         run: |
           docker compose exec -T backend bash -lc '
             [ -f taskcurso/.env.testing ] || cp taskcurso/.env.testing.example taskcurso/.env.testing
             php artisan key:generate --env=testing --force || true
             php artisan jwt:secret   --env=testing --force || true
-          ' || true
+          '
 
-      - name: Run tests (attach-only)
+      # DB limpia con datos dummy para los tests
+      - name: Migrate & seed (testing)
+        run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
+
+      # Ejecuta la suite de pruebas
+      - name: Run tests
         run: docker compose exec -T backend sh -lc "php artisan test --env=testing"
+
+      # Si algo falla, imprime logs de los servicios
+      - name: Logs (on failure)
+        if: failure()
+        run: docker compose logs --tail=200
