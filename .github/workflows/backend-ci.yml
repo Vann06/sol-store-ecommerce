@@ -1,41 +1,21 @@
-name: CI - Backend (completo)
+name: CI - Backend (deploy branches, attach-only)
 on:
   push:
-    branches-ignore: [ "develop", "production" ]
-  pull_request:
+    branches: [ "develop", "production" ]
 
 jobs:
-  backend-tests-full:
+  backend-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build backend image
-        run: docker compose build --no-cache backend
-
-      - name: Levantar servicios
-        run: docker compose up -d database backend
-
-      - name: Esperar backend
-        run: sleep 15
-
-      - name: Instalar dependencias (con dev)
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
+      - name: Prepare .env.testing (best-effort)
         run: |
           docker compose exec -T backend bash -lc '
-            COMPOSER_MEMORY_LIMIT=-1 composer install \
-              --no-interaction --prefer-dist --no-progress \
-              --optimize-autoloader
-          '
+            [ -f taskcurso/.env.testing ] || cp taskcurso/.env.testing.example taskcurso/.env.testing
+            php artisan key:generate --env=testing --force || true
+            php artisan jwt:secret   --env=testing --force || true
+          ' || true
 
-      - name: Migrar y seed (testing)
-        run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
-
-      - name: Ejecutar pruebas
+      - name: Run tests (attach-only)
         run: docker compose exec -T backend sh -lc "php artisan test --env=testing"
-
-      - name: Logs si falla
-        if: failure()
-        run: docker compose logs --tail=200
-

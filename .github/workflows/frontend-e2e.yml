@@ -1,0 +1,35 @@
+# .github/workflows/frontend-e2e-staging.yml
+name: Frontend E2E (Staging)
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Staging"]
+    types: [completed]
+
+jobs:
+  e2e-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-vue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright against Staging
+        env:
+          PW_BASE_URL: https://staging.sol-store.com   # tu host
+        run: npx playwright test --config=playwright.config.simple.js
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-staging
+          path: front-vue/playwright-report
