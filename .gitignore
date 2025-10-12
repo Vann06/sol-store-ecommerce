@@ -19,6 +19,17 @@
 .idea
 .vscode
 
-# Composer & NPM lock files (opcional si no querés versionarlos)
-# composer.lock
-package-lock.json
+# envs (raíz)
+.env
+.env.*
+!.env.example
+!.env.testing.example
+
+# envs (si están dentro de taskcurso/)
+/taskcurso/.env
+/taskcurso/.env.*
+/taskcurso/.env.testing
+!/taskcurso/.env.testing.example
+
+taskcurso/.env.testing
+taskcurso/.env.testing

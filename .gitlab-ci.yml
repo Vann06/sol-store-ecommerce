@@ -1,0 +1,132 @@
+# ================================================
+# GitLab CI/CD - Pruebas Completas
+# ================================================
+
+stages:
+  - install
+  - test-unit
+  - test-e2e
+  - report
+
+# Variables globales
+variables:
+  NODE_VERSION: "18"
+  DOCKER_DRIVER: overlay2
+
+# ============================================
+# Caché para dependencias
+# ============================================
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - front-vue/node_modules/
+    - front-vue/.npm/
+
+# ============================================
+# STAGE 1: Instalación
+# ============================================
+install:
+  stage: install
+  image: node:18-alpine
+  script:
+    - cd front-vue
+    - npm ci
+  artifacts:
+    paths:
+      - front-vue/node_modules/
+    expire_in: 1 hour
+
+# ============================================
+# STAGE 2: Pruebas Unitarias e Integración
+# ============================================
+test:unit:
+  stage: test-unit
+  image: node:18-alpine
+  dependencies:
+    - install
+  script:
+    - cd front-vue
+    - npm run test:unit -- --run
+  artifacts:
+    when: always
+    reports:
+      junit: front-vue/test-results/junit.xml
+    paths:
+      - front-vue/coverage/
+    expire_in: 30 days
+
+test:integration:
+  stage: test-unit
+  image: node:18-alpine
+  dependencies:
+    - install
+  script:
+    - cd front-vue
+    - npm run test:automation -- --run
+  artifacts:
+    when: always
+    paths:
+      - front-vue/test-results/
+    expire_in: 30 days
+
+# ============================================
+# STAGE 3: Pruebas E2E con Playwright
+# ============================================
+test:e2e:
+  stage: test-e2e
+  # IMAGEN ESPECIAL DE PLAYWRIGHT
+  image: mcr.microsoft.com/playwright:v1.54.2-jammy
+  dependencies:
+    - install
+  services:
+    - docker:dind
+  before_script:
+    - cd front-vue
+    - npm ci
+  script:
+    # Iniciar servicios en segundo plano
+    - cd ..
+    - docker-compose up -d
+    - sleep 10
+    
+    # Esperar a que el frontend esté listo
+    - timeout 60 bash -c 'until curl -f http://localhost:5173; do sleep 2; done'
+    
+    # Ejecutar pruebas Playwright
+    - cd front-vue
+    - npx playwright test --reporter=html,junit
+  after_script:
+    - docker-compose down
+  artifacts:
+    when: always
+    reports:
+      junit: front-vue/test-results/results.xml
+    paths:
+      - front-vue/playwright-report/
+      - front-vue/test-results/
+    expire_in: 30 days
+
+# ============================================
+# STAGE 4: Reporte Final
+# ============================================
+report:
+  stage: report
+  image: alpine:latest
+  dependencies:
+    - test:unit
+    - test:integration
+    - test:e2e
+  script:
+    - echo "======================================"
+    - echo "📊 RESUMEN DE PRUEBAS"
+    - echo "======================================"
+    - echo ""
+    - echo "✅ Todas las pruebas completadas"
+    - echo ""
+    - echo "📁 Reportes disponibles en artifacts"
+    - echo "======================================"
+  artifacts:
+    paths:
+      - front-vue/coverage/
+      - front-vue/playwright-report/
+    expire_in: 30 days

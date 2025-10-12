@@ -10,56 +10,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build backend image with latest Dockerfile
+      - name: Build backend image
         run: docker compose build --no-cache backend
 
-      - name: Levantar servicios backend y DB
+      - name: Levantar servicios
         run: docker compose up -d database backend
 
-      - name: Wait for backend to be ready
+      - name: Esperar backend
         run: sleep 15
 
-      - name: Verify container is running
-        run: docker compose ps
-
-      - name: Check available disk space
-        run: df -h
-
-      - name: Prepare Composer environment
-        run: |
-          docker compose exec -T backend mkdir -p /var/www/html/vendor
-          docker compose exec -T backend mkdir -p /var/www/html/vendor/composer
-          docker compose exec -T backend chown -R www-data:www-data /var/www/html
-          docker compose exec -T backend chmod -R 775 /var/www/html
-
-      - name: Update and clean Composer
-        run: |
-          docker compose exec -T backend composer self-update
-          docker compose exec -T backend composer clear-cache
-
-      - name: Verify Composer is ready
-        run: |
-          docker compose exec -T backend composer --version
-          docker compose exec -T backend php -v
-
-      - name: Install dev dependencies for testing
+      - name: Instalar dependencias (con dev)
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
-          docker compose exec -T backend bash -c "
+          docker compose exec -T backend bash -lc '
             COMPOSER_MEMORY_LIMIT=-1 composer install \
-              --no-interaction \
-              --prefer-dist \
-              --no-progress \
+              --no-interaction --prefer-dist --no-progress \
               --optimize-autoloader
-          "
+          '
 
-      - name: Migrar y seedar entorno testing
+      - name: Migrar y seed (testing)
         run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
 
-      - name: Correr toda la suite de pruebas
+      - name: Ejecutar pruebas
         run: docker compose exec -T backend sh -lc "php artisan test --env=testing"
 
-      - name: Logs si algo falla
+      - name: Logs si falla
         if: failure()
         run: docker compose logs --tail=200
+

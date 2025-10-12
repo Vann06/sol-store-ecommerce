@@ -1,0 +1,85 @@
+# ================================================
+# Docker Compose para CI/CD
+# ================================================
+# Este archivo usa la imagen de Playwright
+# para ejecutar pruebas E2E en CI/CD
+# ================================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Frontend con Playwright (para CI/CD)
+  # ============================================
+  frontend-ci:
+    build:
+      context: ./front-vue
+      dockerfile: ../docker/frontend/Dockerfile.ci
+    container_name: vue_frontend_ci
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - VITE_API_URL=http://backend:8000/api
+    volumes:
+      # Montar código para desarrollo
+      - ./front-vue:/app
+      - /app/node_modules
+    networks:
+      - ecommerce_network
+    depends_on:
+      - backend
+      - postgres
+    command: npm run dev -- --host
+
+  # ============================================
+  # Backend (Laravel)
+  # ============================================
+  backend:
+    build:
+      context: ./taskcurso
+      dockerfile: ../docker/backend/Dockerfile
+    container_name: laravel_backend_ci
+    ports:
+      - "8000:80"
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=ecommerce_db
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin123
+      - APP_ENV=testing
+      - APP_DEBUG=true
+    volumes:
+      - ./taskcurso:/var/www/html
+    networks:
+      - ecommerce_network
+    depends_on:
+      - postgres
+
+  # ============================================
+  # Base de Datos PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:13
+    container_name: postgres_db_ci
+    environment:
+      POSTGRES_DB: ecommerce_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_ci:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
+
+networks:
+  ecommerce_network:
+    driver: bridge
+
+volumes:
+  postgres_data_ci:
+    driver: local

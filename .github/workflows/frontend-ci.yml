@@ -1,0 +1,120 @@
+name: Frontend CI (Unit + E2E)
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit & Integration (Vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-vue
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Use cached dependencies only if lockfile exists
+      - name: Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: front-vue/package-lock.json
+
+      - name: Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
+        run: npm ci
+
+      - name: Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        run: npm install
+
+      - name: Run Vitest (CI)
+        run: npm run test -- --run
+
+  e2e-tests:
+    name: E2E (Playwright)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-vue
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Use cached dependencies only if lockfile exists
+      - name: Setup Node.js (with cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: front-vue/package-lock.json
+
+      - name: Setup Node.js (no cache)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (npm ci)
+        if: ${{ hashFiles('front-vue/package-lock.json') != '' }}
+        run: npm ci
+
+      - name: Install dependencies (npm install)
+        if: ${{ hashFiles('front-vue/package-lock.json') == '' }}
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Vite dev server (fixed port)
+        run: |
+          nohup npm run dev -- --host --port 5173 --strictPort > dev-server.log 2>&1 &
+          echo $! > vite.pid
+
+      - name: Wait for dev server to be ready (http://localhost:5173)
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:5173 > /dev/null; then
+              echo "Vite is up"; exit 0; fi; sleep 2; done
+          echo "Dev server did not start in time"; echo '--- dev-server.log ---'; cat dev-server.log; exit 1
+
+      - name: Run Playwright tests
+        env:
+          PW_BASE_URL: http://localhost:5173
+        run: npx playwright test --config=playwright.config.simple.js
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: front-vue/playwright-report
+          if-no-files-found: warn
+
+      - name: Show dev server logs (on failure)
+        if: failure()
+        run: |
+          echo '--- dev-server.log ---'
+          cat dev-server.log || true
+
+      - name: Stop Vite dev server
+        if: always()
+        run: |
+          if [ -f vite.pid ]; then kill $(cat vite.pid) || true; fi

@@ -1,0 +1,278 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\richi\\Desktop\\2025_S1\\Ingenieria de Software\\sol-store-ecommerce\\front-vue\\playwright.config.simple.js",
+    "rootDir": "C:/Users/richi/Desktop/2025_S1/Ingenieria de Software/sol-store-ecommerce/front-vue/src/test/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/richi/Desktop/2025_S1/Ingenieria de Software/sol-store-ecommerce/front-vue/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/richi/Desktop/2025_S1/Ingenieria de Software/sol-store-ecommerce/front-vue/src/test/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "navigation.spec.js",
+      "file": "navigation.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "SOL Store - Navegación y Responsividad E2E",
+          "file": "navigation.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "La aplicación carga correctamente",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4659,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🌐 Probando carga de la aplicación...\n"
+                        },
+                        {
+                          "text": "✅ Header encontrado\n"
+                        },
+                        {
+                          "text": "✅ Página tiene título\n"
+                        },
+                        {
+                          "text": "✅ Contenido del body presente\n"
+                        },
+                        {
+                          "text": "🎉 Aplicación cargó correctamente\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T15:18:10.316Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ce7c070a851ea64285fd-ff0e624f9b74916f4140",
+              "file": "navigation.spec.js",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "Navegación básica funciona",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5580,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🧭 Probando navegación básica...\n"
+                        },
+                        {
+                          "text": "✅ Encontrados 26 enlaces en la página\n"
+                        },
+                        {
+                          "text": "🎉 Navegación básica funcionando\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T15:18:15.166Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ce7c070a851ea64285fd-1e218aeb8513ba77aa8f",
+              "file": "navigation.spec.js",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "Responsive móvil",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6005,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📱 Probando responsividad móvil...\n"
+                        },
+                        {
+                          "text": "✅ Viewport móvil configurado correctamente\n"
+                        },
+                        {
+                          "text": "✅ Menú hamburguesa encontrado\n"
+                        },
+                        {
+                          "text": "🎉 Responsividad móvil verificada\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T15:18:20.762Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ce7c070a851ea64285fd-27d37d50bc5ccb917f81",
+              "file": "navigation.spec.js",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "Rendimiento de carga",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2881,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Probando rendimiento de carga...\n"
+                        },
+                        {
+                          "text": "✅ Página cargada en 2366ms\n"
+                        },
+                        {
+                          "text": "🎉 Rendimiento de carga aceptable\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T15:18:26.781Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ce7c070a851ea64285fd-c3bafe4a780fc3412f12",
+              "file": "navigation.spec.js",
+              "line": 88,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-11T15:18:08.895Z",
+    "duration": 20928.489999999998,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
