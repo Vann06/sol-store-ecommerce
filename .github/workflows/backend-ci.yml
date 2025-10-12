@@ -10,37 +10,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Opcional: libera espacio en el runner (previene "no space left on device")
+      # Opcional: libera espacio
       - name: Free disk on runner
         run: |
           docker system prune -af --volumes || true
           docker builder prune -af || true
 
-      # Levanta DB + backend (sin rebuild pesado)
+      # Levanta DB + backend (sin rebuild)
       - name: Up services (database + backend)
         run: |
           docker compose up -d database backend
-          sleep 15
+          sleep 10
           docker compose ps
 
-      # Prepara .env.testing dentro del contenedor (si no existe)
+      # Prepara .env.testing y claves
       - name: Prepare .env.testing
         run: |
           docker compose exec -T backend bash -lc '
             [ -f taskcurso/.env.testing ] || cp taskcurso/.env.testing.example taskcurso/.env.testing
             php artisan key:generate --env=testing --force || true
             php artisan jwt:secret   --env=testing --force || true
+            php artisan config:clear || true
+            rm -f bootstrap/cache/config.php || true
           '
 
-      # DB limpia con datos dummy para los tests
-      - name: Migrate & seed (testing)
-        run: docker compose exec -T backend sh -lc "php artisan migrate:fresh --seed --env=testing"
+      # ⚠️ Fuerza SQLite en memoria para evitar datos persistentes y duplicados
+      - name: Migrate & seed (SQLite in-memory)
+        run: |
+          docker compose exec -T \
+            -e APP_ENV=testing \
+            -e DB_CONNECTION=sqlite \
+            -e DB_DATABASE=":memory:" \
+            backend sh -lc "php artisan migrate:fresh --seed"
 
-      # Ejecuta la suite de pruebas
-      - name: Run tests
-        run: docker compose exec -T backend sh -lc "php artisan test --env=testing"
+      - name: Run tests (SQLite in-memory)
+        run: |
+          docker compose exec -T \
+            -e APP_ENV=testing \
+            -e DB_CONNECTION=sqlite \
+            -e DB_DATABASE=":memory:" \
+            backend sh -lc "php artisan test"
 
-      # Si algo falla, imprime logs de los servicios
       - name: Logs (on failure)
         if: failure()
         run: docker compose logs --tail=200
