@@ -19,4 +19,17 @@
 .idea
 .vscode
 
+# envs (raíz)
+.env
+.env.*
+!.env.example
+!.env.testing.example
 
+# envs (si están dentro de taskcurso/)
+/taskcurso/.env
+/taskcurso/.env.*
+/taskcurso/.env.testing
+!/taskcurso/.env.testing.example
+
+taskcurso/.env.testing
+taskcurso/.env.testing
