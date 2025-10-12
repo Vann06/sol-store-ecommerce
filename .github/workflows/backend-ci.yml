@@ -22,11 +22,16 @@ jobs:
       - name: Check available disk space
         run: df -h
 
-      - name: Fix vendor directory permissions
+      - name: Prepare Composer environment
         run: |
           docker compose exec -T backend mkdir -p /var/www/html/vendor
           docker compose exec -T backend chown -R www-data:www-data /var/www/html/vendor
           docker compose exec -T backend chmod -R 775 /var/www/html/vendor
+
+      - name: Update and clean Composer
+        run: |
+          docker compose exec -T backend composer self-update
+          docker compose exec -T backend composer clear-cache
 
       - name: Install dev dependencies for testing
         env:
