@@ -1,60 +1,71 @@
 <template>
-    <div class="pagina-ecommerce" v-if="product">
-      <!-- Banner -->
-      <div class="banner-promocional">
-        Obtén 25% DE DESCUENTO en tu primer pedido.
-        <button class="boton-ordenar">Ordenar Ahora</button>
-      </div>
-  
-      <!-- Ruta tipo migas de pan -->
-      <div class="migas-pan">Inicio > {{ product.name }}</div>
-  
-      <!-- Sección de producto -->
-      <div class="contenedor-producto">
-        <div class="galeria-producto">
-          <div class="imagen-principal">
-            <img :src="product.imagen_url || 'https://via.placeholder.com/500x600'" :alt="product.name" />
-          </div>
+  <main class="product-page under-fixed-header bg-page-soft">
+    <div v-if="product" class="container">
+      <PageHeader
+        :title="product.name"
+        :subtitle="product.category ? `Categoría: ${product.category}` : ''"
+        icon="fas fa-tag"
+      />
+
+      <section class="product-grid">
+        <div class="gallery gradient-card">
+          <img class="main-image" :src="product.imagen_url || fallbackImg" :alt="product.name" @error="onImgError" />
         </div>
-  
-        <div class="detalles-producto">
-          <h1>{{ product.name }}</h1>
-          <div class="precio">Q{{ product.price.toFixed(2) }}</div>
-  
-          <!-- Cantidad -->
-          <div class="seleccion-cantidad">
-            <h3>CANTIDAD</h3>
-            <div class="control-cantidad">
-              <button class="boton-cantidad" @click="cantidad > 1 && cantidad--">-</button>
-              <span class="cantidad">{{ cantidad }}</span>
-              <button class="boton-cantidad" @click="cantidad++">+</button>
-            </div>
+
+        <div class="details gradient-card">
+          <h1 class="title">{{ product.name }}</h1>
+          <div class="price">{{ formatCurrency(product.price) }}</div>
+
+          <div class="qty">
+            <span class="label">Cantidad: <strong>{{ cantidad }}</strong></span>
+            <input
+              class="qty-slider"
+              type="range"
+              min="1"
+              :max="Math.max(1, Number(product.stock) || 10)"
+              v-model.number="cantidad"
+            />
           </div>
-  
-          <!-- Botón -->
-          <button class="boton-agregar-carrito" @click="agregarAlCarrito">
+
+          <BaseButton variant="primary" size="large" block @click="agregarAlCarrito">
+            <i class="fas fa-cart-plus"></i>
             Añadir al carrito
-          </button>
-          <div class="info-envio">ENVÍO GRATIS EN PEDIDOS SUPERIORES A Q100.*</div>
+          </BaseButton>
+          <p class="shipping">ENVÍO GRATIS EN PEDIDOS SUPERIORES A Q100.*</p>
+          <div class="quick-details">
+            <ul>
+              <li><strong>Categoría:</strong> {{ product.category }}</li>
+              <li><strong>Temática:</strong> {{ product.theme }}</li>
+              <li><strong>Stock:</strong> {{ product.stock }}</li>
+            </ul>
+          </div>
         </div>
-      </div>
-  
-      <!-- Descripción -->
-      <div class="descripcion-producto">
-        <h2>Detalles</h2>
+      </section>
+
+      <section class="desc gradient-card">
+        <h2>Descripción</h2>
         <p>{{ product.descripcion }}</p>
-        <ul class="lista-caracteristicas">
-          <li>Categoría: {{ product.category }}</li>
-          <li>Temática: {{ product.theme }}</li>
-          <li>Precio base: Q{{ product.price.toFixed(2) }}</li>
-          <li>Stock: {{ product.stock }}</li>
-        </ul>
+      </section>
+    </div>
+
+    <div v-else class="container">
+      <PageHeader title="Cargando producto" subtitle="Por favor espera" icon="fas fa-spinner fa-spin" />
+    </div>
+
+    <!-- Sticky actions on mobile (no duplicate add-to-cart) -->
+    <div v-if="product" class="mobile-sticky">
+      <div class="qty-compact">
+        <span class="label">Cantidad: <strong>{{ cantidad }}</strong></span>
+        <input
+          class="qty-slider"
+          type="range"
+          min="1"
+          :max="Math.max(1, Number(product.stock) || 10)"
+          v-model.number="cantidad"
+        />
       </div>
     </div>
-  
-    <div v-else class="loading">
-      <p>Cargando producto...</p>
-    </div>
+  </main>
 </template>
   
 <script setup>
@@ -62,6 +73,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import http from '@/http'
+import PageHeader from '@/components/PageHeader.vue'
+import BaseButton from '@/components/BaseButton.vue'
+const fallbackImg = 'https://via.placeholder.com/800x600?text=Producto'
 const route = useRoute()
 const product = ref(null)
 const cantidad = ref(1)
@@ -118,245 +132,62 @@ function disminuirCantidad() {
   if (cantidad.value > 1) cantidad.value--
 }
 
+function formatCurrency(n){
+  const num = Number(n || 0)
+  return num.toLocaleString('es-GT',{style:'currency',currency:'GTQ',minimumFractionDigits:2,maximumFractionDigits:2})
+}
+
 async function agregarAlCarrito() {
   if (!product.value) return
   await cart.addToCart(product.value.id, cantidad.value)
   // Opcional: notificación o feedback
   alert('Producto agregado al carrito')
 }
+
+function onImgError(e){ e.target.src = fallbackImg }
+function increase(){ cantidad.value++ }
+function decrease(){ if(cantidad.value>1) cantidad.value-- }
 </script>
   
 <style scoped>
-  .pagina-ecommerce {
-    font-family: 'Arial', sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-  
-  .banner-promocional {
-    background-color: #780116;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    font-weight: bold;
-  }
-  
-  .boton-ordenar {
-    background: none;
-    border: none;
-    color: white;
-    text-decoration: underline;
-    cursor: pointer;
-    margin-left: 5px;
-    font-weight: bold;
-  }
-  
-  .navegacion-principal {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .logo-tienda {
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: #780116;
-  }
-  
-  .enlaces-navegacion a {
-    margin-left: 20px;
-    text-decoration: none;
-    color: #333;
-    transition: color 0.2s;
-  }
-  
-  .enlaces-navegacion a:hover {
-    color: #780116;
-  }
-  
-  .migas-pan {
-    padding: 15px 0;
-    color: #666;
-  }
-  
-  .contenedor-producto {
-    display: flex;
-    gap: 50px;
-    margin: 30px 0;
-  }
-  
-  .galeria-producto {
-    flex: 1;
-  }
-  
-  .imagen-principal img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-  
-  .detalles-producto {
-    flex: 1;
-  }
-  
-  .detalles-producto h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    color: #333;
-  }
-  
-  .precio {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 30px;
-    color: #780116;
-  }
-  
-  .seleccion-color, .seleccion-talla, .seleccion-cantidad {
-    margin-bottom: 25px;
-  }
-  
-  .opciones-color {
-    display: flex;
-    gap: 15px;
-    margin-top: 10px;
-  }
-  
-  .opcion-color {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: transform 0.2s;
-  }
-  
-  .opcion-color:hover {
-    transform: scale(1.1);
-  }
-  
-  .opcion-color.activo {
-    border-color: #780116;
-  }
-  
-  .opcion-color.negro {
-    background-color: #000;
-  }
-  
-  .opcion-color.blanco {
-    background-color: #fff;
-    border: 1px solid #eee;
-  }
-  
-  .opcion-color.gris {
-    background-color: #808080;
-  }
-  
-  .opciones-talla {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  
-  .opcion-talla {
-    padding: 8px 15px;
-    background: white;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .opcion-talla:hover {
-    border-color: #780116;
-  }
-  
-  .opcion-talla.activo {
-    background: #780116;
-    color: white;
-    border-color: #780116;
-  }
-  
-  .control-cantidad {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-  }
-  
-  .boton-cantidad {
-    padding: 5px 15px;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .boton-cantidad:hover {
-    background: #780116;
-    color: white;
-    border-color: #780116;
-  }
-  
-  .cantidad {
-    padding: 0 15px;
-  }
-  
-  .boton-agregar-carrito {
-    background: #780116;
-    color: white;
-    border: none;
-    padding: 15px 40px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-  }
-  
-  .boton-agregar-carrito:hover {
-    background-color: #5c0114;
-  }
-  
-  .info-envio {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: #666;
-  }
-  
-  .descripcion-producto {
-    margin: 50px 0;
-    padding-top: 30px;
-    border-top: 1px solid #eee;
-  }
-  
-  .descripcion-producto h2 {
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  .descripcion-producto p {
-    margin-bottom: 15px;
-    line-height: 1.6;
-    color: #555;
-  }
-  
-  .lista-caracteristicas {
-    margin-top: 20px;
-    padding-left: 20px;
-    color: #555;
-  }
-  
-  .lista-caracteristicas li {
-    margin-bottom: 10px;
-  }
-  
-  @media (max-width: 768px) {
-    .contenedor-producto {
-      flex-direction: column;
-      gap: 30px;
+  .product-page { min-height: 100vh; }
+  .container { max-width: 1200px; margin: 0 auto; padding: calc(var(--header-height) + 24px) 16px 24px; }
+  .product-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; }
+  .gradient-card { background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, rgba(240,192,64,0.35), rgba(122,0,25,0.3)) border-box; border: 1px solid transparent; border-radius: 16px; box-shadow: 0 10px 30px rgba(31,41,55,0.06); }
+  .gallery { padding: 16px; display: grid; place-items: center; }
+  .gallery img { width: 66%; height: auto; border-radius: 12px; }
+  .gallery img.main-image { width: 66%; }
+  .details { padding: 16px; display: grid; gap: 16px; align-content: start; }
+  .title { margin: 0; color: var(--ink-1); font-size: 28px; }
+  .price { color: var(--brand); font-weight: 800; font-size: 22px; }
+  .qty { display: grid; gap: 8px; }
+  .qty .label { color: var(--ink-2); font-weight: 700; }
+  .qty-controls { display: inline-flex; align-items: center; border: 1px solid var(--ink-5); border-radius: 999px; padding: 2px; background: #fafafa; }
+  .qty-btn { appearance: none; background: #fff; border: 0; padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 18px; line-height: 1; }
+  .qty-btn:hover { background: #f3f4f6; }
+  .qty-btn:disabled { opacity: .5; }
+  .qty .n { display: inline-block; min-width: 24px; text-align: center; font-weight: 700; }
+  .qty-slider { width: 100%; accent-color: var(--brand-strong); }
+  .shipping { color: var(--ink-3); font-size: 14px; }
+  .desc { margin-top: 16px; padding: 16px; }
+  .desc h2 { margin: 0 0 8px; color: var(--ink-1); }
+  .desc .meta { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); }
+  .desc .meta li { margin: 6px 0; }
+  @media (max-width: 900px){ .product-grid { grid-template-columns: 1fr; } }
+
+  /* Sticky mobile action bar */
+  @media (max-width: 720px) {
+    .product-page { padding-bottom: 76px; }
+    .details { padding-bottom: 90px; }
+    .mobile-sticky {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+      background: #fff; border-top: 1px solid var(--ink-5);
+      padding: 10px 12px; display: grid; grid-template-columns: 1fr; gap: 10px;
+      box-shadow: 0 -8px 20px rgba(0,0,0,0.08);
     }
+  .mobile-sticky .qty-compact { display: grid; gap: 6px; align-items: center; }
   }
+
+  .quick-details ul { list-style: none; padding: 0; margin: 8px 0 0; color: var(--ink-2); }
+  .quick-details li { margin: 4px 0; }
 </style>

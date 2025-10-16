@@ -1,5 +1,5 @@
 <template>
-  <main class="page under-fixed-header" style="--header-height: 96px;">
+  <main class="page under-fixed-header">
     <div class="container">
       <h1>Categorías</h1>
       <p>Listado de categorías próximamente.</p>

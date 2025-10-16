@@ -74,7 +74,7 @@ const commitments = ref([
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(125, 28, 43, 0.03) 0%, rgba(162, 115, 69, 0.03) 100%);
+  background: linear-gradient(135deg, rgba(122, 0, 25, 0.03) 0%, rgba(162, 115, 69, 0.03) 100%);
   border-radius: 20px;
   pointer-events: none;
 }
@@ -91,7 +91,7 @@ const commitments = ref([
   gap: 1rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 3rem;
   text-align: center;
 }
@@ -99,7 +99,7 @@ const commitments = ref([
 .title-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -128,7 +128,7 @@ const commitments = ref([
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid rgba(125, 28, 43, 0.1);
+  border: 1px solid rgba(122, 0, 25, 0.1);
 }
 
 .commitment-card:hover {
@@ -146,7 +146,7 @@ const commitments = ref([
 .commitment-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -160,14 +160,14 @@ const commitments = ref([
 .commitment-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin: 0;
   line-height: 1.3;
 }
 
 .commitment-description {
   font-size: 1rem;
-  color: #4a5568;
+  color: var(--ink-3);
   line-height: 1.6;
   margin: 0;
 }
@@ -178,7 +178,7 @@ const commitments = ref([
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
 }
 
 /* Responsive Design */

@@ -1,49 +1,52 @@
 <template>
-  <div class="login-page">
-    <Header />
-    <div class="auth-container">
-      <SignUpInfo />
+  <main class="login-page under-fixed-header bg-page-soft">
+    <div class="auth-container gradient-outline">
+      <div class="auth-info">
+        <PageHeader title="Bienvenido" subtitle="Inicia sesión para continuar" icon="fas fa-user-circle" />
+        <SignUpInfo />
+      </div>
       <LoginForm />
     </div>
-    
-  </div>
+  </main>
 
 </template>
 
 <script setup>
-import Footer from '@/components/Footer.vue';
-import Header from '@/components/Header.vue';
+import PageHeader from '@/components/PageHeader.vue'
 import SignUpInfo from '@/components/SignUpInfo.vue'
 import LoginForm from '@/components/LoginForm.vue'
 </script>
 
 <style scoped>
 .login-page {
-  min-height: 120vh;
-  width: 100vw;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
+  /* Más aire debajo del header fijo y buen espacio inferior */
+  min-height: 100vh;
+  padding: 24px 0 48px;
 }
 .auth-container {
-  display: flex;
-  flex-direction: row;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  /* Panel principal: borde con gradiente y proporción agradable */
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  background-color: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(31, 41, 55, 0.06);
   width: 100%;
-  max-width: 1200px;
-  height: 70vh;
+  max-width: 1100px;
+  min-height: 560px;
   overflow: hidden;
+  margin: 0 auto;
 }
+
+.auth-info { padding: 32px; flex: 1; }
+
+/* Asegurar que esta vista tenga un poco más de aire bajo el header */
+.under-fixed-header { padding-top: calc(var(--header-height, 96px) + 16px); }
 
 @media (max-width: 1024px) {
   .auth-container {
-    flex-direction: column;
-    height: auto;
+    grid-template-columns: 1fr;
+    min-height: unset;
   }
+  .auth-info { padding: 24px; }
 }
 </style>

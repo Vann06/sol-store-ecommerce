@@ -1,31 +1,34 @@
 <template>
-  <section class="featured-products">
-    <h2 class="section-title">Productos Nuevos</h2>
-    <hr class="section-divider" />
-    <div class="slider-container">
-      <button class="arrow left" @click="scrollLeft">❮</button>
-      <div class="slider-grid" ref="productGrid">
-        <div class="grid-wrapper">
-          <div
-            v-for="product in products"
-            :key="product.id"
-            class="product-card"
-            @click="goToDetail(product.id)"
-          >
-            <img :src="product.imagen" class="product-img" />
-            <div class="product-details">
-              <p class="product-name">{{ product.nombre }}</p>
-              <p class="product-price">Q{{ Number(product.precio_base).toFixed(2) }}</p>
-              <button class="add-to-cart" @click.stop="addToCart(product)">
-                <img src="/img/plus.svg" alt="+" class="icon-svg" /> Añadir al carrito
-              </button>
-            </div>
-          </div>
+  <div class="featured-products" role="region" aria-label="Productos nuevos">
+    <div class="carousel">
+      <button class="nav prev" @click="scrollBy(-1)" aria-label="Ver anteriores">❮</button>
+      <div
+        class="track"
+        ref="track"
+        tabindex="0"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerUp"
+        @pointerleave="onPointerUp"
+        @keydown.left.prevent="scrollBy(-1)"
+        @keydown.right.prevent="scrollBy(1)"
+      >
+        <div v-for="product in products" :key="product.id" class="item" @click="onItemClick(product.id)">
+          <ProductCard :product="normalize(product)" @quick-view="openQuickView" />
         </div>
       </div>
-      <button class="arrow right" @click="scrollRight">❯</button>
+      <button class="nav next" @click="scrollBy(1)" aria-label="Ver siguientes">❯</button>
     </div>
-  </section>
+
+    <QuickViewModal 
+      v-if="quickViewOpen"
+      :product="quickViewProduct || {}" 
+      :visible="quickViewOpen" 
+      @close="closeQuickView" 
+      @add-to-cart="addFromQuickView"
+    />
+  </div>
 </template>
 
 
@@ -33,16 +36,54 @@
 import { ref, onMounted } from 'vue'
 import http from '@/http'
 import { useRouter } from 'vue-router'
+import ProductCard from '@/components/ProductCard.vue'
+import QuickViewModal from '@/components/QuickViewModal.vue'
+import { useCartStore } from '@/stores/cart'
 
 const products = ref([])
-const productGrid = ref(null)
+const quickViewOpen = ref(false)
+const quickViewProduct = ref(null)
+const track = ref(null)
 const router = useRouter()
+const cart = useCartStore()
 
-const scrollLeft = () => productGrid.value.scrollLeft -= 300
-const scrollRight = () => productGrid.value.scrollLeft += 300
+const CARD_WIDTH = 200 // includes gap approx, reduced ~23%
+const scrollBy = (dir) => {
+  if (!track.value) return
+  track.value.scrollBy({ left: dir * CARD_WIDTH * 2, behavior: 'smooth' })
+}
 
+// Click handling that respects drag state
 const goToDetail = (id) => router.push({ name: 'product-detail', params: { id } })
+const onItemClick = (id) => {
+  if (drag.moved) return
+  goToDetail(id)
+}
 const addToCart = (product) => console.log('Añadido al carrito:', product)
+
+const openQuickView = (product) => {
+  quickViewProduct.value = product
+  quickViewOpen.value = true
+}
+const closeQuickView = () => { quickViewOpen.value = false }
+const addFromQuickView = async ({ product, quantity }) => {
+  try {
+    await cart.addToCart(product.id, quantity, product)
+  } finally {
+    quickViewOpen.value = false
+  }
+}
+
+// Normalizador mínimo para ProductCard (nombre, precio/stock/imagen)
+const normalize = (p) => ({
+  id: p.id,
+  nombre: p.nombre ?? p.name ?? 'Producto',
+  precio: Number(p.precio_base ?? p.precio ?? 0),
+  precio_original: p.precio_original,
+  descuento: p.descuento,
+  imagen: p.imagen ?? p.image ?? p.image_url ?? '/img/no-image.png',
+  stock: p.stock ?? 0,
+})
 
 onMounted(async () => {
   const res = await http.get('/productos/recientes')
@@ -50,89 +91,50 @@ onMounted(async () => {
     .filter(p => p.status === 'activo')
     .slice(0, 12)
 })
+
+// Pointer drag/swipe support
+const drag = {
+  active: false,
+  startX: 0,
+  startLeft: 0,
+  moved: false,
+}
+
+const onPointerDown = (e) => {
+  if (!track.value) return
+  drag.active = true
+  drag.moved = false
+  drag.startX = e.clientX
+  drag.startLeft = track.value.scrollLeft
+  track.value.classList.add('dragging')
+}
+
+const onPointerMove = (e) => {
+  if (!drag.active || !track.value) return
+  const dx = e.clientX - drag.startX
+  if (Math.abs(dx) > 4) drag.moved = true
+  track.value.scrollLeft = drag.startLeft - dx
+}
+
+const onPointerUp = () => {
+  drag.active = false
+  setTimeout(() => { drag.moved = false }, 0)
+  if (track.value) track.value.classList.remove('dragging')
+}
 </script>
 
 <style scoped>
-@import '@/assets/css/SharedSliderStyles.css';
+/* Carousel layout with snapping */
+.carousel { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+.track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 8px; touch-action: pan-x; cursor: grab; }
+.track.dragging { cursor: grabbing; }
+.item { scroll-snap-align: start; width: 100%; }
+.nav { appearance: none; background: linear-gradient(135deg, var(--brand-strong), var(--brand)); color: #fff; border: 0; width: 36px; height: 36px; border-radius: 999px; cursor: pointer; box-shadow: 0 8px 16px rgba(122,0,25,0.25); }
+.nav:disabled { opacity: .4; cursor: not-allowed; }
 
-.product-card {
-  width: 220px; /* más angosto */
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
-.product-img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.product-details {
-  text-align: center;
-  padding: 10px;
-}
-
-.product-name {
-  font-weight: 700;
-  font-size: 16px;
-  margin-top: 10px;
-  color: #333;
-}
-
-.product-price {
-  color: #8B0000;
-  margin-top: 2px;
-  font-weight: 500;
-}
-
-.add-to-cart {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background-color: #8B0000;
-  color: white;
-  border: none;
-  border-radius: 999px; /* círculo */
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-}
-
-.add-to-cart:hover {
-  background-color: #a30000;
-  transform: scale(1.05);
-}
-.slider-grid {
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  max-width: 1000px;
-  padding: 10px;
-}
-
-.grid-wrapper {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  grid-auto-rows: auto;
-  gap: 28px;
-  grid-template-rows: repeat(2, auto); /* 2 filas */
-  width: max-content;
-  min-width: 900px;
+@media (max-width: 640px) {
+  .nav { width: 44px; height: 44px; }
+  .track { grid-auto-columns: 80%; padding: 8px 4px; }
 }
 
 </style>

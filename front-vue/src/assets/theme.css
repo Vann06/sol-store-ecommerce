@@ -1,0 +1,59 @@
+/*
+  Global theme tokens
+  Use these CSS variables across components and views to keep a single color scheme.
+  Colors picked from existing Account and UI styles (wine + gold + neutrals).
+*/
+
+:root {
+  /* Brand (as per logo) */
+  --brand: #711212;         /* dark red */
+  --brand-2: #ffc010;       /* orange */
+  --brand-strong: #711212;  /* maintain strong brand as dark red */
+  --accent: #ffdd4b;        /* yellow */
+  --accent-2: #ffc010;      /* orange accent */
+
+  /* Neutrals (ink) */
+  --ink-1: #1f2937; /* gray-800 */
+  --ink-2: #374151; /* gray-700 */
+  --ink-3: #6b7280; /* gray-500 */
+  --ink-4: #9ca3af; /* gray-400 */
+  --ink-5: #e5e7eb; /* gray-200 */
+
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-2: #f7f7f8;
+
+  /* Feedback */
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #0dcaf0;
+}
+
+/* Common gradients */
+.gradient-brand {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+}
+
+.gradient-outline {
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(135deg, rgba(113,18,18,0.55), rgba(255,221,75,0.65)) border-box;
+  border: 1px solid transparent;
+}
+
+/* Page background suggestion (optional per-view) */
+.bg-page-soft {
+  background:
+    radial-gradient(1200px 400px at 90% -10%, rgba(240,192,64,0.15), transparent 60%),
+    radial-gradient(800px 300px at -10% 0%, rgba(122,0,25,0.12), transparent 55%),
+    var(--surface-2);
+}
+
+/* Anime-esque glow accents */
+.glow-brand {
+  box-shadow: 0 10px 28px rgba(113,18,18,0.22), 0 2px 8px rgba(255,221,75,0.18);
+}
+
+.text-brand { color: var(--brand-strong); }
+.bg-brand-soft { background: rgba(122,0,25,0.06); }
+.ring-brand { box-shadow: 0 0 0 3px rgba(122,0,25,0.18); }

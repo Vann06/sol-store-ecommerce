@@ -7,6 +7,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
+      setupFiles: ['./src/test/setupTests.js'],
       exclude: [
         ...configDefaults.exclude,
         'e2e/**', // Excluir Playwright

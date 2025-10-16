@@ -77,7 +77,7 @@ const routes = [
   {
     path: '/faq',
     name: 'faq',
-    component: () => import('@/views/FaqView.vue') // Ruta FAQ al mismo nivel que search
+    component: () => import('@/views/FaqView.fixed.vue') // Temporary fix while refactoring FaqView.vue
   },
   {
     path: '/search',
@@ -115,7 +115,20 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // If browser provides a saved position (back/forward), use it
+    if (savedPosition) return savedPosition
+    // If navigating to a hash, scroll to the element
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      }
+    }
+    // Default: scroll to top
+    return { left: 0, top: 0 }
+  }
 })
 
 //Middleware para proteger las rutas 

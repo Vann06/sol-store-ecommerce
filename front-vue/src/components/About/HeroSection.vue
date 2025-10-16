@@ -77,7 +77,7 @@
   display: block;
   font-size: 3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -88,12 +88,12 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #7d1c2b;
+  color: var(--brand-strong);
 }
 
 .hero-description {
   font-size: 1.1rem;
-  color: #6c757d;
+  color: var(--ink-3);
   margin: 0;
   max-width: 500px;
 }
@@ -106,7 +106,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;

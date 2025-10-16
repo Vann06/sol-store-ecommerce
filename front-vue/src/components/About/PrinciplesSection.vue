@@ -67,7 +67,7 @@ const principles = ref([
 }
 
 .gradient-card {
-  background: linear-gradient(#fff, #fff) padding-box,
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
               linear-gradient(135deg, rgba(240,192,64,0.4), rgba(122,0,25,0.3)) border-box;
   border: 2px solid transparent;
   border-radius: 20px;
@@ -82,7 +82,7 @@ const principles = ref([
   gap: 1rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 3rem;
   text-align: center;
 }
@@ -90,7 +90,7 @@ const principles = ref([
 .title-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -116,9 +116,9 @@ const principles = ref([
   align-items: flex-start;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #fdf8f0 0%, #f9f1e6 100%);
+  background: linear-gradient(135deg, var(--surface-2) 0%, #f9f1e6 100%);
   border-radius: 16px;
-  border: 1px solid rgba(125, 28, 43, 0.1);
+  border: 1px solid rgba(122, 0, 25, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -136,13 +136,13 @@ const principles = ref([
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
 }
 
 .principle-number {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -161,14 +161,14 @@ const principles = ref([
 .principle-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin: 0 0 0.5rem 0;
   line-height: 1.3;
 }
 
 .principle-description {
   font-size: 1rem;
-  color: #4a5568;
+  color: var(--ink-3);
   line-height: 1.6;
   margin: 0;
 }
@@ -177,12 +177,12 @@ const principles = ref([
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  color: rgba(125, 28, 43, 0.3);
+  color: rgba(122, 0, 25, 0.3);
   transition: all 0.3s ease;
 }
 
 .principle-item:hover .principle-decoration {
-  color: #7d1c2b;
+  color: var(--brand);
   transform: translateX(5px);
 }
 

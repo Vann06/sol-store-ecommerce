@@ -6,6 +6,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import clarityPlugin from './plugins/clarity'
 import './assets/fixed-header.css' // utilidades .under-fixed-header y CSS var
+import './assets/theme.css' // global theme variables and gradients
 
 // El cliente HTTP (http.js) ya maneja la configuración de axios automáticamente
 // incluyendo baseURL, withCredentials e interceptores para tokens

@@ -1,14 +1,12 @@
 <template>
-  <div class="product-card">
+  <Card type="outlined" :hover="true" class="product-card">
     <div class="product-image">
       <img 
         :src="product.imagen || '/img/no-image.png'" 
         :alt="product.nombre"
         class="product-img"
       />
-      <div v-if="product.descuento" class="discount-badge">
-        -{{ product.descuento }}%
-      </div>
+      <Badge v-if="product.descuento" tone="brand">-{{ product.descuento }}%</Badge>
     </div>
     
     <div class="product-info">
@@ -81,7 +79,7 @@
         </BaseButton>
       </div>
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup>
@@ -91,6 +89,8 @@ import BaseButton from '@/components/BaseButton.vue'
 import { useCart } from '@/composables/useCart'
 import { useMessages } from '@/composables/useMessages'
 import { useRouter } from 'vue-router'
+import Card from '@/components/ui/Card.vue'
+import Badge from '@/components/ui/Badge.vue'
 
 const props = defineProps({
   product: {
@@ -185,57 +185,21 @@ const toggleWishlist = () => {
 
 const openQuickView = () => {
   emit('quick-view', props.product)
-  // Aquí podrías abrir un modal con más detalles del producto
 }
 </script>
 
 <style scoped>
-.product-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid #f0f0f0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+.product-card { height: 100%; display: flex; flex-direction: column; }
 
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(125, 28, 43, 0.15);
-}
+.product-image { position: relative; aspect-ratio: 4/5; overflow: hidden; display: grid; place-items: center; background: #fff; }
 
-.product-image {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-}
-
-.product-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
+.product-img { width: 100%; height: 66%; object-fit: cover; object-position: center; transition: transform 0.3s ease; }
 
 .product-card:hover .product-img {
   transform: scale(1.05);
 }
 
-.discount-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  z-index: 2;
-}
+/* Badge component handles styling */
 
 .product-info {
   padding: 1rem;
@@ -266,11 +230,7 @@ const openQuickView = () => {
   gap: 0.75rem;
 }
 
-.current-price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #7d1c2b;
-}
+.current-price { font-size: 1.25rem; font-weight: 800; color: var(--brand-strong); }
 
 .original-price {
   font-size: 1rem;
@@ -361,6 +321,9 @@ const openQuickView = () => {
     padding: 0.75rem;
     gap: 0.5rem;
   }
+  .product-image { aspect-ratio: 4/5; }
+  .product-img { object-fit: contain; background: #fff; }
+  .product-card :deep(.ui-badge) { position: absolute; top: 10px; right: 10px; }
   
   .product-name {
     font-size: 1rem;

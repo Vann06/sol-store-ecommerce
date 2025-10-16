@@ -1,7 +1,7 @@
 <template>
   <div class="cart-widget">
     <button class="cart-icon-btn" @click="toggleCart">
-      <svg class="cart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+      <svg class="cart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true" focusable="false">
         <g id="shopping_cart" data-name="shopping cart">
           <path fill="currentColor" d="M29.74,8.32A1,1,0,0,0,29,8H13a1,1,0,0,0,0,2H27.91l-.81,9.48a1.87,1.87,0,0,1-2,1.52H12.88a1.87,1.87,0,0,1-2-1.52L10,8.92l0-.08s0-.06,0-.08L9.33,6.2A3.89,3.89,0,0,0,7,3.52L3.37,2.07a1,1,0,0,0-.74,1.86L6.25,5.38a1.89,1.89,0,0,1,1.14,1.3L8,9.16l.9,10.49a3.87,3.87,0,0,0,4,3.35H13v2.18a3,3,0,1,0,2,0V23h8v2.18a3,3,0,1,0,2,0V23h.12a3.87,3.87,0,0,0,4-3.35L30,9.08A1,1,0,0,0,29.74,8.32ZM14,29a1,1,0,1,1,1-1A1,1,0,0,1,14,29Zm10,0a1,1,0,1,1,1-1A1,1,0,0,1,24,29Z"/>
           <path fill="currentColor" d="M15,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
@@ -9,7 +9,7 @@
           <path fill="currentColor" d="M25,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
         </g>
       </svg>
-      <span v-if="totalItems > 0" class="cart-badge">{{ totalItems }}</span>
+  <span v-if="totalItems > 0" class="cart-badge">{{ totalItems }}</span>
     </button>
 
     <!-- Dropdown del carrito -->
@@ -86,7 +86,7 @@
           
           <div class="cart-actions">
             <BaseButton 
-              variant="outline" 
+              variant="outline-primary" 
               size="sm"
               @click="goToCart"
             >
@@ -125,7 +125,6 @@ import CartItem from '@/components/CartItem.vue'
 const router = useRouter()
 const { 
   items, 
-  totalItems, 
   totalPrice, 
   isEmpty, 
   isLoading,
@@ -134,6 +133,13 @@ const {
   removeFromCart,
   refreshCart
 } = useCart()
+
+// Badge: suma total de cantidades
+const totalItems = computed(() => {
+  return Array.isArray(items.value)
+    ? items.value.reduce((sum, item) => sum + (item.quantity || 1), 0)
+    : 0
+})
 
 // Estado local
 const isOpen = ref(false)
@@ -222,28 +228,35 @@ watch(totalItems, (newCount, oldCount) => {
   position: relative;
 }
 
-.cart-icon-btn {
-  position: relative;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
+  .cart-icon-btn {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
 
-.cart-badge {
-  position: absolute;
-  top: 0px;
-  right: -2px;
-  background: #e53935;
-  color: #fff;
-  font-size: 13px;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 2px 7px;
-  min-width: 22px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  pointer-events: none;
-}
+  .cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #e53935;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0 5px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    pointer-events: none;
+    transition: transform 0.18s cubic-bezier(.4,1.3,.6,1);
+  }
 
 /* Dropdown */
 .cart-dropdown {
@@ -396,6 +409,19 @@ watch(totalItems, (newCount, oldCount) => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
   z-index: 999;
+}
+
+@media (max-width: 768px) {
+  .cart-icon-btn .cart-icon {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .cart-badge {
+    font-size: 11px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+  }
 }
 
 /* Transiciones */
