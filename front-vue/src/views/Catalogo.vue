@@ -8,7 +8,9 @@
       <div class="filters-col">
         <CatalogFilters 
           :categories="categories"
+          :themes="themes"
           :selected-categories="selectedCategories"
+          :selected-themes="selectedThemes"
           :selected-status="selectedStatus"
           :selected-complexity="selectedComplexity"
           :price-range="priceRange"
@@ -18,6 +20,7 @@
           @clear-filters="clearFilters"
           @apply-quick-filter="applyQuickFilter"
           @update:selected-categories="selectedCategories = $event"
+          @update:selected-themes="selectedThemes = $event"
           @update:selected-status="selectedStatus = $event"
           @update:selected-complexity="selectedComplexity = $event"
           @update:price-range="priceRange = $event"
@@ -73,11 +76,13 @@ const cartStore = useCartStore()
 // State
 const selectedCategories = ref([])
 const selectedComplexity = ref(null)
+const selectedThemes = ref([])
 const selectedStatus = ref([])
 const priceRange = ref({ min: null, max: null })
 const sortBy = ref('name')
 const products = ref([])
 const categories = ref([])
+const themes = ref([])
 const loading = ref(false)
 const error = ref(null)
 
@@ -157,6 +162,12 @@ const filteredProducts = computed(() => {
         productCategory.toLowerCase().includes(selectedCat.toLowerCase()) ||
         selectedCat.toLowerCase().includes(productCategory.toLowerCase())
       )
+    })
+  }
+  if (selectedThemes.value.length > 0) {
+    filtered = filtered.filter(product => {
+      const themeName = (product.theme || product.tematica || product.tema || product.tematicas?.[0] || '').toString().toLowerCase()
+      return selectedThemes.value.some(sel => themeName.includes(sel.toString().toLowerCase()))
     })
   }
   if (selectedComplexity.value) {
@@ -293,11 +304,21 @@ const addToCart = async (product) => {
 onMounted(async () => {
   // Cargar categorías primero
   await fetchCategories()
+  // Cargar temáticas
+  await fetchThemes()
   // Luego cargar productos
   await fetchProducts()
   // Inicializar búsqueda desde query
   const q = (route.query.q || '').toString()
   if (q) localSearch.value = q
+  // Si viene con ?theme=<name> desde HomeView, preseleccionar
+  const themeQ = (route.query.theme || '').toString()
+  if (themeQ) {
+    // intentar hacer match por nombre en lista de temáticas
+    const match = themes.value.find(t => (t.name || '').toLowerCase() === themeQ.toLowerCase())
+    if (match) selectedThemes.value = [match.id]
+    else selectedThemes.value = [themeQ]
+  }
 })
 
 // Mantener sincronizada la query con el input local
@@ -310,6 +331,19 @@ watch(() => route.query.q, (newQ) => {
   const q = (newQ || '').toString()
   if (q !== localSearch.value) localSearch.value = q
 })
+
+// Fetch temáticas from API
+const fetchThemes = async () => {
+  try {
+    const res = await http.get('/tematicas')
+    if (Array.isArray(res.data)) {
+      themes.value = res.data.map(t => ({ id: t.id ?? t.name, name: t.name, imagen: t.imagen }))
+    }
+  } catch (e) {
+    console.error('Error al cargar temáticas', e)
+    themes.value = []
+  }
+}
 </script>
 
 <style scoped>

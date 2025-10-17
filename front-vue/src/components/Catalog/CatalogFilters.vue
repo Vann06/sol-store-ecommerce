@@ -54,6 +54,41 @@
           </transition>
         </div>
 
+        <!-- Filtro por Temáticas -->
+        <div class="filter-group" :class="{ collapsed: !expanded.themes }" v-if="themes && themes.length">
+          <h3>
+            <button
+              class="filter-group-toggle"
+              type="button"
+              :aria-expanded="expanded.themes.toString()"
+              aria-controls="fg-themes"
+              @click="expanded.themes = !expanded.themes"
+            >
+              <span class="title"><i class="fas fa-star"></i> Temáticas</span>
+              <i class="fas fa-chevron-down arrow" :class="{ rotated: expanded.themes }" aria-hidden="true"></i>
+            </button>
+          </h3>
+          <transition name="collapse">
+            <div class="filter-options collapsible" v-show="expanded.themes" id="fg-themes">
+              <label 
+                v-for="theme in themes" 
+                :key="theme.id"
+                class="filter-option"
+                :class="{ active: selectedThemes.includes(theme.id) }"
+              >
+                <input 
+                  type="checkbox" 
+                  :value="theme.id"
+                  :checked="selectedThemes.includes(theme.id)"
+                  @change="toggleTheme(theme.id)"
+                >
+                <span class="checkmark"></span>
+                {{ theme.name }}
+              </label>
+            </div>
+          </transition>
+        </div>
+
         <!-- Filtro por Estado/Disponibilidad (dinámico desde API) -->
         <div class="filter-group" :class="{ collapsed: !expanded.status }" v-if="availableStatuses.length">
           <h3>
@@ -248,7 +283,15 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  themes: {
+    type: Array,
+    default: () => []
+  },
   selectedCategories: {
+    type: Array,
+    default: () => []
+  },
+  selectedThemes: {
     type: Array,
     default: () => []
   },
@@ -283,6 +326,7 @@ const emit = defineEmits([
   'clear-filters', 
   'apply-quick-filter', 
   'update:selected-categories',
+  'update:selected-themes',
   'update:selected-status',
   'update:selected-complexity',
   'update:price-range'
@@ -293,6 +337,7 @@ const activeFiltersCount = computed(() => {
   let count = 0
   count += props.selectedCategories.length
   count += props.selectedStatus.length
+  count += props.selectedThemes.length
   count += props.selectedComplexity ? 1 : 0
   count += (props.priceRange.min !== null || props.priceRange.max !== null) ? 1 : 0
   return count
@@ -345,7 +390,7 @@ const availableStatuses = computed(() => {
 })
 
 // UI state: expanded/collapsed per group
-const expanded = reactive({ category: true, complexity: true, price: true, quick: true, status: true })
+const expanded = reactive({ category: true, themes: true, complexity: true, price: true, quick: true, status: true })
 
 // Show more for categories
 const categoryVisibleBase = 6
@@ -405,6 +450,15 @@ const toggleStatus = (value) => {
     newStatuses.push(value)
   }
   emit('update:selected-status', newStatuses)
+}
+
+// Themes filter helpers
+const toggleTheme = (themeId) => {
+  const newThemes = [...props.selectedThemes]
+  const idx = newThemes.indexOf(themeId)
+  if (idx > -1) newThemes.splice(idx, 1)
+  else newThemes.push(themeId)
+  emit('update:selected-themes', newThemes)
 }
 
 const updatePriceMin = (value) => {

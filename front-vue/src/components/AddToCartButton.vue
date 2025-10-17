@@ -48,10 +48,7 @@
 
     <!-- Información adicional del producto -->
     <div v-if="showProductInfo && product" class="product-info">
-      <p v-if="product.stock !== undefined" class="stock-info">
-        <i class="fas fa-box"></i>
-        {{ product.stock > 0 ? `${product.stock} disponibles` : 'Sin stock' }}
-      </p>
+      <!-- Ocultamos disponibilidad/stock por solicitud -->
       <p v-if="product.precio" class="price-info">
         <span class="current-price">{{ formatPrice(product.precio) }}</span>
         <span v-if="product.precio_original && product.precio_original > product.precio" class="original-price">
@@ -125,7 +122,10 @@ const localQuantity = ref(props.quantity)
 
 // Computed properties
 const maxQuantity = computed(() => {
-  return props.product?.stock || 99
+  // Máximo absoluto 100, independiente de stock visual
+  const candidate = props.product?.stock
+  const base = typeof candidate === 'number' ? candidate : 100
+  return Math.max(1, Math.min(100, base))
 })
 
 const isInCart = computed(() => {
@@ -341,11 +341,7 @@ watch(() => props.quantity, (newQuantity) => {
 }
 
 .stock-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #6c757d;
-  margin: 0;
+  display: none; /* Oculto por solicitud */
 }
 
 .stock-info i {

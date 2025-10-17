@@ -1,5 +1,5 @@
 <template>
-  <Card type="outlined" :hover="true" class="product-card">
+  <Card type="outlined" :hover="true" class="product-card" :class="{ minimal }">
     <div class="product-image">
       <img 
         :src="product.imagen || '/img/no-image.png'" 
@@ -11,26 +11,23 @@
     
     <div class="product-info">
       <h3 class="product-name">{{ product.nombre }}</h3>
-      <p v-if="product.descripcion" class="product-description">
+      <p v-if="!minimal && product.descripcion" class="product-description">
         {{ truncateText(product.descripcion, 100) }}
       </p>
       
       <div class="product-pricing">
         <span class="current-price">{{ formatPrice(finalPrice) }}</span>
         <span 
-          v-if="product.precio_original && product.descuento" 
+          v-if="!minimal && product.precio_original && product.descuento" 
           class="original-price"
         >
           {{ formatPrice(product.precio_original) }}
         </span>
       </div>
       
-      <div class="product-meta">
-        <div class="stock-info">
-          <i class="fas fa-box"></i>
-          <span :class="stockClass">{{ stockText }}</span>
-        </div>
-        <div v-if="product.rating" class="rating">
+      <div v-if="!minimal" class="product-meta">
+        <!-- Disponibilidad oculta por solicitud -->
+        <div v-if="!minimal && product.rating" class="rating">
           <div class="stars">
             <i 
               v-for="star in 5" 
@@ -44,7 +41,7 @@
       </div>
     </div>
     
-    <div class="product-actions">
+    <div v-if="!minimal" class="product-actions">
       <!-- Componente AddToCartButton -->
       <AddToCartButton
         :product="product"
@@ -104,6 +101,10 @@ const props = defineProps({
   compact: {
     type: Boolean,
     default: false
+  },
+  minimal: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -125,19 +126,7 @@ const finalPrice = computed(() => {
   return props.product.precio
 })
 
-const stockClass = computed(() => {
-  const stock = props.product.stock
-  if (stock <= 0) return 'stock-out'
-  if (stock <= 5) return 'stock-low'
-  return 'stock-available'
-})
-
-const stockText = computed(() => {
-  const stock = props.product.stock
-  if (stock <= 0) return 'Sin stock'
-  if (stock <= 5) return `Últimos ${stock}`
-  return `${stock} disponibles`
-})
+// Stock/Disponibilidad oculto en UI
 
 const wishlistIcon = computed(() => {
   return isInWishlist.value ? 'fas fa-heart' : 'far fa-heart'
@@ -191,15 +180,26 @@ const openQuickView = () => {
 <style scoped>
 .product-card { height: 100%; display: flex; flex-direction: column; }
 
-.product-image { position: relative; aspect-ratio: 4/5; overflow: hidden; display: grid; place-items: center; background: #fff; }
+.product-image { position: relative; aspect-ratio: 4/5; overflow: hidden; display: grid; place-items: center; background: transparent; }
+.product-card.minimal .product-image { aspect-ratio: 1 / 1; }
 
 .product-img { width: 100%; height: 66%; object-fit: cover; object-position: center; transition: transform 0.3s ease; }
+.product-card.minimal .product-img { height: 100%; }
 
-.product-card:hover .product-img {
-  transform: scale(1.05);
+.product-card:hover .product-img { transform: scale(1.05); }
+
+/* Anime-like hover glow on minimal cards */
+.product-card.minimal:hover {
+  box-shadow: 6px 6px 0 rgba(139, 0, 0, 0.25);
 }
 
-/* Badge component handles styling */
+/* Badge positioning and slight tilt for anime flair (minimal) */
+.product-card.minimal :deep(.ui-badge) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  transform: rotate(-3deg);
+}
 
 .product-info {
   padding: 1rem;
@@ -208,6 +208,7 @@ const openQuickView = () => {
   flex-direction: column;
   gap: 0.75rem;
 }
+.product-card.minimal .product-info { padding: 0.5rem 0.6rem; gap: 0.4rem; }
 
 .product-name {
   font-size: 1.125rem;
@@ -215,6 +216,13 @@ const openQuickView = () => {
   color: #2d3748;
   margin: 0;
   line-height: 1.3;
+}
+.product-card.minimal .product-name {
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .product-description {
@@ -224,123 +232,49 @@ const openQuickView = () => {
   line-height: 1.4;
 }
 
-.product-pricing {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.product-pricing { display: flex; align-items: center; gap: 0.75rem; }
 
 .current-price { font-size: 1.25rem; font-weight: 800; color: var(--brand-strong); }
+.product-card.minimal .current-price { font-size: 1rem; }
 
-.original-price {
-  font-size: 1rem;
-  color: #a0aec0;
-  text-decoration: line-through;
-}
+.original-price { font-size: 1rem; color: #a0aec0; text-decoration: line-through; }
 
-.product-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
+.product-meta { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 
-.stock-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
+/* Stock UI oculto por solicitud */
 
-.stock-info i {
-  color: #e5bf60;
-}
+.rating { display: flex; align-items: center; gap: 0.5rem; }
 
-.stock-available {
-  color: #48bb78;
-  font-weight: 500;
-}
+.stars { display: flex; gap: 2px; }
 
-.stock-low {
-  color: #ed8936;
-  font-weight: 600;
-}
+.stars i { font-size: 0.875rem; color: #e2e8f0; transition: color 0.2s ease; }
 
-.stock-out {
-  color: #e53e3e;
-  font-weight: 600;
-}
+.stars i.active { color: #fbbf24; }
 
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.rating-count { font-size: 0.75rem; color: #718096; }
 
-.stars {
-  display: flex;
-  gap: 2px;
-}
+.product-actions { padding: 1rem; border-top: 1px solid #f0f0f0; display: flex; flex-direction: column; gap: 0.75rem; }
 
-.stars i {
-  font-size: 0.875rem;
-  color: #e2e8f0;
-  transition: color 0.2s ease;
-}
+.secondary-actions { display: flex; gap: 0.5rem; justify-content: center; }
 
-.stars i.active {
-  color: #fbbf24;
-}
-
-.rating-count {
-  font-size: 0.75rem;
-  color: #718096;
-}
-
-.product-actions {
-  padding: 1rem;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.secondary-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.in-wishlist {
-  color: #e53e3e !important;
-}
+.in-wishlist { color: #e53e3e !important; }
 
 /* Responsive */
 @media (max-width: 576px) {
-  .product-info {
-    padding: 0.75rem;
-    gap: 0.5rem;
-  }
+  .product-info { padding: 0.5rem; gap: 0.4rem; }
   .product-image { aspect-ratio: 4/5; }
-  .product-img { object-fit: contain; background: #fff; }
+  /* Keep cover to avoid white bars */
+  .product-card.minimal .product-img { object-fit: cover; background: transparent; }
   .product-card :deep(.ui-badge) { position: absolute; top: 10px; right: 10px; }
   
-  .product-name {
-    font-size: 1rem;
-  }
+  .product-name { font-size: 1rem; }
+  .product-card.minimal .product-name { font-size: 0.95rem; }
   
-  .current-price {
-    font-size: 1.125rem;
-  }
+  .current-price { font-size: 1.125rem; }
+  .product-card.minimal .current-price { font-size: 1rem; }
   
-  .product-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+  .product-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   
-  .secondary-actions {
-    flex-direction: column;
-  }
+  .secondary-actions { flex-direction: column; }
 }
 </style>

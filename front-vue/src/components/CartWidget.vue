@@ -9,7 +9,7 @@
           <path fill="currentColor" d="M25,18V13a1,1,0,0,0-2,0v5a1,1,0,0,0,2,0Z"/>
         </g>
       </svg>
-  <span v-if="totalItems > 0" class="cart-badge">{{ totalItems }}</span>
+  <span v-if="totalItems > 0" class="cart-badge">{{ displayCount }}</span>
     </button>
 
     <!-- Dropdown del carrito -->
@@ -141,6 +141,9 @@ const totalItems = computed(() => {
     : 0
 })
 
+// Mostrar 9+ para mantener badge pequeño y circular
+const displayCount = computed(() => (totalItems.value > 9 ? '9+' : totalItems.value))
+
 // Estado local
 const isOpen = ref(false)
 const justAdded = ref(false)
@@ -239,21 +242,22 @@ watch(totalItems, (newCount, oldCount) => {
 
   .cart-badge {
     position: absolute;
-    top: -6px;
-    right: -6px;
+    top: -9px;
+    right: -9px;
     background: #e53935;
     color: #fff;
-    font-size: 11px;
-    font-weight: bold;
+    font-size: 8px;
+    font-weight: 800;
     border-radius: 50%;
-    padding: 0 5px;
-    min-width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    line-height: 1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    border: 2px solid #fff; /* halo para no tapar el icono */
     pointer-events: none;
     transition: transform 0.18s cubic-bezier(.4,1.3,.6,1);
   }
@@ -417,10 +421,12 @@ watch(totalItems, (newCount, oldCount) => {
     height: 22px !important;
   }
   .cart-badge {
-    font-size: 11px;
-    min-width: 16px;
+    font-size: 9px;
+    width: 16px;
     height: 16px;
-    padding: 0 4px;
+    padding: 0;
+    top: -10px;
+    right: -10px;
   }
 }
 

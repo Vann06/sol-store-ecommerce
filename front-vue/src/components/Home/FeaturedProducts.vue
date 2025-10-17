@@ -1,24 +1,9 @@
 <template>
   <div class="featured-products" role="region" aria-label="Productos nuevos">
-    <div class="carousel">
-      <button class="nav prev" @click="scrollBy(-1)" aria-label="Ver anteriores">❮</button>
-      <div
-        class="track"
-        ref="track"
-        tabindex="0"
-        @pointerdown="onPointerDown"
-        @pointermove="onPointerMove"
-        @pointerup="onPointerUp"
-        @pointercancel="onPointerUp"
-        @pointerleave="onPointerUp"
-        @keydown.left.prevent="scrollBy(-1)"
-        @keydown.right.prevent="scrollBy(1)"
-      >
-        <div v-for="product in products" :key="product.id" class="item" @click="onItemClick(product.id)">
-          <ProductCard :product="normalize(product)" @quick-view="openQuickView" />
-        </div>
+    <div class="grid">
+      <div v-for="product in products" :key="product.id" class="grid-item" @click="onItemClick(product.id)">
+        <ProductCard :product="normalize(product)" :minimal="true" />
       </div>
-      <button class="nav next" @click="scrollBy(1)" aria-label="Ver siguientes">❯</button>
     </div>
 
     <QuickViewModal 
@@ -47,11 +32,8 @@ const track = ref(null)
 const router = useRouter()
 const cart = useCartStore()
 
-const CARD_WIDTH = 200 // includes gap approx, reduced ~23%
-const scrollBy = (dir) => {
-  if (!track.value) return
-  track.value.scrollBy({ left: dir * CARD_WIDTH * 2, behavior: 'smooth' })
-}
+// Dejar scroll handlers definidos pero no usados si cambiamos a grid
+const scrollBy = () => {}
 
 // Click handling that respects drag state
 const goToDetail = (id) => router.push({ name: 'product-detail', params: { id } })
@@ -124,17 +106,11 @@ const onPointerUp = () => {
 </script>
 
 <style scoped>
-/* Carousel layout with snapping */
-.carousel { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
-.track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 8px; touch-action: pan-x; cursor: grab; }
-.track.dragging { cursor: grabbing; }
-.item { scroll-snap-align: start; width: 100%; }
-.nav { appearance: none; background: linear-gradient(135deg, var(--brand-strong), var(--brand)); color: #fff; border: 0; width: 36px; height: 36px; border-radius: 999px; cursor: pointer; box-shadow: 0 8px 16px rgba(122,0,25,0.25); }
-.nav:disabled { opacity: .4; cursor: not-allowed; }
-
-@media (max-width: 640px) {
-  .nav { width: 44px; height: 44px; }
-  .track { grid-auto-columns: 80%; padding: 8px 4px; }
-}
+/* Grid layout: 4 per row on desktop */
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
+.grid-item { width: 100%; }
+@media (max-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .grid { grid-template-columns: 1fr; } }
 
 </style>

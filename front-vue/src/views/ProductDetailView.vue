@@ -22,7 +22,7 @@
               class="qty-slider"
               type="range"
               min="1"
-              :max="Math.max(1, Number(product.stock) || 10)"
+              :max="100"
               v-model.number="cantidad"
             />
           </div>
@@ -32,54 +32,47 @@
             Añadir al carrito
           </BaseButton>
           <p class="shipping">ENVÍO GRATIS EN PEDIDOS SUPERIORES A Q100.*</p>
-          <div class="quick-details">
-            <ul>
-              <li><strong>Categoría:</strong> {{ product.category }}</li>
-              <li><strong>Temática:</strong> {{ product.theme }}</li>
-              <li><strong>Stock:</strong> {{ product.stock }}</li>
-            </ul>
+          <!-- Mostrar solo la descripción debajo del botón -->
+          <div class="quick-description" v-if="product.descripcion">
+            <h3 class="desc-title">Descripción</h3>
+            <p class="desc-text">{{ product.descripcion }}</p>
           </div>
         </div>
       </section>
-
-      <section class="desc gradient-card">
-        <h2>Descripción</h2>
-        <p>{{ product.descripcion }}</p>
-      </section>
+      <CenteredPopup
+        :visible="showAddedModal"
+        title="Añadido al carrito"
+        :message="product?.name"
+        icon="fas fa-shopping-bag"
+        @primary="goToCart"
+        @close="showAddedModal = false"
+      />
+      
     </div>
 
     <div v-else class="container">
       <PageHeader title="Cargando producto" subtitle="Por favor espera" icon="fas fa-spinner fa-spin" />
     </div>
 
-    <!-- Sticky actions on mobile (no duplicate add-to-cart) -->
-    <div v-if="product" class="mobile-sticky">
-      <div class="qty-compact">
-        <span class="label">Cantidad: <strong>{{ cantidad }}</strong></span>
-        <input
-          class="qty-slider"
-          type="range"
-          min="1"
-          :max="Math.max(1, Number(product.stock) || 10)"
-          v-model.number="cantidad"
-        />
-      </div>
-    </div>
+    <!-- Eliminado sticky para mantener un solo slider -->
   </main>
 </template>
   
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import http from '@/http'
 import PageHeader from '@/components/PageHeader.vue'
 import BaseButton from '@/components/BaseButton.vue'
+import CenteredPopup from '@/components/CenteredPopup.vue'
 const fallbackImg = 'https://via.placeholder.com/800x600?text=Producto'
 const route = useRoute()
+const router = useRouter()
 const product = ref(null)
 const cantidad = ref(1)
 const cart = useCartStore()
+const showAddedModal = ref(false)
 
 
 onMounted(async () => {
@@ -140,13 +133,14 @@ function formatCurrency(n){
 async function agregarAlCarrito() {
   if (!product.value) return
   await cart.addToCart(product.value.id, cantidad.value)
-  // Opcional: notificación o feedback
-  alert('Producto agregado al carrito')
+  // Mostrar popup bonito centrado
+  showAddedModal.value = true
 }
 
 function onImgError(e){ e.target.src = fallbackImg }
 function increase(){ cantidad.value++ }
 function decrease(){ if(cantidad.value>1) cantidad.value-- }
+function goToCart(){ showAddedModal.value = false; router.push('/cart') }
 </script>
   
 <style scoped>
@@ -173,6 +167,9 @@ function decrease(){ if(cantidad.value>1) cantidad.value-- }
   .desc h2 { margin: 0 0 8px; color: var(--ink-1); }
   .desc .meta { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); }
   .desc .meta li { margin: 6px 0; }
+  .quick-description { margin-top: 8px; }
+  .quick-description .desc-title { margin: 8px 0 4px; font-size: 16px; color: var(--ink-1); }
+  .quick-description .desc-text { margin: 0; color: var(--ink-2); font-size: 14px; }
   @media (max-width: 900px){ .product-grid { grid-template-columns: 1fr; } }
 
   /* Sticky mobile action bar */
