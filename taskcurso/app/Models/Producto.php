@@ -86,5 +86,42 @@ class Producto extends Model
     {
         return $this->hasMany(DetalleProducto::class, 'id_producto');
     }
+
+    /**
+     * Accessor para obtener la URL de la imagen
+     * Si no hay imagen, devuelve una imagen por defecto
+     */
+    public function getImagenUrlAttribute()
+    {
+        // Si tiene imagen y no está vacía
+        if (!empty($this->imagen)) {
+            // Si es una URL completa, la devuelve tal cual
+            if (filter_var($this->imagen, FILTER_VALIDATE_URL)) {
+                return $this->imagen;
+            }
+            // Si es una ruta relativa, la convierte a URL completa
+            return asset('storage/' . $this->imagen);
+        }
+        
+        // Imagen por defecto
+        return asset('images/no-image.svg');
+    }
+
+    /**
+     * Accessor alternativo para compatibilidad
+     */
+    public function getImagenAttribute($value)
+    {
+        // Retorna el valor original de la DB
+        return $value;
+    }
+
+    /**
+     * Verifica si el producto tiene imagen
+     */
+    public function hasImage()
+    {
+        return !empty($this->imagen) && $this->imagen !== null;
+    }
 }
 
