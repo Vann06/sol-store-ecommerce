@@ -1,0 +1,6 @@
+first_name,last_name,email,password
+Juan,Pérez,juan.perez@example.com,$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5HS9h.tZx.Gla
+María,García,maria.garcia@example.com,$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5HS9h.tZx.Gla
+Carlos,López,carlos.lopez@example.com,$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5HS9h.tZx.Gla
+Ana,Martínez,ana.martinez@example.com,$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5HS9h.tZx.Gla
+Pedro,Rodríguez,pedro.rodriguez@example.com,$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5HS9h.tZx.Gla
