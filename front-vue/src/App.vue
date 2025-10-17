@@ -5,19 +5,15 @@
       <router-view />
     </div>
     <Footer />
-    
-    <!-- Componente de debug solo en desarrollo -->
-    <ClarityDebug v-if="isDevelopment" />
   </div>
 </template>
 
 <script setup>
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import ClarityDebug from '@/components/ClarityDebug.vue'
 import { useAppInit } from '@/composables/useAppInit'
 import { useClarity } from '@/composables/useClarity'
-import { watch, computed } from 'vue'
+import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 // Inicializar la aplicación (verifica token, configura axios, etc.)
@@ -25,9 +21,6 @@ useAppInit()
 
 // Inicializar Microsoft Clarity
 const { trackEcommerce } = useClarity()
-
-// Mostrar debug solo en desarrollo
-const isDevelopment = computed(() => import.meta.env.DEV)
 
 // Tracking automático de cambios de página
 const route = useRoute()

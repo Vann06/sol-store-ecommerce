@@ -95,7 +95,7 @@ const products = ref([
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(125, 28, 43, 0.03) 0%, rgba(162, 115, 69, 0.03) 100%);
+  background: linear-gradient(135deg, rgba(122, 0, 25, 0.03) 0%, rgba(162, 115, 69, 0.03) 100%);
   border-radius: 20px;
   pointer-events: none;
 }
@@ -112,7 +112,7 @@ const products = ref([
   gap: 1rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 3rem;
   text-align: center;
 }
@@ -120,7 +120,7 @@ const products = ref([
 .title-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -147,7 +147,7 @@ const products = ref([
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid rgba(125, 28, 43, 0.1);
+  border: 1px solid rgba(122, 0, 25, 0.1);
 }
 
 .product-card:hover {
@@ -164,12 +164,12 @@ const products = ref([
 .image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--surface-2) 0%, #e9ecef 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(125, 28, 43, 0.1);
+  border-bottom: 1px solid rgba(122, 0, 25, 0.1);
   text-align: center;
   padding: 1rem;
   position: relative;
@@ -182,7 +182,7 @@ const products = ref([
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
 }
 
 .placeholder-icon {
@@ -193,7 +193,7 @@ const products = ref([
 
 .placeholder-text {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--ink-3);
   font-style: italic;
   max-width: 150px;
 }
@@ -205,14 +205,14 @@ const products = ref([
 .product-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin: 0 0 1rem 0;
   line-height: 1.3;
 }
 
 .product-description {
   font-size: 1rem;
-  color: #4a5568;
+  color: var(--ink-3);
   line-height: 1.6;
   margin: 0 0 1.5rem 0;
 }
@@ -225,17 +225,17 @@ const products = ref([
 
 .feature-tag {
   background: linear-gradient(135deg, rgba(125, 28, 43, 0.1) 0%, rgba(162, 115, 69, 0.1) 100%);
-  color: #7d1c2b;
+  color: var(--brand-strong);
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 500;
-  border: 1px solid rgba(125, 28, 43, 0.2);
+  border: 1px solid rgba(122, 0, 25, 0.2);
   transition: all 0.3s ease;
 }
 
 .feature-tag:hover {
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   color: white;
   transform: translateY(-1px);
 }

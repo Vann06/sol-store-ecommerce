@@ -62,7 +62,7 @@
 }
 
 .gradient-card {
-  background: linear-gradient(#fff, #fff) padding-box,
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
               linear-gradient(135deg, rgba(240,192,64,0.5), rgba(122,0,25,0.4)) border-box;
   border: 2px solid transparent;
   border-radius: 20px;
@@ -83,14 +83,14 @@
   gap: 1rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 1.5rem;
 }
 
 .title-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -107,7 +107,7 @@
 .section-text {
   font-size: 1.1rem;
   line-height: 1.7;
-  color: #4a5568;
+  color: var(--ink-3);
   margin-bottom: 2rem;
 }
 
@@ -120,22 +120,22 @@
 .stat-item {
   text-align: center;
   padding: 1rem;
-  background: linear-gradient(135deg, #fdf8f0 0%, #f9f1e6 100%);
+  background: linear-gradient(135deg, var(--surface-2) 0%, #f9f1e6 100%);
   border-radius: 12px;
-  border: 1px solid rgba(125, 28, 43, 0.1);
+  border: 1px solid rgba(122, 0, 25, 0.1);
 }
 
 .stat-number {
   display: block;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 0.25rem;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--ink-4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -148,13 +148,13 @@
 .image-placeholder {
   width: 100%;
   height: 300px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--surface-2) 0%, #e9ecef 100%);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px dashed rgba(125, 28, 43, 0.3);
+  border: 2px dashed rgba(122, 0, 25, 0.3);
   text-align: center;
   padding: 2rem;
 }
@@ -162,7 +162,7 @@
 .placeholder-icon {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, rgba(125, 28, 43, 0.1) 0%, rgba(162, 115, 69, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(122, 0, 25, 0.1) 0%, rgba(162, 115, 69, 0.1) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -173,12 +173,12 @@
 .placeholder-icon svg {
   width: 40px;
   height: 40px;
-  color: #7d1c2b;
+  color: var(--brand-strong);
 }
 
 .placeholder-text {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--ink-3);
   font-style: italic;
   max-width: 200px;
 }

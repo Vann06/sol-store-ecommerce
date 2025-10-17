@@ -77,8 +77,8 @@ services:
       - /app/node_modules
     environment:
       VITE_API_BASE_URL: /api
-        #ports:
-        #- "5173:5173"
+    ports:
+      - "5173:5173"
     depends_on:
       backend:
         condition: service_started

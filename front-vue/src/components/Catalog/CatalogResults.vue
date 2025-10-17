@@ -27,28 +27,8 @@
       </div>
       
       <div class="products-grid" v-if="!loading">
-        <div 
-          v-for="product in filteredProducts" 
-          :key="product.id"
-          class="product-card"
-          @click="$emit('view-product', product)"
-        >
-          <div class="product-image-container">
-            <img 
-              :src="getImageUrl(product.imagen)" 
-              :alt="product.nombre"
-              class="product-img" 
-              @error="handleImageError($event)"
-            />
-          </div>
-          <div class="product-details">
-            <h3 class="product-name">{{ product.nombre }}</h3>
-            <p class="product-price">Q{{ Number(product.precio_base || 0).toFixed(2) }}</p>
-            <p class="product-description">{{ product.descripcion }}</p>
-            <button class="add-to-cart" @click.stop="$emit('add-to-cart', product)">
-              Añadir al carrito
-            </button>
-          </div>
+        <div v-for="product in filteredProducts" :key="product.id" class="grid-item" @click="$emit('view-product', product)">
+          <ProductCard :product="normalize(product)" :minimal="true" />
         </div>
       </div>
 
@@ -64,6 +44,8 @@
 </template>
 
 <script setup>
+import ProductCard from '@/components/ProductCard.vue'
+
 // Props
 const props = defineProps({
   filteredProducts: {
@@ -87,16 +69,15 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['view-product', 'add-to-cart', 'clear-filters', 'update:sort-by'])
 
-// Methods
-const getImageUrl = (imagen) => {
-  if (!imagen) return 'https://via.placeholder.com/220x200'
-  if (imagen.startsWith('http')) return imagen
-  return `http://localhost:8000/${imagen}`
-}
-
-const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/220x200/cccccc/666666?text=Sin+Imagen'
-}
+// Helpers para normalizar datos hacia ProductCard
+const normalize = (p) => ({
+  id: p.id,
+  nombre: p.nombre || p.name || 'Producto',
+  precio: Number(p.precio_base ?? p.precio ?? p.price ?? 0),
+  precio_original: p.precio_original,
+  descuento: p.descuento,
+  imagen: p.imagen || p.image || p.image_url || '/img/no-image.png',
+})
 </script>
 
 <style scoped>
@@ -106,9 +87,9 @@ const handleImageError = (event) => {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 16px;
 }
 
 .results-header {
@@ -160,85 +141,11 @@ const handleImageError = (event) => {
 }
 
 /* Grid de Productos - Estilo Simplificado */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
-  padding: 20px 0;
-  justify-items: center;
-}
-
-.product-card {
-  width: 100%;
-  max-width: 300px;
-  background: white;
-  border: 2px solid #8B0000;
-  border-radius: 15px;
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(139, 0, 0, 0.2);
-}
-
-.product-image-container {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  background: #f5f5f5;
-}
-
-.product-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-details {
-  padding: 15px;
-  text-align: center;
-}
-
-.product-name {
-  font-weight: 700;
-  font-size: 18px;
-  color: #8B0000;
-  margin-bottom: 8px;
-}
-
-.product-price {
-  color: #8B0000;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.product-description {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 15px;
-  line-height: 1.4;
-}
-
-.add-to-cart {
-  width: 100%;
-  padding: 12px;
-  background-color: #8B0000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.add-to-cart:hover {
-  background-color: #a30000;
-}
+.products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.grid-item { width: 100%; }
+@media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .products-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .products-grid { grid-template-columns: 1fr; } }
 
 /* Sin resultados */
 .no-results {

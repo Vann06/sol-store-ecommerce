@@ -12,7 +12,8 @@ const router = createRouter({
     { path: '/cart', name: 'cart', component: { template: '<div>Cart</div>' } },
     { path: '/account/login', name: 'login', component: { template: '<div>Login</div>' } },
     { path: '/account/orders', name: 'orders', component: { template: '<div>Orders</div>' } },
-    { path: '/search', name: 'search', component: { template: '<div>Search Results</div>' } }
+    { path: '/search', name: 'search', component: { template: '<div>Search Results</div>' } },
+    { path: '/catalogo', name: 'catalogo', component: { template: '<div>Catalogo</div>' } }
   ]
 })
 

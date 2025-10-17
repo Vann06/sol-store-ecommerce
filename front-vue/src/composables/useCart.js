@@ -30,13 +30,7 @@ export function useCart() {
 
   // Métodos principales
   const addToCart = async (product, quantity = 1, showNotification = true) => {
-    // Verificar autenticación
-    if (!isAuthenticated.value) {
-      if (showNotification) {
-        showMessage('Debes iniciar sesión para agregar productos al carrito', 'warning')
-      }
-      return { success: false, requiresAuth: true }
-    }
+    // Permitir invitados: el backend soporta carrito de invitado por sesión
 
     // Validar producto
     if (!product || !product.id) {
@@ -54,10 +48,14 @@ export function useCart() {
       return { success: false, error: 'Stock insuficiente' }
     }
 
+    // Clamp 1..100
+    const clamp = (n) => Math.max(1, Math.min(Number(n) || 1, 100))
+    const safeQty = clamp(quantity)
+
     isAdding.value = true
 
     try {
-      const result = await cartStore.addToCart(product.id, quantity, {
+      const result = await cartStore.addToCart(product.id, safeQty, {
         id: product.id,
         nombre: product.nombre || product.name,
         precio_base: product.precio || product.price,
@@ -86,12 +84,7 @@ export function useCart() {
   }
 
   const removeFromCart = async (itemId, showNotification = true) => {
-    if (!isAuthenticated.value) {
-      if (showNotification) {
-        showMessage('Debes iniciar sesión', 'warning')
-      }
-      return { success: false, requiresAuth: true }
-    }
+    // Permitir invitados
 
     isRemoving.value = true
 
@@ -118,12 +111,7 @@ export function useCart() {
   }
 
   const updateQuantity = async (itemId, newQuantity, showNotification = true) => {
-    if (!isAuthenticated.value) {
-      if (showNotification) {
-        showMessage('Debes iniciar sesión', 'warning')
-      }
-      return { success: false, requiresAuth: true }
-    }
+    // Permitir invitados
 
     try {
       const result = await cartStore.updateQuantity(itemId, newQuantity)
@@ -146,12 +134,7 @@ export function useCart() {
   }
 
   const clearCart = async (showNotification = true) => {
-    if (!isAuthenticated.value) {
-      if (showNotification) {
-        showMessage('Debes iniciar sesión', 'warning')
-      }
-      return { success: false, requiresAuth: true }
-    }
+    // Permitir invitados
 
     try {
       const result = await cartStore.clearCart()
@@ -174,13 +157,6 @@ export function useCart() {
   }
 
   // Métodos utilitarios
-  const isProductInCart = (productId) => {
-    return cartStore.isProductInCart(productId)
-  }
-
-  const getProductQuantity = (productId) => {
-    return cartStore.getProductQuantity(productId)
-  }
 
   const refreshCart = async () => {
     return await cartStore.fetchCart()
@@ -201,13 +177,37 @@ export function useCart() {
     }).format(Number(price))
   }
 
-  // Calcular descuentos (si los hay)
-  const calculateDiscount = (originalPrice, discountPercent) => {
-    return originalPrice * (discountPercent / 100)
+  // Helpers esperados por componentes
+  const isProductInCart = (productId) => {
+    if (!productId) return false
+    return cartStore.isProductInCart(productId)
   }
 
-  const getFinalPrice = (originalPrice, discountPercent = 0) => {
-    return originalPrice - calculateDiscount(originalPrice, discountPercent)
+  const getProductQuantity = (productId) => {
+    if (!productId) return 0
+    return cartStore.getProductQuantity(productId)
+  }
+
+  // Calcular descuentos y precio final (si los hay)
+  const calculateDiscount = (product) => {
+    if (!product) return 0
+    const original = Number(product.precio_original ?? product.price_original ?? 0)
+    const discountPct = Number(product.descuento ?? 0)
+    if (original > 0 && discountPct > 0) {
+      return (original * discountPct) / 100
+    }
+    const current = Number(product.precio ?? product.price ?? 0)
+    return original > current && current > 0 ? (original - current) : 0
+  }
+
+  const getFinalPrice = (product) => {
+    if (!product) return 0
+    const original = Number(product.precio_original ?? product.price_original ?? 0)
+    const discountPct = Number(product.descuento ?? 0)
+    if (original > 0 && discountPct > 0) {
+      return original * (1 - discountPct / 100)
+    }
+    return Number(product.precio ?? product.price ?? 0)
   }
 
   // Validar disponibilidad del producto

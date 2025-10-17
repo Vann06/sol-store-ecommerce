@@ -209,11 +209,11 @@ watch(user, () => {
 }
 
 .form-container {
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 4px 20px rgba(125, 28, 43, 0.1);
-  border: 1px solid rgba(125, 28, 43, 0.1);
+  box-shadow: 0 4px 20px rgba(31,41,55,0.08);
+  border: 1px solid rgba(122, 0, 25, 0.1);
   margin-top: 1.5rem;
 }
 
@@ -237,7 +237,7 @@ watch(user, () => {
   gap: 1rem;
   justify-content: flex-end;
   padding-top: 1.5rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--ink-5);
 }
 
 .loading-container {
@@ -245,27 +245,17 @@ watch(user, () => {
   justify-content: center;
   align-items: center;
   min-height: 300px;
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
   margin-top: 1.5rem;
-  box-shadow: 0 4px 20px rgba(125, 28, 43, 0.1);
+  box-shadow: 0 4px 20px rgba(31,41,55,0.08);
 }
 
-.loading-spinner {
-  text-align: center;
-  color: #7d1c2b;
-}
+.loading-spinner { text-align: center; color: var(--brand); }
 
-.loading-spinner i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #e5bf60;
-}
+.loading-spinner i { font-size: 2rem; margin-bottom: 1rem; color: var(--accent); }
 
-.loading-spinner p {
-  font-weight: 500;
-  color: #7d1c2b;
-}
+.loading-spinner p { font-weight: 500; color: var(--brand); }
 
 @media (max-width: 768px) {
   .account-details {

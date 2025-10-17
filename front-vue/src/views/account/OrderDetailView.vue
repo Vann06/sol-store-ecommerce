@@ -1,5 +1,5 @@
 <template>
-  <main class="page under-fixed-header" style="--header-height: 96px;">
+  <main class="page under-fixed-header">
     <div class="container">
       <h1>Detalle de pedido</h1>
       <p>Pedido #{{ $route.params.id }}</p>

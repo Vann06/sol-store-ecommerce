@@ -1,7 +1,5 @@
 <template>
-  <div class="contact-page">
-    <Header />
-    
+  <main class="contact-page under-fixed-header bg-page-soft">
     <!-- Hero Banner -->
     <ContactHero />
 
@@ -17,12 +15,11 @@
         </div>
       </div>
     </section>
-  </div>
+  </main>
 </template>
 
 <script setup>
 // Componentes
-import Header from '@/components/Header.vue'
 import ContactHero from '@/components/Contact/ContactHero.vue'
 import ContactInfo from '@/components/Contact/ContactInfo.vue'
 import ContactMethods from '@/components/Contact/ContactMethods.vue'

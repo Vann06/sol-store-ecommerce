@@ -43,6 +43,16 @@
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     min-height: fit-content;
+    position: relative;
+  }
+
+  .account-view::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(122,0,25,0.15), rgba(240,192,64,0.12));
   }
 
   /* Responsive Design */

@@ -15,8 +15,8 @@ export const useUserStore = defineStore('user', {
     getters: {
         getUser: (state) => state.user,
         isLoggedIn: (state) => !!state.user && !!state.token,
-        // Alias para compatibilidad con el LoginForm
-        isAuthenticated: (state) => !!state.user && !!state.token,
+        // Nota: evitamos definir un getter con el mismo nombre que el estado
+        // para no provocar advertencias de Pinia.
         userName: (state) => {
             if (!state.user) return ''
             return `${state.user.first_name || ''} ${state.user.last_name || ''}`.trim() || state.user.name || 'Usuario'

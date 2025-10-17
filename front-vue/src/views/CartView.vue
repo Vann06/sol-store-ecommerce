@@ -1,6 +1,6 @@
 <template>
   <!-- añade también el CSS var local para no afectar otras vistas -->
-  <main class="cart-page under-fixed-header" style="--header-height: 96px;">
+  <main class="cart-page under-fixed-header">
     <div class="cart-container">
       <!-- Header con el mismo estilo de gradientes que AccountDetailView -->
       <PageHeader

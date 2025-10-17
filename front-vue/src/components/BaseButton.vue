@@ -111,7 +111,8 @@ const buttonClasses = computed(() => [
     'btn-block': props.block,
     'btn-rounded': props.rounded,
     'btn-loading': props.loading,
-    'btn-disabled': props.disabled
+    'btn-disabled': props.disabled,
+    'btn-anime-shadow': true
   }
 ])
 
@@ -190,7 +191,7 @@ const handleClick = (event) => {
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #a27345 0%, #7d1c2b 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(125, 28, 43, 0.3);
+  box-shadow: 8px 8px 0 rgba(125, 28, 43, 0.4), 0 6px 18px rgba(122, 0, 25, 0.28);
 }
 
 .btn-secondary {
@@ -276,6 +277,14 @@ const handleClick = (event) => {
 .btn-ghost:hover:not(:disabled) {
   background: rgba(125, 28, 43, 0.1);
   color: #7d1c2b;
+}
+
+/* Anime-like right shadow for representative buttons */
+.btn-anime-shadow {
+  box-shadow: 6px 6px 0 rgba(125, 28, 43, 0.32), 0 2px 6px rgba(122, 0, 25, 0.16);
+}
+.btn-anime-shadow:hover:not(:disabled) {
+  box-shadow: 10px 10px 0 rgba(125, 28, 43, 0.42), 0 4px 12px rgba(122, 0, 25, 0.2);
 }
 
 /* Tamaños */

@@ -16,7 +16,7 @@ export function useAppInit() {
       // Verificar si hay un token almacenado
       const storedToken = localStorage.getItem('auth_token')
       
-      if (storedToken) {
+  if (storedToken) {
         // El token se configura automáticamente via interceptores en http.js
         
         // Solo verificar el token si no hay usuario en el store
@@ -37,6 +37,10 @@ export function useAppInit() {
             console.warn('Could not load cart:', error.message)
           }
         }
+      }
+      // Si no hay token, hidratar carrito de invitado
+      if (!storedToken) {
+        cartStore.initIfGuest()
       }
     } catch (error) {
       console.error('Error initializing app:', error)

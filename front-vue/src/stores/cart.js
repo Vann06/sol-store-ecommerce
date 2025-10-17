@@ -49,6 +49,96 @@ export const useCartStore = defineStore('cart', {
   },
 
   actions: {
+    // Inicializador ligero para invitados
+    initIfGuest() {
+      const userStore = useUserStore()
+      if (!userStore?.token && (!this.items || this.items.length === 0)) {
+        this.hydrateFromLocalStorage()
+      }
+    },
+    // Clave para persistencia local
+    getLocalKey() {
+      return 'sol_cart_v1'
+    },
+
+    // Persistir carrito a localStorage (modo invitado y como respaldo)
+    persistToLocalStorage() {
+      try {
+        const payload = {
+          items: this.items.map(i => ({
+            producto_id: i.producto_id ?? i.id,
+            nombre: i.producto?.nombre || i.nombre,
+            imagen: i.producto?.imagen || i.imagen,
+            categoria: i.producto?.categoria || i.categoria,
+            precio_unitario: i.precio_unitario || i.producto?.precio || 0,
+            cantidad: i.cantidad || 1
+          }))
+        }
+        localStorage.setItem(this.getLocalKey(), JSON.stringify(payload))
+      } catch (e) {
+        console.warn('No se pudo persistir carrito local:', e)
+      }
+    },
+
+    // Hidratar carrito desde localStorage (cuando no hay sesión)
+    hydrateFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(this.getLocalKey())
+        if (!raw) return
+        const data = JSON.parse(raw)
+        if (Array.isArray(data.items)) {
+          this.items = data.items.map(it => ({
+            id: `${it.producto_id}-local`,
+            producto_id: it.producto_id,
+            cantidad: Math.max(1, Math.min(Number(it.cantidad || 1), 100)),
+            producto: {
+              nombre: it.nombre,
+              imagen: it.imagen,
+              categoria: it.categoria,
+              precio: it.precio_unitario
+            },
+            precio_unitario: it.precio_unitario,
+            subtotal: (Number(it.precio_unitario || 0) * Math.max(1, Math.min(Number(it.cantidad || 1), 100)))
+          }))
+          // No confiamos en totales guardados; se derivan de items
+          this.total = this.items.reduce((acc, x) => acc + (x.precio_unitario || 0) * (x.cantidad || 0), 0)
+          this.itemCount = this.items.reduce((acc, x) => acc + (x.cantidad || 0), 0)
+        }
+      } catch (e) {
+        console.warn('No se pudo hidratar carrito local:', e)
+      }
+    },
+
+    // En login: mergear carrito local con el del servidor y luego limpiar local
+    async mergeLocalCartToServer() {
+      const userStore = useUserStore()
+      if (!userStore?.token) return
+      try {
+        const raw = localStorage.getItem(this.getLocalKey())
+        if (!raw) return
+        const data = JSON.parse(raw)
+        if (!Array.isArray(data.items) || data.items.length === 0) return
+
+        for (const it of data.items) {
+          const cantidad = Math.max(1, Math.min(Number(it.cantidad || 1), 100))
+          try {
+            await http.post('/carrito/agregar', {
+              producto_id: it.producto_id,
+              cantidad
+            }, { headers: this.getAuthHeaders() })
+          } catch (e) {
+            console.warn('No se pudo enviar item local al servidor:', it.producto_id, e?.response?.data || e.message)
+          }
+        }
+        // Refrescar carrito desde servidor
+        await this.fetchCart()
+        // Limpiar copia local al finalizar merge
+        localStorage.removeItem(this.getLocalKey())
+      } catch (e) {
+        console.warn('Fallo al mergear carrito local con servidor:', e)
+      }
+    },
+
     // Obtener token de autenticación
     getAuthToken() {
       const userStore = useUserStore()
@@ -111,6 +201,10 @@ export const useCartStore = defineStore('cart', {
           userStore.logout()
         }
 
+        // En caso de error y no autenticado, intentar usar carrito local
+        if (error.response?.status === 401) {
+          this.hydrateFromLocalStorage()
+        }
         return { success: false, error: this.error }
       } finally {
         this.loading = false
@@ -135,10 +229,14 @@ export const useCartStore = defineStore('cart', {
           throw new Error('La cantidad debe ser mayor a 0')
         }
 
+        // Tope absoluto 100 por producto
+        const clamp = (n) => Math.max(1, Math.min(Number(n) || 1, 100))
+        let safeQty = clamp(quantity)
+
         console.log('📡 Making add to cart request...')
         const response = await http.post('/carrito/agregar', {
           producto_id: productId,
-          cantidad: quantity
+          cantidad: safeQty
         }, {
           headers: this.getAuthHeaders()
         })
@@ -166,16 +264,18 @@ export const useCartStore = defineStore('cart', {
           
           if (existingItem) {
             console.log('📝 Updating existing item quantity')
-            existingItem.cantidad += quantity
+            existingItem.cantidad = Math.min(100, (existingItem.cantidad || 0) + safeQty)
           } else {
             console.log('🆕 Adding new item to local cart')
             this.items.push({
               id: Date.now(), // ID temporal
               producto_id: productId,
-              cantidad: quantity,
+              cantidad: safeQty,
               producto: productData
             })
           }
+          // Persistir local para invitados
+          this.persistToLocalStorage()
         }
 
         // Refrescar desde el servidor para datos actualizados
@@ -208,7 +308,10 @@ export const useCartStore = defineStore('cart', {
       try {
   // Permitir invitados (backend resuelve por sesión/fingerprint)
 
-        if (newQuantity < 1) {
+        // Clamp 1..100
+        const next = Math.max(1, Math.min(Number(newQuantity) || 1, 100))
+
+        if (next < 1) {
           // Si la cantidad es 0 o menor, eliminar el item
           return await this.removeItem(itemId)
         }
@@ -217,17 +320,19 @@ export const useCartStore = defineStore('cart', {
         const item = this.items.find(item => item.id === itemId)
         if (item) {
           const oldQuantity = item.cantidad
-          item.cantidad = newQuantity
+          item.cantidad = next
 
           try {
             await http.put(`/carrito/actualizar/${itemId}`, {
-              cantidad: newQuantity
+              cantidad: next
             }, {
               headers: this.getAuthHeaders()
             })
 
             // Refrescar desde el servidor
             await this.fetchCart()
+            // Persistir local para invitados
+            this.persistToLocalStorage()
 
             return { success: true, message: 'Cantidad actualizada' }
 
@@ -341,6 +446,9 @@ export const useCartStore = defineStore('cart', {
 
     // Sincronizar carrito (útil después del login)
     async syncCart() {
+      // Primero intenta mergear el carrito local en el servidor si hay sesión
+      await this.mergeLocalCartToServer()
+      // Luego obtener el carrito oficial desde el servidor
       return await this.fetchCart()
     },
 
@@ -352,6 +460,7 @@ export const useCartStore = defineStore('cart', {
       this.error = null
       this.loading = false
       this.isUpdating = false
+      try { localStorage.removeItem(this.getLocalKey()) } catch {}
     }
   }
 })

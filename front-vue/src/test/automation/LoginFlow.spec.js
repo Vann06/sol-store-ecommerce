@@ -9,7 +9,8 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: { template: '<div>Home</div>' } },
     { path: '/cart', name: 'cart', component: { template: '<div>Cart</div>' } },
-    { path: '/account/login', name: 'login', component: { template: '<div>Login</div>' } }
+    { path: '/account/login', name: 'login', component: { template: '<div>Login</div>' } },
+    { path: '/catalogo', name: 'catalogo', component: { template: '<div>Catalogo</div>' } }
   ]
 })
 
@@ -56,13 +57,10 @@ describe('AUTOMATIZACIÓN FRONTEND - Header y Navegación', () => {
     if (searchInput.exists()) {
       await searchInput.setValue('producto de prueba')
       console.log('✅ Input de búsqueda encontrado y valor seteado')
-      
-      // Simular envío de búsqueda
-      const searchForm = searchInput.closest('form')
-      if (searchForm) {
-        await searchForm.trigger('submit.prevent')
-        console.log('✅ Búsqueda enviada')
-      }
+
+      // Simular búsqueda como en Header (keyup.enter)
+      await searchInput.trigger('keyup.enter')
+      console.log('✅ Búsqueda enviada (Enter)')
     }
     
     // PASO 6: Probar navegación a página de login si existe

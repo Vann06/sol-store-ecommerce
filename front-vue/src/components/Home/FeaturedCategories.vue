@@ -1,30 +1,30 @@
 <template>
-  <section class="featured-categories">
-    <h2 class="section-title">Categorías</h2>
-    <hr class="section-divider" />
-    <div class="slider-container">
-      <button class="arrow left" @click="prevPage" :disabled="currentPage === 0">❮</button>
-      <div class="category-grid">
+  <div class="featured-categories" role="region" aria-label="Categorías">
+    <div class="carousel">
+  <button class="nav prev" @click="prevPage" :disabled="currentPage === 0" aria-label="Ver anteriores">❮</button>
+      <div class="grid">
         <div
           v-for="(category, index) in paginatedCategories"
           :key="index"
-          class="card-overlay"
-          @click="goToSearch(category.id, 'categoria')"   
-               >
-          <img :src="category.imagen" alt="imagen categoría" class="card-bg-img" />
-          <div class="overlay"></div>
-          <p class="card-text">{{ category.name }}</p>
+          class="tile"
+          @click="goToCatalog(category)"
+        >
+          <Card type="outlined" class="tile-card">
+            <div class="media"><img :src="category.imagen" :alt="category.name" /></div>
+            <div class="label">{{ category.name }}</div>
+          </Card>
         </div>
       </div>
-      <button class="arrow right" @click="nextPage" :disabled="endIndex >= categories.length">❯</button>
+  <button class="nav next" @click="nextPage" :disabled="endIndex >= categories.length" aria-label="Ver siguientes">❯</button>
     </div>
-  </section>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import http from '@/http'
 import { useRouter } from 'vue-router'
+import Card from '@/components/ui/Card.vue'
 
 const categories = ref([])
 const router = useRouter()
@@ -46,11 +46,9 @@ const prevPage = () => {
   if (currentPage.value > 0) currentPage.value--
 }
 
-const goToSearch = (queryId, type) => {
-  router.push({ 
-    path: '/search', 
-    query: { [type]: queryId }  
-  })
+const goToCatalog = (category) => {
+  const q = category?.name || ''
+  router.push({ name: 'catalogo', query: q ? { q } : {} })
 }
 
 onMounted(async () => {
@@ -60,15 +58,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import '@/assets/css/SharedSliderStyles.css';
+/* Grid with navigation */
+.carousel { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 133px); gap: 16px; padding: 8px; max-width: 640px; margin: 0 auto; }
+.nav { appearance: none; background: linear-gradient(135deg, var(--brand-strong), var(--brand)); color: #fff; border: 0; width: 36px; height: 36px; border-radius: 999px; cursor: pointer; box-shadow: 0 8px 16px rgba(122,0,25,0.25); }
+.nav:disabled { opacity: .4; cursor: not-allowed; }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 200px);
-  gap: 24px;
-  padding: 20px;
-  width: 580px;
-  justify-content: center;
+.tile-card { height: 100%; display: grid; grid-template-rows: 1fr auto; }
+.media { display: grid; place-items: center; overflow: hidden; border-radius: 12px; background: #fff; }
+.media img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.label { text-align: center; font-weight: 800; padding: 10px; color: var(--ink-1); }
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, 107px); gap: 12px; }
+  .nav { width: 44px; height: 44px; }
 }
 </style>

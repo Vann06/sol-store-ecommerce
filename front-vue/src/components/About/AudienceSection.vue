@@ -103,7 +103,7 @@ const events = ref([
 }
 
 .gradient-card {
-  background: linear-gradient(#fff, #fff) padding-box,
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
               linear-gradient(135deg, rgba(240,192,64,0.4), rgba(122,0,25,0.3)) border-box;
   border: 2px solid transparent;
   border-radius: 20px;
@@ -118,7 +118,7 @@ const events = ref([
   gap: 1rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin-bottom: 3rem;
   text-align: center;
 }
@@ -126,7 +126,7 @@ const events = ref([
 .title-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -162,7 +162,7 @@ const events = ref([
 
 .creative-card {
   background: linear-gradient(135deg, rgba(125, 28, 43, 0.05) 0%, rgba(162, 115, 69, 0.05) 100%);
-  border: 2px solid rgba(125, 28, 43, 0.1);
+  border: 2px solid rgba(122, 0, 25, 0.1);
 }
 
 .creative-card::before {
@@ -172,7 +172,7 @@ const events = ref([
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
 }
 
 .corporate-card {
@@ -187,7 +187,7 @@ const events = ref([
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #a27345 0%, #7d1c2b 100%);
+  background: linear-gradient(135deg, var(--brand-2) 0%, var(--brand) 100%);
 }
 
 .card-header {
@@ -200,7 +200,7 @@ const events = ref([
 .card-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #7d1c2b;
+  color: var(--brand-strong);
   margin: 0;
 }
 
@@ -221,14 +221,14 @@ const events = ref([
   gap: 0.75rem;
   padding: 0.5rem 0;
   font-size: 1rem;
-  color: #4a5568;
+  color: var(--ink-3);
   line-height: 1.5;
 }
 
 .item-icon {
   width: 20px;
   height: 20px;
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -245,7 +245,7 @@ const events = ref([
 
 .footer-text {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--ink-4);
   margin: 0 0 1rem 0;
 }
 
@@ -256,7 +256,7 @@ const events = ref([
 }
 
 .event-badge {
-  background: linear-gradient(135deg, #7d1c2b 0%, #a27345 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   color: white;
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
@@ -279,7 +279,7 @@ const events = ref([
   align-items: center;
   justify-content: center;
   text-align: center;
-  border: 2px dashed rgba(125, 28, 43, 0.3);
+  border: 2px dashed rgba(122, 0, 25, 0.3);
   min-height: 120px;
 }
 
@@ -297,7 +297,7 @@ const events = ref([
 .placeholder-icon svg {
   width: 24px;
   height: 24px;
-  color: #7d1c2b;
+  color: var(--brand-strong);
 }
 
 .placeholder-text {
