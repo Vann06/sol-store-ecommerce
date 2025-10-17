@@ -19,12 +19,12 @@
       <div class="header__content" :class="{ open: isMenuOpen }">
         <nav class="header__nav">
           <ul>
-            <li><RouterLink to="/">Home</RouterLink></li>
-            <li><RouterLink to="/catalogo">Catálogo</RouterLink></li>
-            <li><RouterLink to="/categories">Categories ▾</RouterLink></li>
-            <li><RouterLink to="/about">About</RouterLink></li>
-            <li><RouterLink to="/contact">Contact</RouterLink></li>
-            <li><RouterLink to="/faq">FAQ</RouterLink></li>
+            <li><RouterLink to="/" class="nav-link">Home</RouterLink></li>
+            <li><RouterLink to="/catalogo" class="nav-link">Catálogo</RouterLink></li>
+            <li><RouterLink to="/categories" class="nav-link">Categories ▾</RouterLink></li>
+            <li><RouterLink to="/about" class="nav-link">About</RouterLink></li>
+            <li><RouterLink to="/contact" class="nav-link">Contact</RouterLink></li>
+            <li><RouterLink to="/faq" class="nav-link">FAQ</RouterLink></li>
           </ul>
         </nav>
 
@@ -134,25 +134,25 @@ function handleSearch() {
 }
 
 .header__nav ul li {
-  padding: 10px 16px;
   border-radius: 6px;
-  transition: background-color 0.3s;
-  cursor: pointer;
 }
 
-.header__nav ul li:hover {
-  background-color: #8B0000;
-}
-
-.header__nav ul li:hover a {
-  color: white;
-}
-
-.header__nav a {
+.header__nav a.nav-link {
+  display: block;
+  padding: 10px 16px;
   text-decoration: none;
   color: #333;
   font-weight: 500;
   font-size: 15px;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.header__nav a.nav-link:hover,
+.header__nav a.nav-link:focus,
+.header__nav a.nav-link.router-link-active {
+  background-color: #8B0000;
+  color: white;
 }
 
 .dropdown-icon {
