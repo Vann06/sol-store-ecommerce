@@ -65,6 +65,7 @@ export const useUserStore = defineStore('user', {
         },
         
         clearUser() {
+            console.log('🧹 Limpiando datos del usuario en store...')
             this.user = null
             this.token = null
             this.error = null
@@ -78,9 +79,12 @@ export const useUserStore = defineStore('user', {
             // Limpiar carrito
             const cartStore = useCartStore()
             cartStore.clearLocalCart()
+            
+            console.log('✅ Store de usuario limpiado')
         },
         
         logout() {
+            console.log('🚪 Ejecutando logout desde userStore...')
             this.clearUser()
         },
         

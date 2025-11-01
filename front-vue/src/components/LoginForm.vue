@@ -15,6 +15,17 @@
       {{ error }}
     </div>
 
+    <!-- Botón de Google OAuth -->
+    <GoogleLoginButton 
+      @error="handleGoogleError"
+      class="google-btn-margin"
+    />
+
+    <!-- Separador -->
+    <div class="divider">
+      <span>o continúa con email</span>
+    </div>
+
     <form @submit.prevent="handleLogin">
       <label>Email</label>
       <input 
@@ -60,6 +71,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useCartStore } from '@/stores/cart'
+import GoogleLoginButton from '@/components/GoogleLoginButton.vue'
 
 const email = ref('')
 const password = ref('')
@@ -81,6 +93,10 @@ onMounted(() => {
   // Limpiar errores previos del store
   userStore.clearError()
 })
+
+const handleGoogleError = (errorMessage) => {
+  error.value = errorMessage
+}
 
 const handleLogin = async () => {
   if (loading.value) return
@@ -190,9 +206,50 @@ const handleLogin = async () => {
 
 .admin-title {
   color: #7d1c2b;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   font-size: 2rem;
   font-weight: 700;
+}
+
+.google-btn-margin {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 20px;
+}
+
+.divider {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.divider span {
+  background: white;
+  padding: 0 10px;
+  color: #718096;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .error-message {
