@@ -41,9 +41,10 @@ export function useLogout() {
     // Limpiar sessionStorage
     sessionStorage.clear()
     
-    // Limpiar el carrito
+    // Limpiar el carrito (sin hacer llamadas al servidor)
     try {
-      await cartStore.$reset()
+      cartStore.clearLocalCart()
+      console.log('🛒 Carrito limpiado')
     } catch (error) {
       console.error('Error limpiando carrito:', error)
     }
