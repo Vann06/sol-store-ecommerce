@@ -1,0 +1,12 @@
+{
+  "name": "report-renderer",
+  "version": "1.0.0",
+  "description": "Headless Chrome PDF renderer for reports",
+  "private": true,
+  "dependencies": {
+    "puppeteer": "^21.9.0"
+  },
+  "scripts": {
+    "render": "node render_pdf.js"
+  }
+}

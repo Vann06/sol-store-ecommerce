@@ -8,7 +8,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            font-size: 12px;
+            color: #333;
         }
         .header {
             text-align: center;
@@ -16,274 +16,172 @@
             border-bottom: 2px solid #dc2626;
             padding-bottom: 20px;
         }
-        .header h1 {
+        .title {
             color: #dc2626;
-            margin: 0;
             font-size: 24px;
+            margin: 0;
         }
-        .header p {
-            color: #6b7280;
-            margin: 5px 0;
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
         }
-        .section {
-            margin-bottom: 25px;
+        .chart-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
         }
-        .section h2 {
-            color: #374151;
-            border-left: 4px solid #dc2626;
-            padding-left: 10px;
-            margin-bottom: 15px;
+        .data-section {
+            margin: 30px 0;
         }
-        table {
+        .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
-        th, td {
-            border: 1px solid #d1d5db;
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-        th {
-            background-color: #f9fafb;
-            font-weight: bold;
-            color: #374151;
-        }
-        .total {
-            background-color: #fef2f2;
+        .data-table th {
+            background-color: #f5f5f5;
             font-weight: bold;
         }
         .summary {
-            background-color: #f0f9ff;
+            background-color: #f9f9f9;
             padding: 15px;
-            border-left: 4px solid #3b82f6;
+            border-radius: 5px;
             margin: 20px 0;
         }
         .footer {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
+            margin-top: 50px;
             text-align: center;
-            font-size: 10px;
-            color: #6b7280;
-            border-top: 1px solid #d1d5db;
-            padding-top: 10px;
-        }
-        .stats-grid {
-            display: table;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .stats-item {
-            display: table-cell;
-            width: 25%;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #e5e7eb;
-            background-color: #f9fafb;
-        }
-        .stats-number {
-            font-size: 18px;
-            font-weight: bold;
-            color: #dc2626;
-        }
-        .stats-label {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>{{ $datos['titulo'] ?? 'Reporte de Ventas' }}</h1>
-    <p>Generado el: {{ isset($fecha_generacion) ? $fecha_generacion->format('d/m/Y H:i:s') : date('d/m/Y H:i:s') }}</p>
-        <p>SOL Store - Sistema de Reportes</p>
+        <h1 class="title">{{ $datos['titulo'] ?? 'Reporte' }}</h1>
+        <p class="subtitle">Generado el: {{ $fecha_generacion->format('d/m/Y H:i:s') }}</p>
     </div>
 
-    {{-- Sección de Gráfico Mejorada para PDFs --}}
-    @if(!empty($chartPngBase64))
-        <div class="section chart-section">
-            <h2>Gráfico de Datos</h2>
-            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                {{-- Use explicit width/height attributes for DomPDF compatibility (avoid object-fit) --}}
-                <img src="data:image/png;base64,{{ $chartPngBase64 }}" alt="Gráfico de Datos" width="800" height="400" style="display:block; margin:0 auto;" />
-            </div>
+    @if(isset($chartPngBase64) && $chartPngBase64)
+        <div class="chart-container">
+            <h3>Gráfico de Datos</h3>
+            <img src="data:image/png;base64,{{ $chartPngBase64 }}" style="max-width: 100%; max-height: 400px;" alt="Gráfico">
         </div>
-    @elseif(!empty($chartSvgPdf))
-        <div class="section chart-section">
-            <h2>Gráfico de Datos</h2>
-            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                {{-- Embed PDF-safe SVG as a data URI image to improve DomPDF rendering reliability --}}
-                <div style="display:inline-block; width:800px; height:400px; background:#ffffff; border:1px solid #d1d5db;">
-                    {{-- Use an SVG data-URI image (utf8-encoded) for better DomPDF rendering on the fast path --}}
-                    @php
-                        // DomPDF is more reliable with base64-encoded SVG data URIs.
-                        $svgForData = strpos(trim($chartSvgPdf), '<?xml') === 0 ? $chartSvgPdf : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" . $chartSvgPdf;
-                        $svgDataUri = 'data:image/svg+xml;base64,' . base64_encode($svgForData);
-                    @endphp
-                    {{-- Use explicit width/height for SVG data URI image to improve DomPDF rendering reliability --}}
-                    <img src="{{ $svgDataUri }}" alt="Gráfico de Datos" width="800" height="400" style="display:block; margin:0 auto;" />
-                </div>
-            </div>
+    @elseif(isset($chartSvg) && $chartSvg)
+        <div class="chart-container">
+            <h3>Gráfico de Datos</h3>
+            {!! $chartSvg !!}
         </div>
-    @elseif(!empty($chartImageUrl))
-        <div class="section chart-section">
-            <h2>Gráfico de Datos</h2>
-            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                {{-- DomPDF puede obtener imágenes remotas cuando isRemoteEnabled es true --}}
-                <img src="{{ $chartImageUrl }}" alt="Gráfico de Datos" style="max-width:100%; width:800px; height:400px; object-fit:contain; display:block; margin:0 auto;" />
-            </div>
-        </div>
-    @elseif(!empty($chartSvg))
-        <div class="section chart-section">
-            <h2>Gráfico de Datos</h2>
-            <div style="text-align:center; margin: 20px 0; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                {{-- Inline SVG (transparent) - this will be used as a last resort --}}
-                <div style="display:inline-block; width:800px; height:400px; background:#ffffff; border:1px solid #d1d5db;">
-                    {!! $chartSvg !!}
-                </div>
-            </div>
-        </div>
-    @else
-        {{-- Fallback cuando no hay gráfico disponible --}}
-        <div class="section chart-section">
-            <h2>Gráfico de Datos</h2>
-            <div style="text-align:center; margin: 20px 0; padding: 40px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                <p style="color: #6b7280; font-size: 14px;">Gráfico no disponible para este reporte</p>
-                <p style="color: #9ca3af; font-size: 12px; margin-top: 10px;">Los datos se muestran en las tablas siguientes</p>
-            </div>
+    @elseif(isset($chartImageUrl) && $chartImageUrl)
+        <div class="chart-container">
+            <h3>Gráfico de Datos</h3>
+            <img src="{{ $chartImageUrl }}" style="max-width: 100%; max-height: 400px;" alt="Gráfico">
         </div>
     @endif
 
-    @if($tipo === 'general' && isset($datos['resumen']))
-        <div class="section">
-            <h2>Resumen General</h2>
-            <div class="stats-grid">
-                <div class="stats-item">
-                    <div class="stats-number">Q{{ number_format($datos['resumen']['total_ventas'] ?? 0, 2) }}</div>
-                    <div class="stats-label">Total Ventas</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-number">{{ $datos['resumen']['total_pedidos'] ?? 0 }}</div>
-                    <div class="stats-label">Total Pedidos</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-number">{{ $datos['resumen']['total_productos'] ?? 0 }}</div>
-                    <div class="stats-label">Total Productos</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-number">{{ $datos['resumen']['usuarios_registrados'] ?? 0 }}</div>
-                    <div class="stats-label">Usuarios Registrados</div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if($tipo === 'ventas' && isset($datos['ventas']))
-        <div class="section">
-            <h2>Detalle de Ventas</h2>
-            {{-- El gráfico ya se muestra al inicio del PDF (si aplica). Aquí solo va la tabla de detalle. --}}
-            <table>
+    <div class="data-section">
+        @if($tipo === 'ventas' && isset($datos['ventas']))
+            <h3>Datos de Ventas</h3>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Fecha Venta</th>
+                        <th>Fecha</th>
                         <th>Monto Total</th>
-                        <th>Pedido ID</th>
+                        <th>Usuario</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($datos['ventas'] as $venta)
-                    <tr>
-                        <td>{{ $venta->id }}</td>
-                        <td>{{ isset($venta->fecha_venta) ? ($venta->fecha_venta instanceof \Carbon\Carbon ? $venta->fecha_venta->format('d/m/Y') : \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y')) : 'N/A' }}</td>
-                        <td>Q{{ number_format($venta->monto_total, 2) }}</td>
-                        <td>{{ $venta->id_pedido }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ $venta->id }}</td>
+                            <td>{{ \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y H:i') }}</td>
+                            <td>Q{{ number_format($venta->monto_total, 2) }}</td>
+                            <td>{{ $venta->usuario_id }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
-                <tfoot>
-                    <tr class="total">
-                        <td colspan="2"><strong>Total General</strong></td>
-                        <td><strong>Q{{ number_format($datos['total'] ?? 0, 2) }}</strong></td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
-        </div>
-    @endif
-
-    @if($tipo === 'productos' && isset($datos['productos']))
-        <div class="section">
-            <h2>Listado de Productos</h2>
-            <table>
+            <div class="summary">
+                <strong>Total de Ventas: Q{{ number_format($datos['total'] ?? 0, 2) }}</strong>
+            </div>
+        @elseif($tipo === 'productos' && isset($datos['productos']))
+            <h3>Datos de Productos</h3>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Temática</th>
-                        <th>Precio Base</th>
+                        <th>Precio</th>
                         <th>Stock</th>
-                        <th>Estado</th>
+                        <th>Categoría</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($datos['productos'] as $producto)
-                    <tr>
-                        <td>{{ $producto->id }}</td>
-                        <td>{{ $producto->nombre }}</td>
-                        <td>{{ $producto->category->name ?? 'N/A' }}</td>
-                        <td>{{ $producto->theme->name ?? 'N/A' }}</td>
-                        <td>Q{{ number_format($producto->precio_base, 2) }}</td>
-                        <td>{{ $producto->stock }}</td>
-                        <td>{{ ucfirst($producto->status) }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ $producto->id }}</td>
+                            <td>{{ $producto->nombre }}</td>
+                            <td>Q{{ number_format($producto->precio, 2) }}</td>
+                            <td>{{ $producto->stock ?? 'N/A' }}</td>
+                            <td>{{ $producto->category->nombre ?? 'Sin categoría' }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
             <div class="summary">
-                <strong>Total de productos: {{ $datos['total_productos'] ?? 0 }}</strong>
+                <strong>Total de Productos: {{ $datos['total_productos'] ?? 0 }}</strong>
             </div>
-        </div>
-    @endif
-
-    @if($tipo === 'pedidos' && isset($datos['pedidos']))
-        <div class="section">
-            <h2>Detalle de Pedidos</h2>
-            <table>
+        @elseif($tipo === 'pedidos' && isset($datos['pedidos']))
+            <h3>Datos de Pedidos</h3>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Usuario ID</th>
-                        <th>Fecha Pedido</th>
+                        <th>Fecha</th>
                         <th>Estado</th>
-                        <th>Fecha Creación</th>
+                        <th>Usuario</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($datos['pedidos'] as $pedido)
-                    <tr>
-                        <td>{{ $pedido->id }}</td>
-                        <td>{{ $pedido->id_usuario }}</td>
-                        <td>{{ isset($pedido->fecha_pedido) ? ($pedido->fecha_pedido instanceof \Carbon\Carbon ? $pedido->fecha_pedido->format('d/m/Y') : \Carbon\Carbon::parse($pedido->fecha_pedido)->format('d/m/Y')) : 'N/A' }}</td>
-                        <td>{{ ucfirst($pedido->estado) }}</td>
-                        <td>{{ isset($pedido->created_at) ? ($pedido->created_at instanceof \Carbon\Carbon ? $pedido->created_at->format('d/m/Y H:i') : \Carbon\Carbon::parse($pedido->created_at)->format('d/m/Y H:i')) : 'N/A' }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ $pedido->id }}</td>
+                            <td>{{ $pedido->created_at->format('d/m/Y') }}</td>
+                            <td>{{ $pedido->estado }}</td>
+                            <td>{{ $pedido->usuario_id }}</td>
+                            <td>{{ $pedido->total ?? 'N/A' }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
             <div class="summary">
-                <strong>Total de pedidos: {{ $datos['total_pedidos'] ?? 0 }}</strong>
+                <strong>Total de Pedidos: {{ $datos['total_pedidos'] ?? 0 }}</strong>
             </div>
-        </div>
-    @endif
+        @elseif($tipo === 'general' && isset($datos['resumen']))
+            <h3>Resumen General</h3>
+            <div class="summary">
+                @foreach($datos['resumen'] as $key => $value)
+                    <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                @endforeach
+            </div>
+        @endif
+    </div>
 
     <div class="footer">
-        <p>SOL Store © {{ date('Y') }} - Reporte generado automáticamente</p>
-        <p>Este documento contiene información confidencial de la empresa</p>
+        <p>Reporte generado automáticamente por el sistema</p>
     </div>
 </body>
 </html>

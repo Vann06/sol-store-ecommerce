@@ -1,5 +1,11 @@
 {
     "require": {
-        "laraveldaily/laravel-charts": "^0.2.3"
+        "laraveldaily/laravel-charts": "^0.2.3",
+        "maatwebsite/excel": "^2.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
     }
 }
