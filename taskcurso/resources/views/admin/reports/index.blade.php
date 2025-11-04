@@ -20,20 +20,38 @@
             </nav>
         </div>
         <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.reports.navegacion') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                🧿 Navegación
+            <a href="{{ route('admin.reports.navegacion') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                Navegación
             </a>
-            <a href="{{ route('admin.reports.metricas.view') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                📈 Métricas
+            <a href="{{ route('admin.reports.metricas.view') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Métricas
             </a>
-            <a href="{{ route('admin.reports.graficos') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                📉 Gráficos
+            <a href="{{ route('admin.reports.graficos') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Gráficos
+            </a>
+            <a href="{{ route('admin.reports.create') }}" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Crear Reporte
             </a>
             <form method="POST" action="{{ route('admin.reports.pdf') }}" class="inline">
                 @csrf
                 <input type="hidden" name="tipo" value="general">
-                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                    📄 PDF
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    PDF
                 </button>
             </form>
         </div>
@@ -135,12 +153,12 @@
         </form>
     </div>
 
-    <!-- Gráficos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Gráficos - TAMAÑO CONSISTENTE PARA TODOS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Gráfico de Ventas por Mes -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition-shadow" onclick="navigateToChart('ventas')">
             <h3 class="text-lg font-semibold mb-4">{{ $ventasPorMes->options['chart_title'] ?? 'Ventas por Mes' }}</h3>
-            <div class="chart-container">
+            <div class="chart-wrapper">
                 @if(isset($ventasPorMes))
                     {!! $ventasPorMes->renderHtml() !!}
                 @else
@@ -150,9 +168,9 @@
         </div>
 
         <!-- Gráfico de Top Productos -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition-shadow" onclick="navigateToChart('productos')">
             <h3 class="text-lg font-semibold mb-4">{{ $topProductos->options['chart_title'] ?? 'Top Productos' }}</h3>
-            <div class="chart-container">
+            <div class="chart-wrapper">
                 @if(isset($topProductos))
                     {!! $topProductos->renderHtml() !!}
                 @else
@@ -160,17 +178,17 @@
                 @endif
             </div>
         </div>
-    </div>
 
-    <!-- Gráfico de Pedidos por Estado -->
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
-        <h3 class="text-lg font-semibold mb-4">{{ $pedidosPorEstado->options['chart_title'] ?? 'Pedidos por Estado' }}</h3>
-        <div class="chart-container">
-            @if(isset($pedidosPorEstado))
-                {!! $pedidosPorEstado->renderHtml() !!}
-            @else
-                <p class="text-gray-500">No hay datos de pedidos disponibles</p>
-            @endif
+        <!-- Gráfico de Pedidos por Estado - REDUCIDO -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition-shadow" onclick="navigateToChart('inventario')">
+            <h3 class="text-lg font-semibold mb-4">{{ $pedidosPorEstado->options['chart_title'] ?? 'Estado de Pedidos' }}</h3>
+            <div class="chart-wrapper chart-wrapper-pie">
+                @if(isset($pedidosPorEstado))
+                    {!! $pedidosPorEstado->renderHtml() !!}
+                @else
+                    <p class="text-gray-500">No hay datos de pedidos disponibles</p>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -197,14 +215,25 @@
                             @php $u = optional(optional($pedido)->usuario); $estado = optional($pedido)->estado; @endphp
                             <td class="py-2 px-4">{{ $u->first_name ?? 'N/A' }} {{ $u->last_name ?? '' }}</td>
                             <td class="py-2 px-4">
-                                <span class="px-2 py-1 text-xs rounded-full 
-                                    {{ ($estado === 'Entregado') ? 'bg-green-100 text-green-800' : (($estado === 'Enviando') ? 'bg-blue-100 text-blue-800' : (($estado === 'Pintando') ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800')) }}">
+                                @php
+                                    $estadoClasses = [
+                                        'Entregado' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                                        'Enviando' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                                        'Pintando' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                                        'Pendiente' => 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+                                        'Cancelado' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                                        'Procesando' => 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+                                        'Enviado' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+                                    ];
+                                    $badgeClass = $estadoClasses[$estado] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+                                @endphp
+                                <span class="px-2 py-1 text-xs rounded-full {{ $badgeClass }}">
                                     {{ $estado ?? 'N/A' }}
                                 </span>
                             </td>
                             <td class="py-2 px-4">{{ optional(optional($pedido)->created_at)->format('d/m/Y') ?? '' }}</td>
                             <td class="py-2 px-4">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Ver detalles</a>
+                                <a href="{{ route('admin.orders.show', $pedido->id) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Ver detalles</a>
                             </td>
                         </tr>
                     @empty
@@ -219,6 +248,46 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+/* En index.blade.php - Reemplazar la sección de estilos */
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    max-height: 280px;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.chart-wrapper canvas,
+.chart-wrapper svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 280px !important;
+    object-fit: contain;
+}
+
+/* PIE CHART - MÁS PEQUEÑO Y CENTRADO */
+.chart-wrapper-pie {
+    height: 280px !important;
+}
+
+.chart-wrapper-pie canvas,
+.chart-wrapper-pie svg {
+    max-width: 200px !important;
+    max-height: 200px !important;
+    width: 200px !important;
+    height: 200px !important;
+    margin: 0 auto;
+}
+</style>
+@endpush
+
 @section('javascript')
 @if(isset($ventasPorMes))
     {!! $ventasPorMes->renderChartJsLibrary() !!}
@@ -230,4 +299,10 @@
 @if(isset($pedidosPorEstado))
     {!! $pedidosPorEstado->renderJs() !!}
 @endif
+
+<script>
+function navigateToChart(tipo) {
+    window.location.href = "{{ route('admin.reports.graficos') }}?tipo=" + tipo;
+}
+</script>
 @endsection

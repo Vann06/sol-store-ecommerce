@@ -2,7 +2,17 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-6">
-    <h1 class="text-2xl font-semibold mb-4">Métricas del reporte</h1>
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-semibold">Métricas del reporte</h1>
+    @if(!empty($backUrl))
+    <a href="{{ $backUrl }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Volver
+    </a>
+    @endif
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="p-4 rounded-lg shadow bg-white dark:bg-gray-800">
@@ -23,27 +33,47 @@
         </div>
     </div>
 
-    <div class="p-4 rounded-lg shadow bg-white dark:bg-gray-800">
+    <!-- Título y Volver -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Gráfico de Pedidos por Mes</h2>
+        
+    </div>
+
+    <!-- Gráfico Separado -->
+    <div class="p-4 rounded-lg shadow bg-white dark:bg-gray-800 mb-6">
         <div class="flex items-center justify-between mb-3">
-            <h3 class="font-medium text-gray-800 dark:text-gray-100">Pedidos por mes</h3>
-            <div class="space-x-2">
-                @if(!empty($backUrl))
-                <a href="{{ $backUrl }}" class="inline-block px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm rounded mr-2">&larr; Volver</a>
-                @endif
-                <form action="{{ route('admin.reports.pdf') }}" method="POST" target="_blank" class="inline-block">
+            <h3 class="font-medium text-gray-800 dark:text-gray-100">Gráfico de Pedidos por Mes</h3>
+            <div class="flex space-x-2">
+                <form action="{{ route('admin.reports.pdf') }}" method="POST" target="_blank" class="inline">
                     @csrf
                     <input type="hidden" name="tipo" value="ventas">
                     <input type="hidden" name="fecha_inicio" value="{{ now()->startOfYear()->format('Y-m-d') }}">
                     <input type="hidden" name="fecha_fin" value="{{ now()->endOfYear()->format('Y-m-d') }}">
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Exportar PDF</button>
+                    <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        PDF
+                    </button>
                 </form>
-                <a href="{{ route('admin.reports.chart.image', ['fecha_inicio' => now()->startOfYear()->format('Y-m-d'), 'fecha_fin' => now()->endOfYear()->format('Y-m-d')]) }}" target="_blank" class="inline-block px-4 py-2 bg-green-600 text-white rounded">Descargar Imagen</a>
+                <form action="{{ route('admin.reports.excel') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="tipo" value="ventas">
+                    <input type="hidden" name="fecha_inicio" value="{{ now()->startOfYear()->format('Y-m-d') }}">
+                    <input type="hidden" name="fecha_fin" value="{{ now()->endOfYear()->format('Y-m-d') }}">
+                    <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Excel
+                    </button>
+                </form>
             </div>
         </div>
 
-        <div class="chart-area" style="height:360px; display:flex; align-items:center; justify-content:center;">
-            <div style="width:100%; max-width:900px;">
-                <div class="chart-inline">
+        <div class="chart-area" style="height:auto; max-height:inherit; min-height:300px; display:flex; align-items:center; justify-content:center; border: 2px solid #e5e7eb; border-radius: 8px; padding: 16px; background: transparent; overflow:hidden;">
+            <div style="width:100%; height:100%; max-width:100%;">
+                <div class="chart-inline" style="width:100%; height:100%;">
                     @if(!empty($chart) && method_exists($chart, 'renderHtml'))
                         {{-- Render the LaravelChart object (when package is installed) --}}
                         {!! $chart->renderHtml() !!}
@@ -67,19 +97,33 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <table class="w-full mt-4 table-auto text-sm">
+    <!-- Tabla de Datos Separada -->
+    <div class="p-4 rounded-lg shadow bg-white dark:bg-gray-800">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-medium text-gray-800 dark:text-gray-100">Datos Detallados por Mes</h3>
+            <div class="text-sm text-gray-500">
+                Total de pedidos: {{ $pedidosPorMes->sum() }}
+            </div>
+        </div>
+
+        <table class="w-full table-auto text-sm">
             <thead>
-                <tr>
-                    <th class="text-left">Mes</th>
-                    <th class="text-left">Pedidos</th>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                    <th class="text-left py-2 font-semibold">Mes</th>
+                    <th class="text-left py-2 font-semibold">Pedidos</th>
+                    <th class="text-left py-2 font-semibold">Porcentaje</th>
                 </tr>
             </thead>
             <tbody>
+                @php $total = $pedidosPorMes->sum(); @endphp
                 @foreach(range(1,12) as $m)
-                    <tr>
-                        <td class="py-1 text-gray-700 dark:text-gray-300">{{ DateTime::createFromFormat('!m', $m)->format('F') }}</td>
-                        <td class="py-1 font-semibold text-gray-900 dark:text-white">{{ $pedidosPorMes->get($m, 0) }}</td>
+                    @php $count = $pedidosPorMes->get($m, 0); $percentage = $total > 0 ? round(($count / $total) * 100, 1) : 0; @endphp
+                    <tr class="border-b border-gray-100 dark:border-gray-700">
+                        <td class="py-2 text-gray-700 dark:text-gray-300">{{ DateTime::createFromFormat('!m', $m)->format('F') }}</td>
+                        <td class="py-2 font-semibold text-gray-900 dark:text-white">{{ $count }}</td>
+                        <td class="py-2 text-gray-600 dark:text-gray-400">{{ $percentage }}%</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -89,24 +133,54 @@
 
 @push('styles')
 <style>
-/* Ensure inline SVGs from server have fixed height and do not overflow */
+/* Consistent chart sizing to match index page */
 .chart-inline svg { 
     width: 100% !important; 
-    height: 360px !important; 
+    height: 300px !important; 
+    max-height: 300px !important;
+    min-height: 250px !important;
     display: block; 
     background: #ffffff !important;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+    padding: 16px;
+    box-sizing: border-box;
+    object-fit: contain;
+}
+
+.chart-inline canvas {
+    width: 100% !important; 
+    height: 300px !important; 
+    max-height: 300px !important;
+    min-height: 250px !important;
+    object-fit: contain !important;
 }
 
 .dark .chart-inline svg {
     background: #374151 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    border-color: #4b5563;
 }
 
 .chart-area { 
-    overflow: visible;
-    background: transparent;
+    overflow: hidden;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    height: 350px !important;
+    max-height: 350px !important;
+    min-height: 300px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative;
+}
+
+.dark .chart-area {
+    background: #1f2937;
+    border-color: #374151;
 }
 
 /* Theme-aware text and grid styles for SVG elements */
@@ -132,6 +206,83 @@
 .chart-inline {
     border-radius: 8px;
     padding: 10px;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative;
+}
+
+/* Ensure chart doesn't overflow into data table */
+.chart-area {
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Data table styling */
+table {
+    margin-top: 1rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table th, table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dark table th, .dark table td {
+    border-bottom-color: #374151;
+}
+
+/* Full screen responsive adjustments */
+@media (min-width: 1920px) {
+    .chart-area {
+        height: 500px !important;
+        max-height: 500px !important;
+        min-height: 450px !important;
+    }
+    .chart-inline svg,
+    .chart-inline canvas {
+        height: 450px !important;
+        max-height: 450px !important;
+        min-height: 400px !important;
+    }
+}
+
+@media (min-width: 2560px) {
+    .chart-area {
+        height: 600px !important;
+        max-height: 600px !important;
+        min-height: 550px !important;
+    }
+    .chart-inline svg,
+    .chart-inline canvas {
+        height: 550px !important;
+        max-height: 550px !important;
+        min-height: 500px !important;
+    }
+}
+
+/* Tablet landscape and larger screens */
+@media (min-width: 1024px) and (max-width: 1919px) {
+    .chart-area {
+        height: 400px !important;
+        max-height: 400px !important;
+        min-height: 350px !important;
+    }
+    .chart-inline svg,
+    .chart-inline canvas {
+        height: 350px !important;
+        max-height: 350px !important;
+        min-height: 300px !important;
+    }
 }
 </style>
 @endpush

@@ -52,6 +52,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('reports.filtros');
         Route::post('reports/exportar/pdf', [ReportAdminController::class, 'exportarPdf'])
             ->name('reports.pdf');
+        Route::post('reports/exportar/excel', [ReportAdminController::class, 'exportarExcel'])
+            ->name('reports.excel');
         Route::get('reports/chart-image', [ReportAdminController::class, 'chartImage'])
             ->name('reports.chart.image');
         Route::get('reports/diagnostico-csrf', [ReportAdminController::class, 'diagnosticoCsrf'])
