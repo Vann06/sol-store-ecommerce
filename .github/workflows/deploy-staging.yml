@@ -1,72 +1,105 @@
 name: Deploy to Staging
+
 on:
   push:
-    branches: [ "develop" ]
+    branches:
+      - develop
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: staging
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Cargar llave SSH
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start SSH agent and add key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Agregar host a known_hosts
+      - name: Add host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.GCP_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy STAGING (mínimo para probar)
+      - name: Deploy STAGING
         env:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          RESET_DB: ${{ secrets.RESET_DB }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          GCP_HOST: ${{ secrets.GCP_HOST }}
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} 'bash -lc "
-            set -e
-            echo OK-SSH
-            cd ~/sol-store-ecommerce
-            git pull origin develop || true
-            # Ensure required env files exist
-            if [ ! -f .env ]; then
-              echo \"Creando .env raíz (POSTGRES_*)\"
-              {
-                echo \"POSTGRES_DB=$POSTGRES_DB\"
-                echo \"POSTGRES_USER=$POSTGRES_USER\"
-                echo \"POSTGRES_PASSWORD=$POSTGRES_PASSWORD\"
-              } > .env
+          ssh -o StrictHostKeyChecking=no "$SSH_USER@$GCP_HOST" 'bash -s' <<EOSSH
+          set -e
+
+          echo "== SSH conectado =="
+
+          cd ~/sol-store-ecommerce
+
+          echo "== Actualizando código =="
+          git fetch origin
+          git reset --hard origin/develop
+
+          # ===== .env root (docker compose) =====
+          if [ ! -f .env ]; then
+            echo "Creando .env raíz (POSTGRES_*)"
+          cat > .env <<EOF_ENV
+          POSTGRES_DB=${POSTGRES_DB}
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          EOF_ENV
+                    fi
+
+          # ===== Laravel .env =====
+          if [ ! -f taskcurso/.env ]; then
+            echo "Creando taskcurso/.env desde .env.example"
+            cp taskcurso/.env.example taskcurso/.env || true
+          fi
+
+          echo "== Docker prune (safe) =="
+          docker container prune -f || true
+          docker image prune -f || true
+          docker builder prune -af || true
+          docker volume prune -f || true
+
+          echo "== Levantando contenedores =="
+          docker compose down
+          docker compose up -d --build
+          docker compose ps
+
+          echo "== Esperando base de datos =="
+          for i in $(seq 1 30); do
+            if docker compose exec -T database pg_isready -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-postgres}" >/dev/null 2>&1; then
+              echo "DB lista"; break
             fi
+            echo "Esperando DB (\$i)"
+            sleep 2
+          done
 
-            if [ ! -f taskcurso/.env ]; then
-              echo "Creando taskcurso/.env desde .env.example"
-              cp taskcurso/.env.example taskcurso/.env || true
-            fi
-            echo '== Docker prune (safe) ==' 
-            docker container prune -f || true
-            docker image prune -f || true
-            docker builder prune -af || true
-            docker volume prune -f || true
-
-            docker compose down
-            docker compose up -d --build
-            docker compose ps
-
-            echo '== Esperando base de datos ==' 
-            for i in $(seq 1 30); do
-              if docker compose exec -T database pg_isready -U \"${POSTGRES_USER:-postgres}\" -d \"${POSTGRES_DB:-postgres}\" >/dev/null 2>&1; then
-                echo 'DB lista'; break; fi
-              echo "Esperando DB ($i)"; sleep 2;
-            done
-
-            echo '== Reset & Seed ==' 
-            docker compose exec -T backend php artisan optimize:clear || true
+          echo "== Migraciones =="
+          if [ "${RESET_DB}" = "1" ]; then
+            echo "RESET_DB=1 -> migrate:fresh"
             docker compose exec -T backend php artisan migrate:fresh --force
-            docker compose exec -T backend php artisan db:seed --class=ExcelImportSeeder --force || true
-            docker compose exec -T backend php artisan config:cache || true
-            echo '== Deploy completo ==' 
-          "'
+          else
+            docker compose exec -T backend php artisan migrate --force
+          fi
 
+          echo "== Seed condicional (ExcelImportSeeder) =="
+          COUNT=\$(docker compose exec -T backend php artisan tinker --execute="echo DB::table('productos')->count();") || COUNT=0
+          if [ "\$COUNT" = "0" ]; then
+            echo "Tabla productos vacía -> ejecutando seeder"
+            docker compose exec -T backend php artisan db:seed --class=ExcelImportSeeder --force || true
+          else
+            echo "Productos existentes (\$COUNT) -> seeder omitido"
+          fi
+
+          echo "== Optimizaciones finales =="
+          docker compose exec -T backend php artisan optimize:clear || true
+          docker compose exec -T backend php artisan config:cache || true
+
+          echo "== Deploy completo ✅ =="
+          EOSSH
