@@ -139,12 +139,12 @@ const handleLogin = async () => {
 
       if (user.role === 'admin') {
         // Admin va al panel administrativo
-        console.log('👑 Redirigiendo admin al panel...')
-        window.location.href = 'http://localhost:8000/admin/products'
+        console.log('Redirigiendo admin al panel...')
+        window.location.href = 'http://solstoredev.duckdns.org:8000/admin/products'
       } else {
         // Usuario normal
-        console.log('👤 Redirigiendo usuario a:', redirectTo || '/')
-        
+        console.log('Redirigiendo usuario a:', redirectTo || '/')
+
         const destination = redirectTo || '/'
         await router.push({
           path: destination,
