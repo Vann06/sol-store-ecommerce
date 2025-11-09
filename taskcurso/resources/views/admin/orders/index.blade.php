@@ -1,6 +1,11 @@
 @extends('layouts.admin')
 
 @section('content')
+@php
+    // Defensive defaults in case a controller doesn't pass these variables
+    $allowed = $allowed ?? ['Procesando','Enviado','Entregado','Cancelado'];
+    $filtros = $filtros ?? ['estado' => request()->input('estado', request()->input('status')), 'search' => request()->input('search', request()->input('client'))];
+@endphp
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold dark:text-white">Pedidos</h1>
 </div>
@@ -27,6 +32,22 @@
         <button class="px-4 py-2 bg-blue-600 text-white rounded">Filtrar</button>
     </div>
 </form>
+
+@php
+    $hasFilters = !empty($filtros['estado']) || !empty($filtros['search']);
+@endphp
+@if($hasFilters)
+    <div class="mb-3 text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded">
+        Filtros activos:
+        @if(!empty($filtros['estado']))
+            <span class="inline-block px-2 py-0.5 bg-yellow-100 border border-yellow-300 rounded ml-1">Estado: {{ $filtros['estado'] }}</span>
+        @endif
+        @if(!empty($filtros['search']))
+            <span class="inline-block px-2 py-0.5 bg-yellow-100 border border-yellow-300 rounded ml-1">Buscar: {{ $filtros['search'] }}</span>
+        @endif
+        <a href="{{ route('admin.orders.index') }}" class="ml-2 underline">Quitar filtros</a>
+    </div>
+@endif
 
 <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded shadow">
     <table class="min-w-full text-sm">
