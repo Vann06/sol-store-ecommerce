@@ -13,6 +13,7 @@ use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\DireccionController;
+use App\Http\Controllers\GoogleAuthController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -24,6 +25,10 @@ Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update
 // Autenticación (sin sesión)
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+Route::post('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
 // Rutas protegidas JWT
 Route::middleware('jwt.auth')->group(function () {

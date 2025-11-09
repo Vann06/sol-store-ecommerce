@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/userStore'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SignUpView from '@/views/SignUpView.vue'
+import GoogleCallbackView from '@/views/GoogleCallbackView.vue'
 import AccountLayout from '@/views/account/AccountLayout.vue'
 import OrdersView from '@/views/account/OrdersView.vue'
 import AddressView from '@/views/account/AddressView.vue'
@@ -35,6 +36,11 @@ const routes = [
     path:'/account/create',
     name: 'signup',
     component: SignUpView
+  },
+  {
+    path: '/auth/google/callback',
+    name: 'google-callback',
+    component: GoogleCallbackView
   },
   {
     path: '/account',
