@@ -21,14 +21,52 @@ jobs:
           ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy STAGING (mínimo para probar)
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.GCP_HOST }} 'bash -lc "
             set -e
             echo OK-SSH
             cd ~/sol-store-ecommerce
             git pull origin develop || true
+            # Ensure required env files exist
+            if [ ! -f .env ]; then
+              echo \"Creando .env raíz (POSTGRES_*)\"
+              {
+                echo \"POSTGRES_DB=$POSTGRES_DB\"
+                echo \"POSTGRES_USER=$POSTGRES_USER\"
+                echo \"POSTGRES_PASSWORD=$POSTGRES_PASSWORD\"
+              } > .env
+            fi
+
+            if [ ! -f taskcurso/.env ]; then
+              echo "Creando taskcurso/.env desde .env.example"
+              cp taskcurso/.env.example taskcurso/.env || true
+            fi
+            echo '== Docker prune (safe) ==' 
+            docker container prune -f || true
+            docker image prune -f || true
+            docker builder prune -af || true
+            docker volume prune -f || true
+
             docker compose down
             docker compose up -d --build
             docker compose ps
+
+            echo '== Esperando base de datos ==' 
+            for i in $(seq 1 30); do
+              if docker compose exec -T database pg_isready -U \"${POSTGRES_USER:-postgres}\" -d \"${POSTGRES_DB:-postgres}\" >/dev/null 2>&1; then
+                echo 'DB lista'; break; fi
+              echo "Esperando DB ($i)"; sleep 2;
+            done
+
+            echo '== Reset & Seed ==' 
+            docker compose exec -T backend php artisan optimize:clear || true
+            docker compose exec -T backend php artisan migrate:fresh --force
+            docker compose exec -T backend php artisan db:seed --class=ExcelImportSeeder --force || true
+            docker compose exec -T backend php artisan config:cache || true
+            echo '== Deploy completo ==' 
           "'
 
