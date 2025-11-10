@@ -115,12 +115,6 @@ const routes = [
     path: '/catalogo',
     name: 'catalogo',
     component: () => import('@/views/Catalogo.vue')
-  },
-  {
-    path: '/admin/reportes',
-    name: 'admin-reports',
-    component: () => import('@/views/admin/Reports.vue'),
-    meta: { requiresAuth: true }
   }
   //MAS RUTAS
 ]
