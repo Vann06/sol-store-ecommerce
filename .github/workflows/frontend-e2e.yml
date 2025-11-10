@@ -1,5 +1,5 @@
 # .github/workflows/frontend-e2e-staging.yml
-name: Frontend E2E (Staging)
+name: Frontend E2E (Public Domain)
 
 on:
   workflow_run:
@@ -7,7 +7,7 @@ on:
     types: [completed]
 
 jobs:
-  e2e-staging:
+  e2e-public:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     defaults:
@@ -23,9 +23,22 @@ jobs:
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
           npx playwright install --with-deps chromium
 
-      - name: Run Playwright against Staging
+      - name: Resolve target base URL
+        id: resolve_url
+        run: |
+          DOMAIN="${PW_BASE_URL_OVERRIDE:-https://solstoredev.duckdns.org}"
+          echo "Testing DNS for $DOMAIN"
+          if curl -Is --max-time 5 "$DOMAIN" >/dev/null 2>&1; then
+            echo "Base URL reachable: $DOMAIN"
+            echo "PW_BASE_URL=$DOMAIN" >> $GITHUB_ENV
+          else
+            echo "Domain unreachable, falling back to http://localhost:5173"
+            echo "PW_BASE_URL=http://localhost:5173" >> $GITHUB_ENV
+          fi
+
+      - name: Run Playwright tests
         env:
-          PW_BASE_URL: https://staging.sol-store.com   # tu host
+          PW_BASE_URL: ${{ env.PW_BASE_URL }}
         run: npx playwright test --config=playwright.config.simple.js
 
       - if: always()
