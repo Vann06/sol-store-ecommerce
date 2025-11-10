@@ -360,6 +360,16 @@ class ReportAdminController extends Controller
         $datos = $this->obtenerDatosReporte($tipoReporte, $fechaInicio, $fechaFin);
 
         try {
+            Log::info('Export PDF request', [
+                'tipo' => $tipoReporte,
+                'fechaInicio' => $fechaInicio?->toDateTimeString(),
+                'fechaFin' => $fechaFin?->toDateTimeString(),
+                'ventas' => isset($datos['ventas']) ? count($datos['ventas']) : null,
+                'productos' => isset($datos['productos']) ? count($datos['productos']) : null,
+                'pedidos' => isset($datos['pedidos']) ? count($datos['pedidos']) : null,
+                'user_id' => optional(auth()->user())->id,
+                'ip' => $request->ip(),
+            ]);
             $pdf = Pdf::loadView('admin.reports.pdf', [
                 'datos' => $datos,
                 'tipo' => $tipoReporte,
@@ -370,6 +380,12 @@ class ReportAdminController extends Controller
 
             return $pdf->download('reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf');
         } catch (\Throwable $e) {
+            Log::error('Export PDF failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
         }
     }

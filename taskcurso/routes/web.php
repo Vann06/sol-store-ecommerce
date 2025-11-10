@@ -66,3 +66,7 @@ Route::get('/ping', function () {
     return 'pong';
 });
 
+// Public (no auth) quick download of report PDF
+// Warning: exposes aggregated report data without authentication. Remove if sensitive.
+Route::get('download/report/pdf', [ReportAdminController::class, 'exportarPdf'])->name('public.report.pdf');
+

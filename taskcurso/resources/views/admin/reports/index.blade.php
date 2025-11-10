@@ -21,39 +21,35 @@
         </div>
         <div class="flex items-center space-x-2">
             <a href="{{ route('admin.reports.navegacion') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                 </svg>
                 Navegación
             </a>
             <a href="{{ route('admin.reports.metricas.view') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
                 Métricas
             </a>
             <a href="{{ route('admin.reports.graficos') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 Gráficos
             </a>
             <a href="{{ route('admin.reports.create') }}" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 Crear Reporte
             </a>
-            <form method="POST" action="{{ route('admin.reports.pdf') }}" class="inline">
-                @csrf
-                <input type="hidden" name="tipo" value="general">
-                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    PDF
-                </button>
-            </form>
+            <a href="{{ route('public.report.pdf', ['tipo' => 'general']) }}" target="_blank" rel="noopener" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center" aria-label="Descargar reporte general en PDF">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                PDF
+            </a>
         </div>
     </div>
 
@@ -119,18 +115,18 @@
     <!-- Filtros de fecha -->
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
         <h3 class="text-lg font-semibold mb-4">Filtros de Reportes</h3>
-        <form method="GET" action="{{ route('admin.reports.filtros.view') }}" class="flex items-end space-x-4">
+        <form method="GET" action="{{ route('admin.reports.filtros.view') }}" class="flex items-end space-x-4" aria-labelledby="filtrosTitulo">
             <div class="flex-1">
-                <label class="block text-sm font-medium mb-2">Fecha Inicio</label>
-                <input type="date" name="fecha_inicio" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <label for="fecha_inicio" class="block text-sm font-medium mb-2">Fecha Inicio</label>
+                <input id="fecha_inicio" type="date" name="fecha_inicio" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
             </div>
             <div class="flex-1">
-                <label class="block text-sm font-medium mb-2">Fecha Fin</label>
-                <input type="date" name="fecha_fin" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <label for="fecha_fin" class="block text-sm font-medium mb-2">Fecha Fin</label>
+                <input id="fecha_fin" type="date" name="fecha_fin" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
             </div>
             <div class="flex-1">
-                <label class="block text-sm font-medium mb-2">Mes Específico</label>
-                <select name="mes" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <label for="mes" class="block text-sm font-medium mb-2">Mes Específico</label>
+                <select id="mes" name="mes" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
                     <option value="">Seleccionar mes</option>
                     <option value="1">Enero</option>
                     <option value="2">Febrero</option>
