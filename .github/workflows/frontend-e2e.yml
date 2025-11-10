@@ -26,9 +26,9 @@ jobs:
       - name: Resolve target base URL
         id: resolve_url
         run: |
-          DOMAIN="${PW_BASE_URL_OVERRIDE:-https://solstoredev.duckdns.org}"
+          DOMAIN="${PW_BASE_URL_OVERRIDE:-http://solstoredev.duckdns.org}"
           echo "Testing DNS for $DOMAIN"
-          if curl -Is --max-time 5 "$DOMAIN" >/dev/null 2>&1; then
+          if curl -Is --max-time 8 "$DOMAIN" >/dev/null 2>&1; then
             echo "Base URL reachable: $DOMAIN"
             echo "PW_BASE_URL=$DOMAIN" >> $GITHUB_ENV
           else
