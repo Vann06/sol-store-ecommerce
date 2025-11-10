@@ -101,6 +101,13 @@ Route::middleware('jwt.auth')->group(function () {
 });
 
 
+// Rutas de reportes (protegidas con JWT)
+Route::middleware('jwt.auth')->prefix('reportes')->group(function () {
+    Route::get('/datos', [\App\Http\Controllers\Admin\ReportAdminController::class, 'obtenerDatosApi']);
+    Route::get('/pdf', [\App\Http\Controllers\Admin\ReportAdminController::class, 'exportarPdfApi']);
+    Route::get('/excel', [\App\Http\Controllers\Admin\ReportAdminController::class, 'exportarExcelApi']);
+});
+
 // Test endpoint
 Route::get('/ping', function () {
     return response()->json(['message' => 'pong']);

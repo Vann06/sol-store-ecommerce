@@ -45,8 +45,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('reports.filtros.view');
     // Mantener POST opcional (exportaciones futuras) pero usar mismo método
     Route::post('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('reports.filtros');
-    Route::post('reports/pdf', [ReportAdminController::class, 'exportarPdf'])->name('reports.pdf');
-    Route::post('reports/excel', [ReportAdminController::class, 'exportarExcel'])->name('reports.excel');
+    // Exportaciones ahora con GET para evitar CSRF (se pueden llamar directamente desde enlaces)
+    Route::get('reports/pdf', [ReportAdminController::class, 'exportarPdf'])->name('reports.pdf');
+    Route::get('reports/excel', [ReportAdminController::class, 'exportarExcel'])->name('reports.excel');
     Route::get('reports/create', [ReportAdminController::class, 'create'])->name('reports.create');
     Route::get('reports/navegacion', [ReportAdminController::class, 'estilizarVistaReportes'])->name('reports.navegacion');
     //Route::resource('users', UserAdminController::class)->names('users');

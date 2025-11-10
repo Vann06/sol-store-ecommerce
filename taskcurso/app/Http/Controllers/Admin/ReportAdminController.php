@@ -696,4 +696,140 @@ class ReportAdminController extends Controller
     {
         return redirect()->route('admin.reports.index');
     }
+
+    /**
+     * API: Exportar PDF (GET request para compatibilidad con JWT y descarga directa)
+     */
+    public function exportarPdfApi(Request $request)
+    {
+        $tipoReporte = $request->input('tipo', 'general');
+        $fechaInicio = $request->input('fecha_inicio') 
+            ? Carbon::parse($request->input('fecha_inicio'))->startOfDay()
+            : now()->subMonth()->startOfDay();
+        $fechaFin = $request->input('fecha_fin') 
+            ? Carbon::parse($request->input('fecha_fin'))->endOfDay()
+            : now()->endOfDay();
+
+        // Obtener datos REALES filtrados por fecha
+        $datos = $this->obtenerDatosReporte($tipoReporte, $fechaInicio, $fechaFin);
+
+        try {
+            $pdf = Pdf::loadView('admin.reports.pdf', [
+                'datos' => $datos,
+                'tipo' => $tipoReporte,
+                'fecha_generacion' => now(),
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin
+            ])->setPaper('A4', 'portrait');
+
+            return $pdf->download('reporte_' . $tipoReporte . '_' . now()->format('Y-m-d') . '.pdf');
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Error al generar PDF: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * API: Exportar Excel (GET request para compatibilidad con JWT y descarga directa)
+     */
+    public function exportarExcelApi(Request $request)
+    {
+        $tipo = $request->get('tipo', 'ventas');
+        $fechaInicio = $request->get('fecha_inicio') 
+            ? Carbon::parse($request->get('fecha_inicio'))->startOfDay()
+            : now()->subMonth()->startOfDay();
+        $fechaFin = $request->get('fecha_fin') 
+            ? Carbon::parse($request->get('fecha_fin'))->endOfDay()
+            : now()->endOfDay();
+
+        $filename = "reporte_{$tipo}_" . now()->format('Y-m-d') . ".xlsx";
+
+        try {
+            return Excel::download(
+                new ReportesExport($tipo, $fechaInicio, $fechaFin), 
+                $filename
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Error al exportar Excel: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * API: Obtener datos para el dashboard de reportes
+     */
+    public function obtenerDatosApi(Request $request)
+    {
+        $fechaInicio = $request->input('fecha_inicio') 
+            ? Carbon::parse($request->input('fecha_inicio'))->startOfDay()
+            : now()->subMonth()->startOfDay();
+
+        $fechaFin = $request->input('fecha_fin') 
+            ? Carbon::parse($request->input('fecha_fin'))->endOfDay()
+            : now()->endOfDay();
+
+        // Estadísticas generales
+        $totalVentas = HistorialVenta::whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
+            ->sum('monto_total');
+
+        $totalPedidos = Pedido::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->count();
+
+        $promedioVenta = $totalPedidos > 0 ? $totalVentas / $totalPedidos : 0;
+
+        // Ventas por mes
+        $ventasPorMes = HistorialVenta::whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
+            ->selectRaw("DATE_PART('month', fecha_venta) as mes, DATE_PART('year', fecha_venta) as anio, SUM(monto_total) as total, COUNT(*) as cantidad")
+            ->groupBy('mes', 'anio')
+            ->orderBy('anio')
+            ->orderBy('mes')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'mes' => Carbon::create()->month($item->mes)->format('M'),
+                    'total' => (float) $item->total,
+                    'cantidad' => (int) $item->cantidad
+                ];
+            });
+
+        // Top productos más vendidos
+        $topProductos = Producto::withCount('detalleProducto')
+            ->orderByDesc('detalle_producto_count')
+            ->take(10)
+            ->get()
+            ->map(function ($producto) {
+                return [
+                    'nombre' => $producto->nombre,
+                    'ventas' => $producto->detalle_producto_count,
+                    'stock' => $producto->stock
+                ];
+            });
+
+        // Pedidos por estado
+        $pedidosPorEstado = Pedido::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->selectRaw('estado, COUNT(*) as cantidad')
+            ->groupBy('estado')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'estado' => $item->estado,
+                    'cantidad' => (int) $item->cantidad
+                ];
+            });
+
+        return response()->json([
+            'resumen' => [
+                'total_ventas' => (float) $totalVentas,
+                'total_pedidos' => (int) $totalPedidos,
+                'promedio_venta' => (float) $promedioVenta,
+                'total_productos' => Producto::count(),
+                'total_usuarios' => User::count()
+            ],
+            'ventas_por_mes' => $ventasPorMes,
+            'top_productos' => $topProductos,
+            'pedidos_por_estado' => $pedidosPorEstado,
+            'periodo' => [
+                'inicio' => $fechaInicio->format('Y-m-d'),
+                'fin' => $fechaFin->format('Y-m-d')
+            ]
+        ]);
+    }
 }
