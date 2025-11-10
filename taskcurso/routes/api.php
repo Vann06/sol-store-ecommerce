@@ -97,6 +97,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/pedidos', [PedidoController::class, 'misPedidos']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
     Route::put('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
+    Route::put('/pedidos/{id}/cancel', [PedidoController::class, 'cancelar']);
 });
 
 

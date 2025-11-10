@@ -7,7 +7,10 @@
     </div>
 
     @if(session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
+            {{ session('success') }}
+            <a href="{{ route('admin.orders.index', ['estado' => $pedido->estado]) }}" class="ml-2 underline text-green-800/90">Ver lista filtrada por "{{ $pedido->estado }}"</a>
+        </div>
     @endif
     @if(session('error'))
         <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
@@ -25,7 +28,7 @@
                 <li><span class="font-medium">Total items:</span> {{ $pedido->detalles->count() }}</li>
             </ul>
 
-            <form action="{{ route('admin.orders.update', $pedido->id) }}" method="POST" class="mt-4 space-y-2">
+            <form action="{{ route('admin.orders.update', $pedido->id) }}" method="POST" class="mt-4 space-y-2" onsubmit="try{localStorage.setItem('order_status_updated', JSON.stringify({id: {{ $pedido->id }}, estado: this.estado.value, ts: Date.now()}));}catch(e){}">
                 @csrf
                 @method('PUT')
                 <label class="block text-sm dark:text-gray-300">Cambiar estado</label>

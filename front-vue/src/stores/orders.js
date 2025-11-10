@@ -63,14 +63,13 @@ export const useOrdersStore = defineStore('orders', {
       this.error = null
       try {
   const resp = await http.get('/pedidos', { headers: this.authHeaders() })
-  // Quedarnos con pedidos que provienen del checkout (tienen detalles)
-  const pedidos = (resp.data || []).filter(p => Array.isArray(p.detalles) && p.detalles.length > 0)
-  // Normalizar estructura hacia el frontend
+  const pedidos = (resp.data || [])
+  // Normalizar estructura hacia el frontend (no filtramos: mantenemos historial completo)
   this.items = pedidos.map(p => ({
           id: p.id,
           date: p.fecha_pedido || p.created_at,
           status: mapEstado(p.estado),
-          total: calcTotal(p.detalles),
+    total: calcTotal(p.detalles || []),
           // Mantén los detalles crudos para expandir
           raw: p
         }))
@@ -96,6 +95,31 @@ export const useOrdersStore = defineStore('orders', {
         return { success: false, error: this.error, status }
       } finally {
         this.loading = false
+      }
+    },
+    async cancel(id) {
+      this.error = null
+      try {
+        const resp = await http.put(`/pedidos/${id}/cancel`, {}, { headers: this.authHeaders() })
+        // refrescar lista
+        await this.fetchAll()
+        return { success: true, data: resp.data }
+      } catch (e) {
+        this.error = e.response?.data?.error || e.message
+        const status = e.response?.status
+        return { success: false, error: this.error, status }
+      }
+    },
+    async updateStatus(id, estado) {
+      this.error = null
+      try {
+        const resp = await http.put(`/pedidos/${id}/estado`, { estado }, { headers: this.authHeaders() })
+        await this.fetchAll()
+        return { success: true, data: resp.data }
+      } catch (e) {
+        this.error = e.response?.data?.error || e.message
+        const status = e.response?.status
+        return { success: false, error: this.error, status }
       }
     }
   }

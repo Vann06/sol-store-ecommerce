@@ -1,8 +1,19 @@
 <template>
   <div class="orders-view">
+    <!-- Toast de notificación (cliente) -->
+    <div v-if="notify" class="toast">
+      <i class="fa fa-check-circle" style="margin-right:8px"></i>
+      {{ notify }}
+    </div>
     <div class="page-header">
       <h2><i class="fa fa-shopping-bag"></i> Mis Pedidos</h2>
       <p class="page-subtitle">Revisa el estado y detalles de tus compras</p>
+      <div class="actions">
+        <button @click="manualRefresh" class="btn btn-secondary">
+          <i class="fa fa-sync"></i>
+          {{ refreshing ? 'Actualizando...' : 'Refrescar' }}
+        </button>
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -80,7 +91,7 @@
               <i class="fa fa-redo"></i>
               Reordenar
             </button>
-            <button v-if="order.status === 'processing'" class="btn btn-danger">
+            <button v-if="order.status === 'processing'" class="btn btn-danger" @click.stop="cancelOrder(order.id)">
               <i class="fa fa-times"></i>
               Cancelar
             </button>
@@ -107,7 +118,7 @@
     </div>
   </div>
 </template><script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders'
 
@@ -115,10 +126,82 @@ const router = useRouter()
 const activeFilter = ref('all')
 const expandedOrders = ref([])
 const store = useOrdersStore()
+const refreshing = ref(false)
+const notify = ref('')
+let timer = null
+let storageHandler = null
 
 onMounted(async () => {
   await store.fetchAll()
+  // Refrescar en segundo plano cada 20s mientras la vista está activa
+  const startTimer = () => {
+    const hasActive = (store.items || []).some(o => ['processing','shipped'].includes(o.status))
+    const interval = hasActive ? 8000 : 30000
+    if (timer) clearInterval(timer)
+    timer = setInterval(async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          refreshing.value = true
+          await store.fetchAll()
+        } finally {
+          refreshing.value = false
+        }
+      }
+    }, interval)
+  }
+  startTimer()
+
+  // Refrescar al volver a la pestaña
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible') {
+      try {
+        refreshing.value = true
+        await store.fetchAll()
+        // re-evaluar frecuencia según estados
+        if (timer) clearInterval(timer)
+        startTimer()
+      } finally {
+        refreshing.value = false
+      }
+    }
+  })
+
+  // Escuchar broadcast de cambio desde admin (localStorage event)
+  storageHandler = async (e) => {
+    if (e.key === 'order_status_updated' && e.newValue) {
+      try {
+        const payload = JSON.parse(e.newValue)
+        refreshing.value = true
+        await store.fetchAll()
+        // re-evaluar frecuencia según estados
+        if (timer) clearInterval(timer)
+        startTimer()
+        notify.value = `Pedido #${payload?.id || ''} actualizado a ${payload?.estado || ''}`
+        setTimeout(() => { notify.value = '' }, 3000)
+      } catch (_) {
+        // ignore
+      } finally {
+        refreshing.value = false
+      }
+    }
+  }
+  window.addEventListener('storage', storageHandler)
 })
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+  document.removeEventListener('visibilitychange', () => {})
+  if (storageHandler) window.removeEventListener('storage', storageHandler)
+})
+
+const manualRefresh = async () => {
+  try {
+    refreshing.value = true
+    await store.fetchAll()
+  } finally {
+    refreshing.value = false
+  }
+}
 
 const isLoading = computed(() => store.loading)
 
@@ -143,6 +226,19 @@ const toggleOrderDetail = (orderId) => {
   } else {
     expandedOrders.value.push(orderId)
   }
+}
+
+const cancelOrder = async (id) => {
+  const ok = window.confirm('¿Deseas cancelar este pedido?')
+  if (!ok) return
+  const { success, error } = await store.cancel(id)
+  if (!success) {
+    notify.value = error || 'No se pudo cancelar el pedido'
+    setTimeout(()=> notify.value = '', 3000)
+    return
+  }
+  notify.value = `Pedido #${id} cancelado`
+  setTimeout(()=> notify.value = '', 3000)
 }
 
 const getOrderCount = (status) => {
@@ -200,6 +296,17 @@ const goToShop = () => {
 </script>
 
 <style scoped>
+.toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #16a34a;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
 .orders-view {
   max-width: 1000px;
   margin: 0 auto;

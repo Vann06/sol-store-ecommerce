@@ -33,7 +33,7 @@ class DetalleProducto extends Model
      */
     public function creador()
     {
-        return $this->belongsTo(Usuario::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function inventario()
