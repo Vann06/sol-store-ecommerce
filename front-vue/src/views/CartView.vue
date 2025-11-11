@@ -197,20 +197,14 @@ async function handleCheckout() {
     return
   }
 
-  const res = await ordersStore.checkout({ direccion_id })
-
-  if (!res.success && res.status === 401) {
-    router.push({ path: '/account/login', query: { redirect: '/cart' } })
-    return
-  }
-
-  if (res.success) {
-    cart.showMessage('Pedido creado correctamente', 'success')
-    cart.clearCart() // Vacía el carrito tras pedido
-  router.push('/account/orders').catch(() => router.push('/'))
-  } else {
-    cart.showMessage(res.error || 'No se pudo crear el pedido', 'error')
-  }
+  // Redirigir al checkout con Stripe
+  // El checkout creará el pedido y procesará el pago
+  router.push({
+    path: '/checkout',
+    query: { 
+      direccion_id 
+    }
+  })
 }
 </script>
 

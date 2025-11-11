@@ -17,6 +17,12 @@ class Pedido extends Model
         'id_usuario',
         'fecha_pedido',
         'estado',
+        'stripe_payment_intent_id',
+        'payment_status',
+        'payment_amount',
+        'payment_currency',
+        'payment_method',
+        'paid_at',
         'created_by',
         'updated_by',
     ];
@@ -24,6 +30,8 @@ class Pedido extends Model
     // Casteos
     protected $casts = [
         'fecha_pedido' => 'datetime',
+        'paid_at' => 'datetime',
+        'payment_amount' => 'decimal:2',
     ];
 
     /**
@@ -95,5 +103,52 @@ class Pedido extends Model
             'id',             // Local key on Pedido
             'id_direccion'    // Local key on Envio referencing Direccion
         );
+    }
+
+    /**
+     * Verificar si el pedido está pagado
+     */
+    public function isPaid(): bool
+    {
+        return $this->payment_status === 'succeeded' && !empty($this->stripe_payment_intent_id);
+    }
+
+    /**
+     * Verificar si el pago está pendiente
+     */
+    public function isPending(): bool
+    {
+        return in_array($this->payment_status, ['pending', 'processing']);
+    }
+
+    /**
+     * Verificar si el pago falló
+     */
+    public function isPaymentFailed(): bool
+    {
+        return in_array($this->payment_status, ['failed', 'canceled']);
+    }
+
+    /**
+     * Marcar el pago como exitoso
+     */
+    public function markAsPaid(string $paymentIntentId, string $paymentMethod): void
+    {
+        $this->update([
+            'stripe_payment_intent_id' => $paymentIntentId,
+            'payment_status' => 'succeeded',
+            'payment_method' => $paymentMethod,
+            'paid_at' => now(),
+        ]);
+    }
+
+    /**
+     * Marcar el pago como fallido
+     */
+    public function markAsPaymentFailed(): void
+    {
+        $this->update([
+            'payment_status' => 'failed',
+        ]);
     }
 }

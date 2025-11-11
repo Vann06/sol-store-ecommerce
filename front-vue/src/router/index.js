@@ -115,6 +115,12 @@ const routes = [
     path: '/catalogo',
     name: 'catalogo',
     component: () => import('@/views/Catalogo.vue')
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: () => import('@/views/CheckoutView.vue'),
+    meta: { requiresAuth: true } // Requiere autenticación
   }
   //MAS RUTAS
 ]
