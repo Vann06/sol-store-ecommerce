@@ -130,7 +130,90 @@ El proyecto incluye integración con Microsoft Clarity para analítica web avanz
 
 ---
 
-## 🔧 **Configuración de API Centralizada** ⭐ NUEVO
+## � **Stripe Payment Integration**
+
+El proyecto incluye integración completa con Stripe para procesar pagos de forma segura:
+
+### Características de Pago
+- ✅ **Checkout seguro** con elementos de tarjeta de Stripe
+- ✅ **Creación de PaymentIntent** en el backend
+- ✅ **Confirmación de pago** en el frontend
+- ✅ **Verificación en backend** después del pago
+- ✅ **Modal de éxito** con animaciones
+- ✅ **Actualización automática** del estado del pedido
+
+### Configuración de Stripe
+
+1. **Obtener credenciales de Stripe**:
+   - Ve a [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
+   - Copia tu **Publishable Key** (comienza con `pk_test_`)
+   - Copia tu **Secret Key** (comienza con `sk_test_`)
+
+2. **Configurar variables de entorno**:
+   ```bash
+   # En taskcurso/.env
+   STRIPE_KEY=pk_test_tu_clave_publica_aqui
+   
+   # Por seguridad, divide la clave secreta en dos partes
+   STRIPE_SECRET_PART1=sk_test_primera_parte
+   STRIPE_SECRET_PART2=segunda_parte
+   
+   STRIPE_WEBHOOK_SECRET=whsec_tu_webhook_secret
+   ```
+
+3. **Cómo dividir la clave secreta**:
+   ```
+   Clave original: sk_test_51ABC...XYZ900
+   
+   STRIPE_SECRET_PART1=sk_test_51ABC...mitad
+   STRIPE_SECRET_PART2=...otraMitad...XYZ900
+   ```
+
+### Paquetes Instalados
+
+#### Backend (Laravel)
+```bash
+composer require stripe/stripe-php
+```
+
+#### Frontend (Vue)
+```bash
+npm install @stripe/stripe-js
+```
+
+### Archivos Clave
+- `taskcurso/app/Services/StripeService.php` - Servicio de Stripe
+- `taskcurso/app/Http/Controllers/StripePaymentController.php` - Controlador de pagos
+- `taskcurso/config/stripe.php` - Configuración de Stripe
+- `front-vue/src/composables/useStripe.js` - Composable de Stripe
+- `front-vue/src/components/StripePaymentForm.vue` - Formulario de pago
+- `front-vue/src/views/CheckoutView.vue` - Vista de checkout
+
+### Flujo de Pago
+1. Usuario agrega productos al carrito
+2. Usuario va al checkout (`/checkout?direccion_id=X`)
+3. Se crea un pedido en estado "pendiente"
+4. Frontend crea un PaymentIntent en el backend
+5. Usuario ingresa datos de tarjeta (elementos de Stripe)
+6. Frontend confirma el pago con Stripe
+7. Backend verifica el pago y actualiza el pedido a "confirmado"
+8. Se muestra modal de éxito y se redirige a pedidos
+
+### Tarjetas de Prueba
+Para probar en modo test, usa estas tarjetas:
+
+| Número | Resultado |
+|--------|-----------|
+| 4242 4242 4242 4242 | Éxito |
+| 4000 0000 0000 9995 | Declinada (fondos insuficientes) |
+| 4000 0000 0000 0002 | Declinada (tarjeta rechazada) |
+
+- **Fecha de expiración**: Cualquier fecha futura (ej. 12/25)
+- **CVC**: Cualquier 3 dígitos (ej. 123)
+
+---
+
+## �🔧 **Configuración de API Centralizada** ⭐ NUEVO
 
 El frontend ahora usa una **URL base centralizada** para todas las llamadas a la API, facilitando el cambio entre entornos.
 
