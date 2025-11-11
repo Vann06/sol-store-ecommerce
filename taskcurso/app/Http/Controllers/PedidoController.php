@@ -61,7 +61,9 @@ class PedidoController extends Controller
                 ]);
             }
 
-            DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+            // ⚠️ NO VACIAR EL CARRITO AQUÍ - Solo se vaciará después de confirmar el pago
+            // El carrito se limpiará en StripePaymentController::verifyPayment() después de verificar el pago
+            // DetalleCarrito::where('id_carrito', $carrito->id)->delete();
 
             // Crear registro de envío con la dirección asociada
             if ($direccionId) {

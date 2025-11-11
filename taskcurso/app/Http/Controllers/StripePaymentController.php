@@ -144,13 +144,72 @@ class StripePaymentController extends Controller
                 ], 404);
             }
 
+            // ✅ VALIDACIÓN ADICIONAL: Verificar que el pedido no esté ya pagado
+            if ($pedido->isPaid()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este pedido ya ha sido pagado anteriormente',
+                    'order_id' => $pedido->id,
+                    'payment_status' => 'succeeded',
+                ], 400);
+            }
+            
+            // ✅ VALIDACIÓN: El payment_status debe ser 'succeeded'
+            if ($result['payment_status'] !== 'succeeded') {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El pago no tiene estado de éxito en Stripe',
+                    'payment_status' => $result['payment_status'],
+                ], 400);
+            }
+
             // Actualizar el estado del pago en el pedido
             if ($result['is_paid']) {
-                // ✅ PAGO EXITOSO
-                $pedido->markAsPaid(
-                    $request->payment_intent_id,
-                    $result['payment_method'] ?? 'card'
-                );
+                // ✅ PAGO EXITOSO VERIFICADO EN STRIPE
+                try {
+                    $pedido->markAsPaid(
+                        $request->payment_intent_id,
+                        $result['payment_method'] ?? 'card'
+                    );
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error('Error al marcar pedido como pagado', [
+                        'error' => $e->getMessage(),
+                        'order_id' => $pedido->id,
+                        'payment_intent_id' => $request->payment_intent_id
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => $e->getMessage(),
+                    ], 400);
+                }
+
+                // ✅ VACIAR EL CARRITO DESPUÉS DE CONFIRMAR EL PAGO
+                try {
+                    // Usar la relación 'user' que está correctamente configurada
+                    $user = $pedido->user;
+                    if ($user) {
+                        $carrito = \App\Models\CarritoCompra::obtenerCarrito($user->id, null);
+                        if ($carrito) {
+                            \App\Models\DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+                            Log::info('Carrito vaciado después de pago exitoso', [
+                                'user_id' => $user->id,
+                                'order_id' => $pedido->id,
+                                'carrito_id' => $carrito->id
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // No hacer rollback si falla el vaciado del carrito
+                    // El pago ya se procesó correctamente
+                    Log::warning('Error al vaciar carrito después del pago', [
+                        'error' => $e->getMessage(),
+                        'order_id' => $pedido->id
+                    ]);
+                }
 
                 // Aquí puedes agregar lógica adicional:
                 // - Actualizar inventario
@@ -159,6 +218,12 @@ class StripePaymentController extends Controller
                 // - etc.
 
                 DB::commit();
+
+                Log::info('Pago verificado exitosamente', [
+                    'order_id' => $pedido->id,
+                    'payment_intent_id' => $request->payment_intent_id,
+                    'amount' => $pedido->payment_amount,
+                ]);
 
                 return response()->json([
                     'success' => true,
@@ -175,6 +240,12 @@ class StripePaymentController extends Controller
                 ]);
 
                 DB::rollBack();
+
+                Log::warning('Intento de verificar pago no exitoso', [
+                    'order_id' => $pedido->id,
+                    'payment_intent_id' => $request->payment_intent_id,
+                    'payment_status' => $result['payment_status'],
+                ]);
 
                 return response()->json([
                     'success' => false,
@@ -264,6 +335,28 @@ class StripePaymentController extends Controller
                 $paymentIntent->id,
                 $paymentIntent->payment_method ?? 'card'
             );
+
+            // ✅ VACIAR EL CARRITO después de confirmar el pago desde webhook
+            try {
+                // Usar la relación 'user' que está correctamente configurada
+                $user = $pedido->user;
+                if ($user) {
+                    $carrito = \App\Models\CarritoCompra::obtenerCarrito($user->id, null);
+                    if ($carrito) {
+                        \App\Models\DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+                        Log::info('Carrito vaciado después de webhook de pago exitoso', [
+                            'user_id' => $user->id,
+                            'order_id' => $pedido->id,
+                            'carrito_id' => $carrito->id
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Error al vaciar carrito después del webhook', [
+                    'error' => $e->getMessage(),
+                    'order_id' => $pedido->id
+                ]);
+            }
 
             Log::info('Pedido marcado como pagado desde webhook', [
                 'order_id' => $pedido->id,

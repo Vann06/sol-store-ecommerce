@@ -1,8 +1,8 @@
 <template>
   <div class="checkout-page">
-    <div class="container mx-auto px-4">
+    <div class="checkout-container">
       <!-- Header -->
-  <div class="page-lead">
+      <div class="page-lead">
         <div class="lead-icon">
           <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
         </div>
@@ -17,7 +17,7 @@
       </div>
 
       <!-- Contenedor principal -->
-      <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8">
+      <div class="checkout-grid">
         
         <!-- Columna izquierda: Resumen del pedido -->
         <div class="order-summary-card">
@@ -69,6 +69,52 @@
             <div class="total-row grand-total">
               <span class="label">Total a Pagar</span>
               <span class="value">{{ formatCurrency(total) }}</span>
+            </div>
+          </div>
+
+          <!-- Selector de Dirección de Envío -->
+          <div class="address-section">
+            <div class="address-header">
+              <div class="address-icon">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+              </div>
+              <h3>Dirección de envío</h3>
+              <span v-if="isRecreatingOrder" class="updating-badge">
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                Actualizando...
+              </span>
+            </div>
+            
+            <div class="address-selector" :class="{ 'disabled': isRecreatingOrder }">
+              <div 
+                v-for="address in addresses" 
+                :key="address.id"
+                class="address-option"
+                :class="{ 'selected': selectedAddressId === address.id }"
+                @click="selectedAddressId = address.id"
+              >
+                <div class="radio-indicator">
+                  <div class="radio-dot"></div>
+                </div>
+                <div class="address-content">
+                  <div class="address-text">
+                    <p class="address-main">{{ address.direccion }}</p>
+                    <p v-if="address.id_municipio" class="address-detail">Municipio ID: {{ address.id_municipio }}</p>
+                  </div>
+                  <span v-if="address.is_default" class="default-badge">
+                    Predeterminada
+                  </span>
+                </div>
+              </div>
+              
+              <div v-if="addresses.length === 0" class="no-addresses">
+                <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+                <p>No tienes direcciones guardadas</p>
+                <button @click="router.push('/account/addresses')" class="add-address-btn">
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                  Agregar dirección
+                </button>
+              </div>
             </div>
           </div>
 
@@ -165,20 +211,28 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useAddressesStore } from '@/stores/addresses'
 import StripePaymentForm from '@/components/StripePaymentForm.vue'
 
 const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
+const addressesStore = useAddressesStore()
 
 // Datos del pedido
 const orderId = ref(null)
 const orderNumber = ref('')
 const orderItems = ref([])
 const loading = ref(true)
+const paymentInProgress = ref(false)
+
+// Direcciones
+const selectedAddressId = ref(null)
+const addresses = computed(() => addressesStore.items)
+const isRecreatingOrder = ref(false)
 
 // Cálculos del carrito
 const subtotal = computed(() => {
@@ -206,13 +260,71 @@ const formatCurrency = (value) => {
 }
 
 /**
+ * Recrear el pedido cuando cambie la dirección
+ */
+watch(selectedAddressId, async (newAddressId, oldAddressId) => {
+  // Solo recrear si ya teníamos un pedido creado y la dirección cambió
+  if (oldAddressId && newAddressId && newAddressId !== oldAddressId && !isRecreatingOrder.value) {
+    console.log('📍 Dirección cambió, recreando pedido...', { de: oldAddressId, a: newAddressId })
+    
+    isRecreatingOrder.value = true
+    
+    try {
+      const http = (await import('@/http')).default
+      const response = await http.post('/pedidos/checkout', {
+        direccion_id: newAddressId
+      })
+      
+      if (response.data.pedido) {
+        orderId.value = response.data.pedido.id
+        orderNumber.value = `ORD-${String(orderId.value).padStart(6, '0')}`
+        
+        // Actualizar el pedido pendiente en sessionStorage
+        sessionStorage.setItem('pending_order_id', orderId.value)
+        
+        console.log('✅ Pedido recreado con nueva dirección:', orderId.value)
+      }
+    } catch (error) {
+      console.error('❌ Error al recrear pedido:', error)
+      alert(error.response?.data?.error || 'Error al actualizar la dirección del pedido')
+    } finally {
+      isRecreatingOrder.value = false
+    }
+  }
+})
+
+/**
  * Manejar pago exitoso
  */
 const handlePaymentSuccess = (paymentData) => {
   console.log('✅ Pago exitoso:', paymentData)
   
-  // Limpiar el carrito después del pago exitoso
-  cartStore.clearCart()
+  // ✅ VALIDACIÓN: Verificar que el pago realmente se completó
+  if (!paymentData || !paymentData.paymentIntentId || !paymentData.orderId) {
+    console.error('❌ Datos de pago inválidos:', paymentData)
+    error.value = 'Error: No se pudo verificar el pago'
+    return
+  }
+  
+  // Marcar que el pago ya no está en progreso
+  paymentInProgress.value = false
+  
+  // Marcar el pago como completado en sessionStorage para evitar duplicados
+  sessionStorage.setItem('payment_completed', 'true')
+  sessionStorage.setItem('completed_order_id', paymentData.orderId)
+  
+  // ✅ SINCRONIZAR el carrito con el backend (que ya lo vació después de verificar el pago)
+  // No llamamos a clearCart() porque ya el backend lo hizo en verifyPayment
+  // Solo necesitamos refrescar para actualizar el estado local
+  cartStore.fetchCart().then(() => {
+    console.log('✅ Carrito sincronizado después del pago')
+  }).catch((err) => {
+    console.warn('⚠️ Error al sincronizar carrito:', err)
+    // Aún así, limpiamos localmente para asegurar una buena UX
+    cartStore.items = []
+    cartStore.total = 0
+    cartStore.itemCount = 0
+  })
   
   // Mostrar modal de éxito
   showSuccessModal.value = true
@@ -241,6 +353,31 @@ onMounted(async () => {
   loading.value = true
   
   try {
+    // ✅ VALIDACIÓN: Verificar si ya se completó un pago anteriormente
+    const paymentCompleted = sessionStorage.getItem('payment_completed')
+    if (paymentCompleted === 'true') {
+      console.log('⚠️ Ya existe un pago completado, redirigiendo...')
+      sessionStorage.removeItem('payment_completed')
+      sessionStorage.removeItem('completed_order_id')
+      router.push('/account/orders')
+      return
+    }
+    
+    // Cargar direcciones del usuario
+    await addressesStore.fetchAll()
+    
+    // Obtener dirección desde query params o usar la predeterminada
+    const queryAddressId = route.query.direccion_id
+    const defaultAddressId = addressesStore.defaultId
+    
+    selectedAddressId.value = queryAddressId ? parseInt(queryAddressId) : defaultAddressId
+    
+    if (!selectedAddressId.value || !addressesStore.items.length) {
+      alert('No tienes direcciones registradas. Por favor, agrega una dirección de envío.')
+      router.push('/account/addresses')
+      return
+    }
+    
     // Cargar items del carrito
     await cartStore.fetchCart()
     
@@ -281,8 +418,7 @@ onMounted(async () => {
     }
     
     // Crear el pedido en el backend (sin confirmar aún)
-    const direccionId = route.query.direccion_id
-    if (!direccionId) {
+    if (!selectedAddressId.value) {
       alert('Falta información de dirección')
       router.push('/cart')
       return
@@ -291,12 +427,18 @@ onMounted(async () => {
     // Importar http para hacer la petición
     const http = (await import('@/http')).default
     const response = await http.post('/pedidos/checkout', {
-      direccion_id: direccionId
+      direccion_id: selectedAddressId.value
     })
     
     if (response.data.pedido) {
       orderId.value = response.data.pedido.id
       orderNumber.value = `ORD-${String(orderId.value).padStart(6, '0')}`
+      
+      // Marcar que el proceso de pago está en progreso
+      paymentInProgress.value = true
+      sessionStorage.setItem('checkout_in_progress', 'true')
+      sessionStorage.setItem('pending_order_id', orderId.value)
+      
       console.log('✅ Pedido creado:', orderId.value)
     } else {
       throw new Error('No se pudo crear el pedido')
@@ -311,9 +453,73 @@ onMounted(async () => {
 })
 
 /**
+ * Prevenir navegación durante el proceso de pago
+ */
+onBeforeRouteLeave((to, from, next) => {
+  // Si el pago está en progreso y no ha sido completado exitosamente
+  if (paymentInProgress.value && !showSuccessModal.value) {
+    const confirmed = window.confirm(
+      '⚠️ Tienes un pago en proceso.\n\n' +
+      'Si abandonas esta página, perderás el progreso y deberás iniciar el proceso nuevamente.\n\n' +
+      '¿Estás seguro de que deseas salir?'
+    )
+    
+    if (!confirmed) {
+      next(false) // Cancelar la navegación
+      return
+    }
+    
+    // Si confirma, limpiar el estado
+    sessionStorage.removeItem('checkout_in_progress')
+    sessionStorage.removeItem('pending_order_id')
+    paymentInProgress.value = false
+  }
+  
+  next() // Permitir la navegación
+})
+
+/**
+ * Advertir al usuario si intenta cerrar la pestaña durante el pago
+ */
+const handleBeforeUnload = (e) => {
+  if (paymentInProgress.value && !showSuccessModal.value) {
+    e.preventDefault()
+    e.returnValue = '' // Chrome requiere esto
+    return ''
+  }
+}
+
+/**
+ * Agregar listener para beforeunload
+ */
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+/**
+ * Limpiar listener al desmontar
+ */
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  
+  // Limpiar sessionStorage si el pago se completó exitosamente
+  if (showSuccessModal.value) {
+    sessionStorage.removeItem('checkout_in_progress')
+    sessionStorage.removeItem('pending_order_id')
+  }
+})
+
+/**
  * Ir a pedidos
  */
 const goToOrders = () => {
+  // Limpiar estado antes de navegar
+  paymentInProgress.value = false
+  sessionStorage.removeItem('checkout_in_progress')
+  sessionStorage.removeItem('pending_order_id')
+  sessionStorage.removeItem('payment_completed')
+  sessionStorage.removeItem('completed_order_id')
+  
   router.push('/account/orders')
 }
 
@@ -321,6 +527,13 @@ const goToOrders = () => {
  * Volver al inicio
  */
 const goHome = () => {
+  // Limpiar estado antes de navegar
+  paymentInProgress.value = false
+  sessionStorage.removeItem('checkout_in_progress')
+  sessionStorage.removeItem('pending_order_id')
+  sessionStorage.removeItem('payment_completed')
+  sessionStorage.removeItem('completed_order_id')
+  
   router.push('/')
 }
 </script>
@@ -332,8 +545,10 @@ const goHome = () => {
   padding: 3.5rem 0 4rem;
 }
 
-.checkout-page .container {
-  max-width: 1200px;
+.checkout-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .page-lead {
@@ -345,6 +560,20 @@ const goHome = () => {
   margin-bottom: 2.5rem;
   border-radius: 1.5rem;
   box-shadow: 0 12px 28px rgba(113, 18, 18, 0.08);
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .checkout-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .lead-icon {
@@ -552,6 +781,201 @@ const goHome = () => {
   font-size: 1.45rem;
 }
 
+/* ===== SELECTOR DE DIRECCIÓN ===== */
+.address-section {
+  padding: 1.5rem 1.75rem;
+  border-top: 1px solid rgba(113, 18, 18, 0.12);
+  background: rgba(113, 18, 18, 0.02);
+}
+
+.address-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.address-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.65rem;
+  background: rgba(113, 18, 18, 0.12);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.address-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink-1);
+  flex: 1;
+}
+
+.updating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 192, 16, 0.15);
+  color: rgba(180, 83, 9, 1);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.address-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: opacity 0.2s ease;
+}
+
+.address-selector.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.address-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.85rem;
+  background: var(--surface);
+  border: 2px solid rgba(113, 18, 18, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.address-option:hover {
+  border-color: rgba(113, 18, 18, 0.35);
+  background: rgba(255, 221, 75, 0.08);
+}
+
+.address-option.selected {
+  border-color: var(--brand);
+  background: rgba(255, 221, 75, 0.12);
+  box-shadow: 0 4px 12px rgba(113, 18, 18, 0.15);
+}
+
+.radio-indicator {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  border: 2px solid rgba(113, 18, 18, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  transition: all 0.2s ease;
+}
+
+.address-option.selected .radio-indicator {
+  border-color: var(--brand);
+  background: var(--brand);
+}
+
+.radio-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.address-option.selected .radio-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.address-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.address-text {
+  flex: 1;
+}
+
+.address-main {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink-1);
+  line-height: 1.4;
+}
+
+.address-detail {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+.default-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(40, 167, 69, 0.12);
+  color: rgba(4, 125, 74, 1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.no-addresses {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--ink-3);
+}
+
+.no-addresses i {
+  font-size: 2.5rem;
+  color: var(--ink-4);
+  margin-bottom: 0.75rem;
+}
+
+.no-addresses p {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+}
+
+.add-address-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--brand);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-address-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(113, 18, 18, 0.25);
+}
+
+.add-address-btn:active {
+  transform: translateY(0);
+}
+
 .info-box {
   margin: 1.5rem 1.75rem 1.75rem;
   padding: 1.1rem 1.25rem;
@@ -651,11 +1075,19 @@ const goHome = () => {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
+  
+  .checkout-container {
+    padding: 0 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
   .checkout-page {
     padding: 2.5rem 0 3rem;
+  }
+  
+  .checkout-container {
+    padding: 0 1rem;
   }
 
   .page-lead {
@@ -690,9 +1122,17 @@ const goHome = () => {
   .items-list {
     max-height: none;
   }
+  
+  .checkout-grid {
+    gap: 1.5rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .checkout-container {
+    padding: 0 0.75rem;
+  }
+  
   .page-lead {
     padding: 1.5rem;
     border-radius: 1.25rem;

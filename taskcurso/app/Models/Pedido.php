@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Pedido extends Model
 {
@@ -35,11 +36,12 @@ class Pedido extends Model
     ];
 
     /**
-     * El usuario que realizó el pedido
+     * El usuario que realizó el pedido (alias de user para compatibilidad)
+     * @deprecated Usar user() en su lugar
      */
     public function usuario()
     {
-        return $this->belongsTo(Usuario::class, 'id_usuario');
+        return $this->belongsTo(User::class, 'id_usuario');
     }
 
     /**
@@ -47,7 +49,7 @@ class Pedido extends Model
      */
     public function creador()
     {
-        return $this->belongsTo(Usuario::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -55,7 +57,7 @@ class Pedido extends Model
      */
     public function editor()
     {
-        return $this->belongsTo(Usuario::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -131,9 +133,21 @@ class Pedido extends Model
 
     /**
      * Marcar el pago como exitoso
+     * 
+     * ⚠️ IMPORTANTE: Solo llamar este método después de verificar el pago en Stripe
      */
     public function markAsPaid(string $paymentIntentId, string $paymentMethod): void
     {
+        // ✅ VALIDACIÓN: Verificar que no esté ya pagado
+        if ($this->isPaid()) {
+            throw new \Exception('Este pedido ya ha sido marcado como pagado anteriormente');
+        }
+        
+        // ✅ VALIDACIÓN: Verificar que el paymentIntentId corresponda al de este pedido
+        if ($this->stripe_payment_intent_id && $this->stripe_payment_intent_id !== $paymentIntentId) {
+            throw new \Exception('El payment_intent_id no corresponde a este pedido');
+        }
+        
         $this->update([
             'stripe_payment_intent_id' => $paymentIntentId,
             'payment_status' => 'succeeded',

@@ -38,17 +38,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('themes', ThemeAdminController::class)->names('themes');
     Route::resource('orders', OrderAdminController::class)->names('orders');
     // Reportes
-    Route::get('reports', [ReportAdminController::class, 'index'])->name('reports.index');
-    Route::get('reports/metricas', [ReportAdminController::class, 'metricas'])->name('reports.metricas.view');
-    Route::get('reports/graficos', [ReportAdminController::class, 'mostrarGraficos'])->name('reports.graficos');
+    Route::get('reports', [ReportAdminController::class, 'index'])->name('admin.reports.index');
+    Route::get('reports/metricas', [ReportAdminController::class, 'metricas'])->name('admin.reports.metricas.view');
+    Route::get('reports/graficos', [ReportAdminController::class, 'mostrarGraficos'])->name('admin.reports.graficos');
     // Unificar filtros en una sola ruta GET para evitar 419 por CSRF en navegaciones simples
-    Route::get('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('reports.filtros.view');
+    Route::get('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('admin.reports.filtros.view');
     // Mantener POST opcional (exportaciones futuras) pero usar mismo método
-    Route::post('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('reports.filtros');
-    Route::post('reports/pdf', [ReportAdminController::class, 'exportarPdf'])->name('reports.pdf');
-    Route::post('reports/excel', [ReportAdminController::class, 'exportarExcel'])->name('reports.excel');
-    Route::get('reports/create', [ReportAdminController::class, 'create'])->name('reports.create');
-    Route::get('reports/navegacion', [ReportAdminController::class, 'estilizarVistaReportes'])->name('reports.navegacion');
+    Route::post('reports/filtros', [ReportAdminController::class, 'filtrarFechas'])->name('admin.reports.filtros');
+    Route::post('reports/pdf', [ReportAdminController::class, 'exportarPdf'])->name('admin.reports.pdf');
+    Route::post('reports/excel', [ReportAdminController::class, 'exportarExcel'])->name('admin.reports.excel');
+    Route::get('reports/create', [ReportAdminController::class, 'create'])->name('admin.reports.create');
+    Route::get('reports/navegacion', [ReportAdminController::class, 'estilizarVistaReportes'])->name('admin.reports.navegacion');
     //Route::resource('users', UserAdminController::class)->names('users');
     //Route::resource('roles', RoleAdminController::class)->names('roles');
     //Route::resource('permissions', PermissionAdminController::class)->names('permissions');

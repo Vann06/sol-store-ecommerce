@@ -299,6 +299,12 @@ const handleSubmit = async () => {
   error.value = null
   cardError.value = null
 
+  // ✅ VALIDACIÓN: Prevenir doble submit
+  if (loading.value || success.value) {
+    console.warn('⚠️ Pago ya en proceso o completado')
+    return
+  }
+
   // Validar formulario
   if (!validateForm()) {
     return
@@ -310,6 +316,13 @@ const handleSubmit = async () => {
     // Usar el clientSecret que ya tenemos del onMounted
     if (!clientSecret.value) {
       error.value = 'No se pudo inicializar el pago. Por favor recarga la página.'
+      loading.value = false
+      return
+    }
+    
+    // ✅ VALIDACIÓN: Verificar que el paymentIntentId corresponda al pedido
+    if (!paymentIntentId.value) {
+      error.value = 'Error: No se pudo obtener el identificador del pago'
       loading.value = false
       return
     }
@@ -330,8 +343,24 @@ const handleSubmit = async () => {
       emit('error', paymentResult.error)
       return
     }
+    
+    // ✅ VALIDACIÓN: Verificar que el paymentIntent sea el correcto
+    if (paymentResult.paymentIntent.id !== paymentIntentId.value) {
+      error.value = 'Error de seguridad: El identificador del pago no coincide'
+      loading.value = false
+      emit('error', error.value)
+      return
+    }
+    
+    // ✅ VALIDACIÓN: Verificar que el estado sea 'succeeded'
+    if (paymentResult.paymentIntent.status !== 'succeeded') {
+      error.value = `El pago no se completó exitosamente. Estado: ${paymentResult.paymentIntent.status}`
+      loading.value = false
+      emit('error', error.value)
+      return
+    }
 
-    console.log('✅ Pago confirmado en Stripe')
+    console.log('✅ Pago confirmado en Stripe con estado:', paymentResult.paymentIntent.status)
 
     // 3. Verificar el pago en el backend
     console.log('🔍 Verificando pago en el backend...')
@@ -350,11 +379,13 @@ const handleSubmit = async () => {
     success.value = true
     loading.value = false
 
-    // Emitir evento de éxito
+    // ✅ Emitir evento de éxito con todos los datos verificados
     emit('success', {
       orderId: verifyResult.orderId,
       paymentIntentId: paymentResult.paymentIntent.id,
-      amount: props.amount
+      amount: props.amount,
+      paymentStatus: verifyResult.paymentStatus,
+      paidAt: verifyResult.paidAt
     })
 
   } catch (err) {
