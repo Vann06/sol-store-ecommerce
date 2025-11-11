@@ -14,22 +14,34 @@ class PedidoController extends Controller
     public function checkout(Request $request)
     {
         $user = $request->user();
-        if (!$user) return response()->json(['error' => 'Usuario no autenticado'], 401);
+        if (!$user) return response()->json(['error' => 'Usuario no autenticado'], 401)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
 
         // Soporta enviar id de dirección y/o texto
         $direccion = $request->input('direccion_envio');
         $direccionId = $request->input('direccion_id');
         if (!$direccion && !$direccionId) {
-            return response()->json(['error' => 'Dirección de envío requerida'], 422);
+            return response()->json(['error' => 'Dirección de envío requerida'], 422)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
 
         $carrito = CarritoCompra::obtenerCarrito($user->id, null);
-        if (!$carrito) return response()->json(['error' => 'Carrito no encontrado'], 404);
+        if (!$carrito) return response()->json(['error' => 'Carrito no encontrado'], 404)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
 
         $detalles = DetalleCarrito::with(['detalleProducto.producto'])
             ->where('id_carrito', $carrito->id)->get();
         if ($detalles->isEmpty()) {
-            return response()->json(['error' => 'El carrito está vacío'], 400);
+            return response()->json(['error' => 'El carrito está vacío'], 400)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
 
     return DB::transaction(function () use ($detalles, $user, $direccion, $direccionId, $carrito) {
@@ -61,9 +73,7 @@ class PedidoController extends Controller
                 ]);
             }
 
-            // ⚠️ NO VACIAR EL CARRITO AQUÍ - Solo se vaciará después de confirmar el pago
-            // El carrito se limpiará en StripePaymentController::verifyPayment() después de verificar el pago
-            // DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+            DetalleCarrito::where('id_carrito', $carrito->id)->delete();
 
             // Crear registro de envío con la dirección asociada
             if ($direccionId) {
@@ -77,21 +87,30 @@ class PedidoController extends Controller
             return response()->json([
                 'message' => 'Pedido creado',
                 'pedido' => [ 'id' => $pedido->id, 'estado' => $pedido->estado ]
-            ], 201);
+            ], 201)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
         });
     }
 
     public function misPedidos(Request $request)
     {
         $user = $request->user();
-        if (!$user) return response()->json(['error' => 'Usuario no autenticado'], 401);
+        if (!$user) return response()->json(['error' => 'Usuario no autenticado'], 401)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
 
         // Incluir relaciones necesarias para mostrar los productos en el frontend
         $pedidos = Pedido::with(['detalles.detalleProducto.producto', 'envio'])
             ->where('id_usuario', $user->id)
             ->orderByDesc('id')
             ->get();
-        return response()->json($pedidos);
+        return response()->json($pedidos)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function show(Request $request, $id)
@@ -100,25 +119,75 @@ class PedidoController extends Controller
         // Cargar detalles con producto para vista de detalle
         $pedido = Pedido::with(['detalles.detalleProducto.producto', 'envio'])->findOrFail($id);
         if ($pedido->id_usuario !== $user->id && !($user->is_admin ?? false)) {
-            return response()->json(['error' => 'No autorizado'], 403);
+            return response()->json(['error' => 'No autorizado'], 403)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
-        return response()->json($pedido);
+        return response()->json($pedido)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function actualizarEstado(Request $request, $id)
     {
         $user = $request->user();
         if (!($user && ($user->is_admin ?? false))) {
-            return response()->json(['error' => 'No autorizado'], 403);
+            return response()->json(['error' => 'No autorizado'], 403)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
         $estado = $request->input('estado');
         if (!in_array($estado, ['Procesando','Enviado','Entregado','Cancelado'])) {
-            return response()->json(['error' => 'Estado inválido'], 422);
+            return response()->json(['error' => 'Estado inválido'], 422)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
         $pedido = Pedido::findOrFail($id);
         $pedido->estado = $estado;
         $pedido->save();
 
-        return response()->json(['message' => 'Estado actualizado', 'pedido' => $pedido]);
+        return response()->json(['message' => 'Estado actualizado', 'pedido' => $pedido])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
+
+    public function cancelar(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+        }
+
+        $pedido = Pedido::findOrFail($id);
+        if ($pedido->id_usuario !== $user->id && !($user->is_admin ?? false)) {
+            return response()->json(['error' => 'No autorizado'], 403)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+        }
+
+        // Reglas: solo se puede cancelar si no ha sido entregado
+        if (in_array($pedido->estado, ['Entregado','Cancelado'])) {
+            return response()->json(['error' => 'No se puede cancelar este pedido'], 422)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+        }
+
+        $pedido->estado = 'Cancelado';
+        $pedido->save();
+
+        return response()->json(['message' => 'Pedido cancelado', 'pedido' => $pedido])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 }

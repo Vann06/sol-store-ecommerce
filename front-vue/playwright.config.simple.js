@@ -22,8 +22,8 @@ export default defineConfig({
   
   // Configuración global de pruebas
   use: {
-    // URL base de tu aplicación Vue (configurable por env)
-    baseURL: process.env.PW_BASE_URL || 'http://localhost:5173',
+    // URL base: prefer domain solstoredev.duckdns.org (http); allow override via PW_BASE_URL; fallback localhost
+    baseURL: process.env.PW_BASE_URL || 'http://solstoredev.duckdns.org' || 'http://localhost:5173',
     
     // Capturar screenshots en fallos
     screenshot: 'only-on-failure',
@@ -79,12 +79,14 @@ export default defineConfig({
     // },
   ],
 
-  // Servidor de desarrollo (para pruebas locales)
-  // Deshabilitado porque ya está corriendo en Docker
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: true,
-  //   timeout: 120 * 1000,
-  // },
+  // Servidor de desarrollo
+  // Inicia Vite si no hay PW_BASE_URL o si apunta a localhost (fallback CI)
+  webServer: (!process.env.PW_BASE_URL || /^(http:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.PW_BASE_URL))
+    ? {
+        command: 'npm run dev -- --host',
+        url: 'http://localhost:5173',
+        reuseExistingServer: true,
+        timeout: 120 * 1000,
+      }
+    : undefined,
 });

@@ -19,8 +19,8 @@ export default defineConfig({
   
   // Configuración global de pruebas
   use: {
-    // URL base de tu aplicación Vue
-  baseURL: 'http://localhost:5173',
+    // URL base: prefer domain solstoredev.duckdns.org (http); allow override via PW_BASE_URL; fallback localhost
+  baseURL: process.env.PW_BASE_URL || 'http://solstoredev.duckdns.org' || 'http://localhost:5173',
     
     // Capturar screenshots en fallos
     screenshot: 'only-on-failure',
@@ -63,10 +63,12 @@ export default defineConfig({
   ],
 
   // Servidor de desarrollo (para pruebas locales)
-  webServer: {
-    command: 'npm run dev',
-  url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: (!process.env.PW_BASE_URL || /^(http:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.PW_BASE_URL))
+    ? {
+        command: 'npm run dev -- --host',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      }
+    : undefined,
 });

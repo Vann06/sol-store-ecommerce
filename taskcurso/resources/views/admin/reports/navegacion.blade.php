@@ -43,32 +43,22 @@
                     <p class="text-xs text-gray-400 dark:text-gray-500 text-center mb-4">Total: {{ $info['total'] }} registros</p>
                     <div class="space-y-2">
                         <!-- Generar PDF -->
-                        <form method="POST" action="{{ route('admin.reports.pdf') }}" class="w-full">
-                            @csrf
-                            <input type="hidden" name="tipo" value="{{ $tipo }}">
-                            <input type="hidden" name="fecha_inicio" value="{{ now()->subMonth()->format('Y-m-d') }}">
-                            <input type="hidden" name="fecha_fin" value="{{ now()->format('Y-m-d') }}">
-                            <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Generar PDF
-                            </button>
-                        </form>
+                        <a href="{{ route('admin.reports.pdf.get', ['tipo' => $tipo, 'fecha_inicio' => now()->subMonth()->format('Y-m-d'), 'fecha_fin' => now()->format('Y-m-d')]) }}" class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Generar PDF
+                        </a>
 
-                        <!-- Exportar Excel -->
-                        <form method="POST" action="{{ route('admin.reports.excel') }}" class="w-full">
-                            @csrf
-                            <input type="hidden" name="tipo" value="{{ $tipo }}">
-                            <input type="hidden" name="fecha_inicio" value="{{ now()->subMonth()->format('Y-m-d') }}">
-                            <input type="hidden" name="fecha_fin" value="{{ now()->format('Y-m-d') }}">
-                            <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Exportar Excel
-                            </button>
-                        </form>
+                        <!-- Exportar Excel - DESHABILITADO TEMPORALMENTE -->
+                        {{-- 
+                        <a href="{{ route('admin.reports.excel.get', ['tipo' => $tipo, 'fecha_inicio' => now()->subMonth()->format('Y-m-d'), 'fecha_fin' => now()->format('Y-m-d')]) }}" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Exportar Excel
+                        </a>
+                        --}}
 
                         <!-- Ver Gráfico -->
                         <button onclick="generateChart('{{ $tipo }}')" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center">
@@ -270,34 +260,19 @@ document.getElementById('customFilterForm')?.addEventListener('submit', function
 });
 // Funciones de reportes rápidos
 function submitQuickReport(tipo, dias) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = "{{ route('admin.reports.pdf') }}";
-    
     const today = new Date();
     const startDate = new Date(today.getTime() - dias * 24 * 60 * 60 * 1000);
     
-    const csrf = createInput('_token', '{{ csrf_token() }}');
-    const tipoInput = createInput('tipo', tipo);
-    const fechaInicio = createInput('fecha_inicio', startDate.toISOString().split('T')[0]);
-    const fechaFin = createInput('fecha_fin', today.toISOString().split('T')[0]);
+    const fechaInicio = startDate.toISOString().split('T')[0];
+    const fechaFin = today.toISOString().split('T')[0];
     
-    form.appendChild(csrf);
-    form.appendChild(tipoInput);
-    form.appendChild(fechaInicio);
-    form.appendChild(fechaFin);
+    // Usar GET en lugar de POST
+    const url = "{{ route('admin.reports.pdf.get') }}" + 
+                `?tipo=${tipo}&fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
     
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    window.location.href = url;
 }
-function createInput(name, value) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = name;
-    input.value = value;
-    return input;
-}
+
 function generateDailyReport() {
     submitQuickReport('ventas', 0);
 }

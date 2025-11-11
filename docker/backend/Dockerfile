@@ -10,8 +10,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
+    libzip-dev \
     libpq-dev \
-  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd \
+  && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip \
   && rm -rf /var/lib/apt/lists/*
 
 # 3. Habilitar mod_rewrite para URLs amigables
@@ -30,29 +31,25 @@ COPY . .
 RUN composer self-update \
  && composer clear-cache \
  && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
- && composer require laravel/pail --no-interaction \
- && composer require doctrine/dbal --no-interaction \
- && composer require cloudinary-labs/cloudinary-laravel --no-interaction \
- && composer require tymon/jwt-auth --no-interaction \
- && composer require laravel/sanctum --no-interaction \
  && composer dump-autoload -o
 
- RUN php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider" --tag="cloudinary-laravel-config" \
+# 8. Publicar configuraciones de vendors
+RUN php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider" --tag="cloudinary-laravel-config" || true \
  && php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider" --force || true
 
-# 8. Ajustar permisos en storage, bootstrap/cache y vendor
+# 9. Ajustar permisos en storage, bootstrap/cache y vendor
 RUN mkdir -p storage bootstrap/cache vendor \
  && chown -R www-data:www-data storage bootstrap/cache vendor \
  && chmod -R 775 storage bootstrap/cache vendor
 
-# 9. Apuntar DocumentRoot a /public y suprimir warning de ServerName
+# 10. Apuntar DocumentRoot a /public y suprimir warning de ServerName
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
  && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# 10. Exponer el puerto 80 para Apache
+# 11. Exponer el puerto 80 para Apache
 EXPOSE 80
 
-# 11. Entrypoint y comando de arranque
+# 12. Entrypoint y comando de arranque
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

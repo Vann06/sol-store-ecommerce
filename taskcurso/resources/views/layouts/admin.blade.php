@@ -78,6 +78,10 @@
       </main>
   </div>
 
+  <!-- Scripts personalizados -->
+  @yield('javascript')
+  @stack('scripts')
+
 </body>
 </html>
 

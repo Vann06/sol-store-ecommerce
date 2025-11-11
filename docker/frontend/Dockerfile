@@ -11,8 +11,7 @@ COPY package*.json ./
 RUN npm install && \
      npm install vue-router@4 axios && \
      npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/vue-fontawesome@latest && \
-     npm install js-cookie @types/js-cookie && \
-     npm install @stripe/stripe-js
+     npm install js-cookie @types/js-cookie
 
 
 # Copia el resto del código fuente de la aplicación al contenedor

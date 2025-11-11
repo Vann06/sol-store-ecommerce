@@ -15,6 +15,12 @@ if [ ! -f vendor/autoload.php ]; then
     composer install --prefer-dist --no-interaction --optimize-autoloader
 fi
 
+# Asegurar que DomPDF esté disponible (algunos entornos montan volumen y pierden vendor)
+if ! php -r 'require "vendor/autoload.php"; exit(class_exists("Barryvdh\\DomPDF\\Facade\\Pdf")?0:1);'; then
+    echo "DomPDF no encontrado; ejecutando composer install para restaurar dependencias..."
+    composer install --prefer-dist --no-interaction --optimize-autoloader || true
+fi
+
 # Generar APP_KEY si falta
 if ! grep -q '^APP_KEY=' .env || [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)" ]; then
     echo "Generando APP_KEY..."
