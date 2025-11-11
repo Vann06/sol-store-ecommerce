@@ -15,6 +15,7 @@ import LogoutView from '@/views/account/LogoutView.vue'
 import ProductDetailView from '@/views/ProductDetailView.vue'
 import SearchView from '@/views/SearchView.vue'
 import CartView from '@/views/CartView.vue'
+import CheckoutView from '@/views/CheckoutView.vue'
 import AboutView from '@/views/AboutView.vue'
 import Contacto from '@/views/Contacto.vue'
 import CategoriesView from '@/views/CategoriesView.vue'
@@ -100,6 +101,12 @@ const routes = [
     path: '/cart',
     name: 'cart',
     component: CartView
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: CheckoutView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/about',

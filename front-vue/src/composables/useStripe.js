@@ -105,16 +105,17 @@ export function useStripe() {
   }
 
   /**
-   * Crear una intención de pago
+   * Crear una intención de pago (sin crear el pedido aún)
+   * El pedido se creará después de verificar el pago exitoso
    */
-  const createPaymentIntent = async (orderId, amount) => {
+  const createPaymentIntent = async (amount, direccionId) => {
     loading.value = true
     error.value = null
 
     try {
       const response = await http.post('/payments/create-intent', {
-        order_id: orderId,
-        amount: amount
+        amount: amount,
+        direccion_id: direccionId
       })
 
       if (response.data.success) {
@@ -185,15 +186,17 @@ export function useStripe() {
   }
 
   /**
-   * Verificar el pago en el backend
+   * Verificar el pago en el backend y CREAR el pedido
+   * El pedido solo se crea después de confirmar el pago exitoso
    */
-  const verifyPayment = async (paymentIntentId) => {
+  const verifyPayment = async (paymentIntentId, direccionId) => {
     loading.value = true
     error.value = null
 
     try {
       const response = await http.post('/payments/verify', {
-        payment_intent_id: paymentIntentId
+        payment_intent_id: paymentIntentId,
+        direccion_id: direccionId
       })
 
       if (response.data.success) {

@@ -19,16 +19,17 @@ class StripePaymentController extends Controller
     }
 
     /**
-     * Crear una intención de pago para un pedido
+     * Crear una intención de pago SIN crear el pedido aún
+     * El pedido solo se creará después de confirmar el pago
      * 
      * POST /api/payments/create-intent
-     * Body: { order_id: 1, amount: 150.50 }
+     * Body: { amount: 150.50, direccion_id: 2 }
      */
     public function createPaymentIntent(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'order_id' => 'required|exists:pedidos,id',
             'amount' => 'required|numeric|min:0.01',
+            'direccion_id' => 'required|exists:direcciones,id',
         ]);
 
         if ($validator->fails()) {
@@ -39,26 +40,35 @@ class StripePaymentController extends Controller
         }
 
         try {
-            $pedido = Pedido::findOrFail($request->order_id);
-
-            // Verificar que el pedido no esté ya pagado
-            if ($pedido->isPaid()) {
+            $user = $request->user();
+            
+            if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Este pedido ya ha sido pagado'
-                ], 400);
+                    'message' => 'Usuario no autenticado'
+                ], 401);
             }
 
-            // Generar número de orden único
-            $orderNumber = 'ORD-' . str_pad($pedido->id, 6, '0', STR_PAD_LEFT);
+            // Verificar que la dirección pertenezca al usuario
+            $direccion = \App\Models\Direccion::where('id', $request->direccion_id)
+                ->where('id_usuario', $user->id)
+                ->first();
+            
+            if (!$direccion) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dirección no válida'
+                ], 403);
+            }
 
-            // Crear PaymentIntent en Stripe
+            // Crear PaymentIntent en Stripe con metadata del carrito
             $result = $this->stripeService->createPaymentIntent(
                 $request->amount,
                 [
-                    'order_id' => $pedido->id,
-                    'order_number' => $orderNumber,
-                    'user_id' => $pedido->id_usuario,
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'direccion_id' => $request->direccion_id,
+                    'description' => 'Pedido pendiente de confirmación',
                 ]
             );
 
@@ -70,14 +80,6 @@ class StripePaymentController extends Controller
                 ], 500);
             }
 
-            // Guardar el PaymentIntent ID en el pedido
-            $pedido->update([
-                'stripe_payment_intent_id' => $result['payment_intent_id'],
-                'payment_status' => 'pending',
-                'payment_amount' => $request->amount,
-                'payment_currency' => config('stripe.currency'),
-            ]);
-
             return response()->json([
                 'success' => true,
                 'client_secret' => $result['client_secret'],
@@ -88,7 +90,7 @@ class StripePaymentController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al crear PaymentIntent', [
                 'error' => $e->getMessage(),
-                'order_id' => $request->order_id
+                'user_id' => $request->user()->id ?? null
             ]);
 
             return response()->json([
@@ -100,15 +102,17 @@ class StripePaymentController extends Controller
     }
 
     /**
-     * Verificar el estado de un pago y confirmar el pedido
+     * Verificar el estado de un pago y CREAR el pedido
+     * Solo se crea el pedido después de confirmar el pago exitoso
      * 
      * POST /api/payments/verify
-     * Body: { payment_intent_id: "pi_xxx" }
+     * Body: { payment_intent_id: "pi_xxx", direccion_id: 2 }
      */
     public function verifyPayment(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'payment_intent_id' => 'required|string',
+            'direccion_id' => 'required|exists:direcciones,id',
         ]);
 
         if ($validator->fails()) {
@@ -121,6 +125,16 @@ class StripePaymentController extends Controller
         DB::beginTransaction();
 
         try {
+            $user = $request->user();
+            
+            if (!$user) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
             // Verificar el pago en Stripe
             $result = $this->stripeService->verifyPayment($request->payment_intent_id);
 
@@ -133,131 +147,142 @@ class StripePaymentController extends Controller
                 ], 500);
             }
 
-            // Buscar el pedido asociado
-            $pedido = Pedido::where('stripe_payment_intent_id', $request->payment_intent_id)->first();
+            // ✅ VALIDACIÓN: El payment_status debe ser 'succeeded'
+            if ($result['payment_status'] !== 'succeeded' || !$result['is_paid']) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El pago no se completó exitosamente en Stripe',
+                    'payment_status' => $result['payment_status'],
+                ], 400);
+            }
+
+            // Verificar si ya existe un pedido con este payment_intent_id
+            $pedidoExistente = Pedido::where('stripe_payment_intent_id', $request->payment_intent_id)->first();
+            
+            if ($pedidoExistente) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Este pedido ya fue procesado anteriormente',
+                    'order_id' => $pedidoExistente->id,
+                    'payment_status' => 'succeeded',
+                    'paid_at' => $pedidoExistente->paid_at,
+                ]);
+            }
+
+            // ✅ CREAR EL PEDIDO AHORA QUE EL PAGO FUE CONFIRMADO
+            $pedidoController = new \App\Http\Controllers\PedidoController();
+            $checkoutRequest = new \Illuminate\Http\Request([
+                'direccion_id' => $request->direccion_id
+            ]);
+            $checkoutRequest->setUserResolver(function () use ($user) {
+                return $user;
+            });
+
+            $checkoutResponse = $pedidoController->checkout($checkoutRequest);
+            $checkoutData = $checkoutResponse->getData(true);
+
+            if (!isset($checkoutData['pedido'])) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear el pedido',
+                    'error' => $checkoutData['error'] ?? 'Error desconocido'
+                ], 500);
+            }
+
+            $pedido = Pedido::find($checkoutData['pedido']['id']);
 
             if (!$pedido) {
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se encontró un pedido asociado a este pago'
-                ], 404);
+                    'message' => 'No se pudo recuperar el pedido creado'
+                ], 500);
             }
 
-            // ✅ VALIDACIÓN ADICIONAL: Verificar que el pedido no esté ya pagado
-            if ($pedido->isPaid()) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Este pedido ya ha sido pagado anteriormente',
-                    'order_id' => $pedido->id,
-                    'payment_status' => 'succeeded',
-                ], 400);
-            }
-            
-            // ✅ VALIDACIÓN: El payment_status debe ser 'succeeded'
-            if ($result['payment_status'] !== 'succeeded') {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El pago no tiene estado de éxito en Stripe',
-                    'payment_status' => $result['payment_status'],
-                ], 400);
-            }
-
-            // Actualizar el estado del pago en el pedido
-            if ($result['is_paid']) {
-                // ✅ PAGO EXITOSO VERIFICADO EN STRIPE
-                try {
-                    $pedido->markAsPaid(
-                        $request->payment_intent_id,
-                        $result['payment_method'] ?? 'card'
-                    );
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    Log::error('Error al marcar pedido como pagado', [
-                        'error' => $e->getMessage(),
-                        'order_id' => $pedido->id,
-                        'payment_intent_id' => $request->payment_intent_id
-                    ]);
-                    
-                    return response()->json([
-                        'success' => false,
-                        'message' => $e->getMessage(),
-                    ], 400);
-                }
-
-                // ✅ VACIAR EL CARRITO DESPUÉS DE CONFIRMAR EL PAGO
-                try {
-                    // Usar la relación 'user' que está correctamente configurada
-                    $user = $pedido->user;
-                    if ($user) {
-                        $carrito = \App\Models\CarritoCompra::obtenerCarrito($user->id, null);
-                        if ($carrito) {
-                            \App\Models\DetalleCarrito::where('id_carrito', $carrito->id)->delete();
-                            Log::info('Carrito vaciado después de pago exitoso', [
-                                'user_id' => $user->id,
-                                'order_id' => $pedido->id,
-                                'carrito_id' => $carrito->id
-                            ]);
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // No hacer rollback si falla el vaciado del carrito
-                    // El pago ya se procesó correctamente
-                    Log::warning('Error al vaciar carrito después del pago', [
-                        'error' => $e->getMessage(),
-                        'order_id' => $pedido->id
-                    ]);
-                }
-
-                // Aquí puedes agregar lógica adicional:
-                // - Actualizar inventario
-                // - Enviar email de confirmación
-                // - Crear registro en historial de ventas
-                // - etc.
-
-                DB::commit();
-
-                Log::info('Pago verificado exitosamente', [
-                    'order_id' => $pedido->id,
-                    'payment_intent_id' => $request->payment_intent_id,
-                    'amount' => $pedido->payment_amount,
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Pago verificado y pedido confirmado exitosamente',
-                    'order_id' => $pedido->id,
-                    'payment_status' => $result['payment_status'],
-                    'paid_at' => $pedido->paid_at,
-                ]);
-
-            } else {
-                // ❌ PAGO NO EXITOSO
+            // ✅ MARCAR EL PEDIDO COMO PAGADO
+            try {
+                $pedido->markAsPaid(
+                    $request->payment_intent_id,
+                    $result['payment_method'] ?? 'card'
+                );
+                
+                // Actualizar el monto del pago
+                // NOTA: $result['amount'] YA viene en la moneda correcta (no en centavos)
+                // porque StripeService->verifyPayment() ya hace la conversión
                 $pedido->update([
-                    'payment_status' => $result['payment_status'],
+                    'payment_amount' => $result['amount'], // Ya convertido de centavos
+                    'payment_currency' => strtolower($result['currency'] ?? 'gtq'),
                 ]);
 
-                DB::rollBack();
+                // ✅ CREAR REGISTRO EN HISTORIAL DE VENTAS para los reportes
+                \App\Models\HistorialVenta::create([
+                    'id_pedido' => $pedido->id,
+                    'fecha_venta' => now(),
+                    'monto_total' => $result['amount'], // Ya convertido de centavos
+                ]);
 
-                Log::warning('Intento de verificar pago no exitoso', [
+                Log::info('Registro de venta creado en historial', [
                     'order_id' => $pedido->id,
-                    'payment_intent_id' => $request->payment_intent_id,
-                    'payment_status' => $result['payment_status'],
+                    'amount' => $result['amount']
                 ]);
-
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error al marcar pedido como pagado', [
+                    'error' => $e->getMessage(),
+                    'order_id' => $pedido->id,
+                    'payment_intent_id' => $request->payment_intent_id
+                ]);
+                
                 return response()->json([
                     'success' => false,
-                    'message' => 'El pago no se completó exitosamente',
-                    'payment_status' => $result['payment_status'],
+                    'message' => $e->getMessage(),
                 ], 400);
             }
+
+            // ✅ VACIAR EL CARRITO DESPUÉS DE CONFIRMAR EL PAGO
+            try {
+                $carrito = \App\Models\CarritoCompra::obtenerCarrito($user->id, null);
+                if ($carrito) {
+                    \App\Models\DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+                    Log::info('Carrito vaciado después de pago exitoso', [
+                        'user_id' => $user->id,
+                        'order_id' => $pedido->id,
+                        'carrito_id' => $carrito->id
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // No hacer rollback si falla el vaciado del carrito
+                // El pago ya se procesó correctamente
+                Log::warning('Error al vaciar carrito después del pago', [
+                    'error' => $e->getMessage(),
+                    'order_id' => $pedido->id
+                ]);
+            }
+
+            DB::commit();
+
+            Log::info('Pago verificado exitosamente y pedido creado', [
+                'order_id' => $pedido->id,
+                'payment_intent_id' => $request->payment_intent_id,
+                'amount' => $pedido->payment_amount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago verificado y pedido creado exitosamente',
+                'order_id' => $pedido->id,
+                'payment_status' => $result['payment_status'],
+                'paid_at' => $pedido->paid_at,
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error('Error al verificar pago', [
+            Log::error('Error al verificar pago y crear pedido', [
                 'error' => $e->getMessage(),
                 'payment_intent_id' => $request->payment_intent_id
             ]);

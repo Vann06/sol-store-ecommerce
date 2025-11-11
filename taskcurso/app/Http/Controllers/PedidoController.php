@@ -37,6 +37,7 @@ class PedidoController extends Controller
 
         $detalles = DetalleCarrito::with(['detalleProducto.producto'])
             ->where('id_carrito', $carrito->id)->get();
+        
         if ($detalles->isEmpty()) {
             return response()->json(['error' => 'El carrito está vacío'], 400)
                 ->header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
@@ -73,7 +74,8 @@ class PedidoController extends Controller
                 ]);
             }
 
-            DetalleCarrito::where('id_carrito', $carrito->id)->delete();
+            // ❌ NO borrar el carrito aquí - se borra después de verificar el pago en StripePaymentController
+            // DetalleCarrito::where('id_carrito', $carrito->id)->delete();
 
             // Crear registro de envío con la dirección asociada
             if ($direccionId) {

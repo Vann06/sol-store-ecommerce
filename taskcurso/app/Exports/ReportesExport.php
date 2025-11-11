@@ -165,22 +165,23 @@ class ReportesExport implements FromCollection, WithHeadings, WithMapping, WithS
             case 'productos':
                 return [
                     $item->id,
-                    $item->nombre ?? $item->titulo ?? 'Sin nombre',
-                    number_format($item->precio, 2),
-                    $item->stock ?? 'N/A',
-                    $item->category->nombre ?? 'Sin categoría',
-                    $item->estado ?? 'Activo'
+                    $item->nombre ?? 'Sin nombre',
+                    number_format($item->precio_base ?? 0, 2),
+                    $item->stock ?? 0,
+                    $item->category->name ?? 'Sin categoría',
+                    $item->status ?? 'activo'
                 ];
 
             case 'pedidos':
                 $usuario = $item->usuario;
+                $total = method_exists($item, 'getTotal') ? $item->getTotal() : 0;
                 return [
                     $item->id,
                     $usuario ? ($usuario->first_name . ' ' . $usuario->last_name) : 'Usuario #' . ($item->id_usuario ?? 'N/A'),
                     $usuario->email ?? 'N/A',
                     $item->created_at ? $item->created_at->format('d/m/Y H:i') : 'N/A',
-                    ucfirst($item->estado ?? 'Pendiente'),
-                    number_format($item->total ?? 0, 2)
+                    ucfirst($item->estado ?? 'Procesando'),
+                    number_format($total, 2)
                 ];
 
             case 'usuarios':

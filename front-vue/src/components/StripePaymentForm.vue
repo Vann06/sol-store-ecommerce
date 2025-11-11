@@ -203,7 +203,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useStripe } from '@/composables/useStripe'
 
 const props = defineProps({
-  orderId: {
+  direccionId: {
     type: Number,
     required: true
   },
@@ -362,9 +362,9 @@ const handleSubmit = async () => {
 
     console.log('✅ Pago confirmado en Stripe con estado:', paymentResult.paymentIntent.status)
 
-    // 3. Verificar el pago en el backend
-    console.log('🔍 Verificando pago en el backend...')
-    const verifyResult = await verifyPayment(paymentResult.paymentIntent.id)
+    // 3. Verificar el pago en el backend y CREAR EL PEDIDO
+    console.log('🔍 Verificando pago en el backend y creando pedido...')
+    const verifyResult = await verifyPayment(paymentResult.paymentIntent.id, props.direccionId)
 
     if (!verifyResult.success) {
       error.value = verifyResult.error
@@ -373,7 +373,7 @@ const handleSubmit = async () => {
       return
     }
 
-    console.log('✅ Pago verificado y pedido confirmado')
+    console.log('✅ Pago verificado y pedido creado con ID:', verifyResult.orderId)
 
     // 4. Mostrar éxito
     success.value = true
@@ -410,9 +410,9 @@ onMounted(async () => {
   loading.value = true
   
   try {
-    // Crear PaymentIntent y obtener la clave pública de Stripe
-    console.log('🔧 Inicializando Stripe...')
-    const intentResult = await createPaymentIntent(props.orderId, props.amount)
+    // Crear PaymentIntent (sin crear el pedido aún)
+    console.log('🔧 Creando PaymentIntent para dirección:', props.direccionId)
+    const intentResult = await createPaymentIntent(props.amount, props.direccionId)
     
     if (!intentResult.success) {
       error.value = intentResult.error

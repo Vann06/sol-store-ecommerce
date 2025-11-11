@@ -140,13 +140,12 @@
             <p>Preparando tu pedido...</p>
           </div>
 
-          <!-- Formulario de Stripe cuando el pedido esté listo -->
+          <!-- Formulario de Stripe -->
           <StripePaymentForm
-            v-else-if="orderId"
-            :order-id="orderId"
+            v-if="!loading && selectedAddressId"
+            :direccion-id="selectedAddressId"
             :amount="total"
             :order-summary="{
-              orderNumber: orderNumber,
               items: orderItems.length
             }"
             currency="GTQ"
@@ -260,38 +259,9 @@ const formatCurrency = (value) => {
 }
 
 /**
- * Recrear el pedido cuando cambie la dirección
+ * Ya NO es necesario recrear el pedido al cambiar dirección
+ * porque el pedido se crea solo después de confirmar el pago
  */
-watch(selectedAddressId, async (newAddressId, oldAddressId) => {
-  // Solo recrear si ya teníamos un pedido creado y la dirección cambió
-  if (oldAddressId && newAddressId && newAddressId !== oldAddressId && !isRecreatingOrder.value) {
-    console.log('📍 Dirección cambió, recreando pedido...', { de: oldAddressId, a: newAddressId })
-    
-    isRecreatingOrder.value = true
-    
-    try {
-      const http = (await import('@/http')).default
-      const response = await http.post('/pedidos/checkout', {
-        direccion_id: newAddressId
-      })
-      
-      if (response.data.pedido) {
-        orderId.value = response.data.pedido.id
-        orderNumber.value = `ORD-${String(orderId.value).padStart(6, '0')}`
-        
-        // Actualizar el pedido pendiente en sessionStorage
-        sessionStorage.setItem('pending_order_id', orderId.value)
-        
-        console.log('✅ Pedido recreado con nueva dirección:', orderId.value)
-      }
-    } catch (error) {
-      console.error('❌ Error al recrear pedido:', error)
-      alert(error.response?.data?.error || 'Error al actualizar la dirección del pedido')
-    } finally {
-      isRecreatingOrder.value = false
-    }
-  }
-})
 
 /**
  * Manejar pago exitoso
@@ -417,32 +387,22 @@ onMounted(async () => {
       return
     }
     
-    // Crear el pedido en el backend (sin confirmar aún)
+    // Verificar que haya una dirección seleccionada
     if (!selectedAddressId.value) {
       alert('Falta información de dirección')
       router.push('/cart')
       return
     }
     
-    // Importar http para hacer la petición
-    const http = (await import('@/http')).default
-    const response = await http.post('/pedidos/checkout', {
-      direccion_id: selectedAddressId.value
-    })
+    // ✅ NO CREAR EL PEDIDO AÚN
+    // El pedido se creará después de que Stripe confirme el pago
+    // Esto evita pedidos huérfanos si el usuario cancela o retrocede
     
-    if (response.data.pedido) {
-      orderId.value = response.data.pedido.id
-      orderNumber.value = `ORD-${String(orderId.value).padStart(6, '0')}`
-      
-      // Marcar que el proceso de pago está en progreso
-      paymentInProgress.value = true
-      sessionStorage.setItem('checkout_in_progress', 'true')
-      sessionStorage.setItem('pending_order_id', orderId.value)
-      
-      console.log('✅ Pedido creado:', orderId.value)
-    } else {
-      throw new Error('No se pudo crear el pedido')
-    }
+    // Marcar que el proceso de pago está en progreso
+    paymentInProgress.value = true
+    sessionStorage.setItem('checkout_in_progress', 'true')
+    
+    console.log('✅ Checkout listo, esperando pago con Stripe...')
     
     loading.value = false
   } catch (error) {
