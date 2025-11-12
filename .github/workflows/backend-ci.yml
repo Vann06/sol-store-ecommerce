@@ -27,6 +27,7 @@ jobs:
       - name: Install Composer dependencies (with dev)
         run: |
           docker compose exec -T backend sh -lc '
+            cd taskcurso
             if [ ! -f vendor/autoload.php ]; then echo "Vendor missing, running composer install"; fi
             composer install --prefer-dist --no-interaction --ansi
             php --version
@@ -37,7 +38,8 @@ jobs:
       - name: Prepare .env.testing
         run: |
           docker compose exec -T backend bash -lc '
-            [ -f taskcurso/.env.testing ] || cp taskcurso/.env.testing.example taskcurso/.env.testing
+            cd taskcurso
+            [ -f .env.testing ] || cp .env.testing.example .env.testing
             php artisan key:generate --env=testing --force || true
             php artisan jwt:secret   --env=testing --force || true
             php artisan config:clear || true
@@ -51,7 +53,7 @@ jobs:
             -e APP_ENV=testing \
             -e DB_CONNECTION=sqlite \
             -e DB_DATABASE=":memory:" \
-            backend sh -lc "php artisan migrate:fresh --seed"
+            backend sh -lc "cd taskcurso && php artisan migrate:fresh --seed"
 
       - name: Run tests (SQLite in-memory)
         run: |
@@ -59,7 +61,7 @@ jobs:
             -e APP_ENV=testing \
             -e DB_CONNECTION=sqlite \
             -e DB_DATABASE=":memory:" \
-            backend sh -lc "php artisan test"
+            backend sh -lc "cd taskcurso && php artisan test"
 
       - name: Logs (on failure)
         if: failure()

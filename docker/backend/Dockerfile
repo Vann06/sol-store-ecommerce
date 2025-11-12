@@ -21,10 +21,10 @@ RUN a2enmod rewrite
 # 4. Instalar Composer (copia el binario oficial)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 5. Directorio de trabajo
+# 5. Directorio de trabajo (el contexto de build ya es ./taskcurso)
 WORKDIR /var/www/html
 
-# 6. Copiar el código de Laravel
+# 6. Copiar el código del subproyecto Laravel (por contexto de build)
 COPY . .
 
 # 7. Configurar Composer y instalar dependencias
