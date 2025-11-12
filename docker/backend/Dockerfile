@@ -30,6 +30,7 @@ COPY . .
 # 7. Configurar Composer y instalar dependencias
 RUN composer self-update \
  && composer clear-cache \
+ && composer update psr/cache --no-interaction --ansi || true \
  && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
  && composer dump-autoload -o
 

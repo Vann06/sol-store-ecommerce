@@ -27,18 +27,25 @@ jobs:
       - name: Install Composer dependencies (with dev)
         run: |
           docker compose exec -T backend sh -lc '
-            cd taskcurso
             if [ ! -f vendor/autoload.php ]; then echo "Vendor missing, running composer install"; fi
             composer install --prefer-dist --no-interaction --ansi
             php --version
             composer show psr/cache | grep versions || true
           '
 
+      - name: "Sanity check: required classes present"
+        run: |
+          docker compose exec -T backend sh -lc "
+            php -r 'require \"vendor/autoload.php\"; echo (class_exists(\"Stripe\\\\Stripe\")?\"Stripe OK\":\"Stripe MISSING\").PHP_EOL;' && \
+            php -r 'require \"vendor/autoload.php\"; echo (class_exists(\"Barryvdh\\\\DomPDF\\\\Facade\\\\Pdf\")?\"DomPDF OK\":\"DomPDF MISSING\").PHP_EOL;' && \
+            php -r 'require \"vendor/autoload.php\"; echo (function_exists(\"cloudinary_url\")?\"Cloudinary helper OK\":\"Cloudinary helper MISSING\").PHP_EOL;' && \
+            php -r 'require \"vendor/autoload.php\"; echo (interface_exists(\"Psr\\\\Cache\\\\CacheItemPoolInterface\")?\"psr/cache OK\":\"psr/cache MISSING\").PHP_EOL;'
+          "
+
       # Prepara .env.testing y claves
       - name: Prepare .env.testing
         run: |
           docker compose exec -T backend bash -lc '
-            cd taskcurso
             [ -f .env.testing ] || cp .env.testing.example .env.testing
             php artisan key:generate --env=testing --force || true
             php artisan jwt:secret   --env=testing --force || true
@@ -53,7 +60,7 @@ jobs:
             -e APP_ENV=testing \
             -e DB_CONNECTION=sqlite \
             -e DB_DATABASE=":memory:" \
-            backend sh -lc "cd taskcurso && php artisan migrate:fresh --seed"
+            backend sh -lc "php artisan migrate:fresh --seed"
 
       - name: Run tests (SQLite in-memory)
         run: |
@@ -61,7 +68,7 @@ jobs:
             -e APP_ENV=testing \
             -e DB_CONNECTION=sqlite \
             -e DB_DATABASE=":memory:" \
-            backend sh -lc "cd taskcurso && php artisan test"
+            backend sh -lc "php artisan test"
 
       - name: Logs (on failure)
         if: failure()

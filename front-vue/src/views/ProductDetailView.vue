@@ -66,7 +66,7 @@ import http from '@/http'
 import PageHeader from '@/components/PageHeader.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import CenteredPopup from '@/components/CenteredPopup.vue'
-const fallbackImg = 'https://via.placeholder.com/800x600?text=Producto'
+const fallbackImg = 'https://placehold.co/800x600?text=Producto'
 const route = useRoute()
 const router = useRouter()
 const product = ref(null)
@@ -89,10 +89,10 @@ onMounted(async () => {
 	  category: productData.category?.name
 	    ?? productData.categoria?.name
 	    ?? 'Sin categoría',
-          imagen_url: productData.imagen	
-	    ?? productData.image
-	    ?? productData.image_url
-	    ?? 'https://via.placeholder.com/500x600',
+      imagen_url: productData.imagen 
+        ?? productData.image
+        ?? productData.image_url
+        ?? 'https://placehold.co/800x600?text=Producto',
       }						
     } catch (error) {													    
       console.error('Error al cargar producto:', error)													      
