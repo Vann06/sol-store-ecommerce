@@ -23,6 +23,16 @@ jobs:
           sleep 10
           docker compose ps
 
+      # Instala dependencias Composer (incluyendo dev) dentro del contenedor backend
+      - name: Install Composer dependencies (with dev)
+        run: |
+          docker compose exec -T backend sh -lc '
+            if [ ! -f vendor/autoload.php ]; then echo "Vendor missing, running composer install"; fi
+            composer install --prefer-dist --no-interaction --ansi
+            php --version
+            composer show psr/cache | grep versions || true
+          '
+
       # Prepara .env.testing y claves
       - name: Prepare .env.testing
         run: |
