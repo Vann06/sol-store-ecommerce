@@ -282,51 +282,19 @@ class ReportAdminController extends Controller
         }
 
         // CONSULTA REAL - Filtrar ventas por fecha
-        $ventas = HistorialVenta::with('pedido.usuario')
-            ->whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
+        $ventas = HistorialVenta::whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
             ->orderBy('fecha_venta', 'desc')
             ->get();
 
         // CONSULTA REAL - Filtrar pedidos por fecha
-        $pedidos = Pedido::with('usuario')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+        $pedidos = Pedido::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calcular estadísticas REALES y MÉTRICAS AVANZADAS
+        // Calcular estadísticas REALES
         $totalVentas = $ventas->sum('monto_total');
         $totalPedidos = $pedidos->count();
         $promedioVenta = $totalPedidos > 0 ? $totalVentas / $totalPedidos : 0;
-        
-        // Métricas adicionales para pedidos
-        $pedidosPagados = $pedidos->where('payment_status', 'succeeded')->count();
-        $pedidosPendientes = $pedidos->where('payment_status', 'pending')->count();
-        $tasaConversion = $totalPedidos > 0 ? ($pedidosPagados / $totalPedidos) * 100 : 0;
-        
-        // Agrupar pedidos por estado
-        $pedidosPorEstado = $pedidos->groupBy('estado')->map(fn($group) => $group->count());
-        
-        // Top clientes en este período
-        $topClientes = $pedidos->groupBy('id_usuario')->map(function($pedidosUsuario) {
-            $usuario = $pedidosUsuario->first()->usuario;
-            $totalGastado = $ventas->whereIn('id_pedido', $pedidosUsuario->pluck('id'))->sum('monto_total');
-            return [
-                'nombre' => $usuario ? $usuario->first_name . ' ' . $usuario->last_name : 'Usuario Desconocido',
-                'email' => $usuario->email ?? 'N/A',
-                'pedidos' => $pedidosUsuario->count(),
-                'total' => $totalGastado
-            ];
-        })->sortByDesc('total')->take(5);
-        
-        // Ventas por día (para el gráfico)
-        $ventasPorDia = $ventas->groupBy(function($venta) {
-            return \Carbon\Carbon::parse($venta->fecha_venta)->format('Y-m-d');
-        })->map(function($ventasDia) {
-            return [
-                'total' => $ventasDia->sum('monto_total'),
-                'cantidad' => $ventasDia->count()
-            ];
-        })->sortKeys();
 
         // Crear gráfico filtrado con datos REALES
         $chartFiltrado = null;
@@ -370,13 +338,7 @@ class ReportAdminController extends Controller
             'chartFiltrado',
             'backUrl',
             'ventas',
-            'pedidos',
-            'pedidosPagados',
-            'pedidosPendientes',
-            'tasaConversion',
-            'pedidosPorEstado',
-            'topClientes',
-            'ventasPorDia'
+            'pedidos'
         ));
     }
 
@@ -531,13 +493,12 @@ class ReportAdminController extends Controller
 
         switch ($tipo) {
             case 'ventas':
-                $ventas = HistorialVenta::with('pedido.usuario')
-                    ->whereBetween('fecha_venta', [
-                        $fechaInicio->startOfDay(), 
-                        $fechaFin->endOfDay()
-                    ])
-                    ->orderBy('fecha_venta', 'desc')
-                    ->get();
+                $ventas = HistorialVenta::whereBetween('fecha_venta', [
+                    $fechaInicio->startOfDay(), 
+                    $fechaFin->endOfDay()
+                ])
+                ->orderBy('fecha_venta', 'desc')
+                ->get();
 
                 return [
                     'titulo' => 'Reporte de Ventas',
@@ -554,45 +515,17 @@ class ReportAdminController extends Controller
                 ];
 
             case 'pedidos':
-                $pedidos = Pedido::with('usuario')
-                    ->whereBetween('created_at', [
-                        $fechaInicio->startOfDay(), 
-                        $fechaFin->endOfDay()
-                    ])
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+                $pedidos = Pedido::whereBetween('created_at', [
+                    $fechaInicio->startOfDay(), 
+                    $fechaFin->endOfDay()
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
                 return [
                     'titulo' => 'Reporte de Pedidos', 
                     'pedidos' => $pedidos,
                     'total_pedidos' => $pedidos->count()
-                ];
-
-            case 'usuarios':
-                // Obtener usuarios con sus estadísticas de pedidos y ventas en el período
-                $usuarios = User::with(['pedidos' => function($query) use ($fechaInicio, $fechaFin) {
-                    $query->whereBetween('created_at', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()]);
-                }])->get()->map(function($usuario) use ($fechaInicio, $fechaFin) {
-                    $pedidos = $usuario->pedidos()
-                        ->whereBetween('created_at', [$fechaInicio->startOfDay(), $fechaFin->endOfDay()])
-                        ->get();
-                    
-                    $totalGastado = HistorialVenta::whereIn('id_pedido', $pedidos->pluck('id'))
-                        ->sum('monto_total');
-                    
-                    $usuario->total_pedidos = $pedidos->count();
-                    $usuario->total_gastado = $totalGastado;
-                    return $usuario;
-                })->filter(function($usuario) {
-                    // Solo mostrar usuarios con al menos 1 pedido en el período
-                    return $usuario->total_pedidos > 0;
-                });
-
-                return [
-                    'titulo' => 'Reporte de Usuarios',
-                    'usuarios' => $usuarios,
-                    'total_usuarios' => $usuarios->count(),
-                    'total_usuarios_sistema' => User::count()
                 ];
 
             default:

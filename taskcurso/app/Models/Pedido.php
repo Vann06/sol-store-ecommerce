@@ -19,18 +19,11 @@ class Pedido extends Model
         'estado',
         'created_by',
         'updated_by',
-        'stripe_payment_intent_id',
-        'payment_status',
-        'payment_amount',
-        'payment_currency',
-        'payment_method',
-        'paid_at',
     ];
 
     // Casteos
     protected $casts = [
         'fecha_pedido' => 'datetime',
-        'paid_at' => 'datetime',
     ];
 
     /**
@@ -103,45 +96,5 @@ class Pedido extends Model
             'id',             // Local key on Pedido
             'id_direccion'    // Local key on Envio referencing Direccion
         );
-    }
-
-    /**
-     * Relación con el historial de ventas (para reportes)
-     */
-    public function historialVenta()
-    {
-        return $this->hasOne(HistorialVenta::class, 'id_pedido');
-    }
-
-    /**
-     * 🔐 Verificar si el pedido ya está pagado
-     */
-    public function isPaid(): bool
-    {
-        return $this->payment_status === 'succeeded' 
-            || $this->payment_status === 'paid';
-    }
-
-    /**
-     * 🔐 Marcar el pedido como pagado
-     */
-    public function markAsPaid(string $paymentIntentId, string $paymentMethod = 'card'): bool
-    {
-        $this->stripe_payment_intent_id = $paymentIntentId;
-        $this->payment_status = 'succeeded';
-        $this->payment_method = $paymentMethod;
-        $this->paid_at = now();
-        $this->estado = 'Procesando'; // Changed from 'pagado' to match DB constraint
-        return $this->save();
-    }
-
-    /**
-     * 🔐 Obtener el total del pedido sumando los detalles
-     */
-    public function getTotal(): float
-    {
-        return $this->detalles()
-            ->selectRaw('SUM(cantidad * precio_unitario) as total')
-            ->value('total') ?? 0.0;
     }
 }

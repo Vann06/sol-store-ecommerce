@@ -108,13 +108,7 @@
                             <td>{{ $venta->id }}</td>
                             <td>{{ \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y H:i') }}</td>
                             <td>Q{{ number_format($venta->monto_total, 2) }}</td>
-                            <td>
-                                @if(isset($venta->pedido) && $venta->pedido && $venta->pedido->usuario)
-                                    {{ $venta->pedido->usuario->first_name }} {{ $venta->pedido->usuario->last_name }}
-                                @else
-                                    N/A
-                                @endif
-                            </td>
+                            <td>{{ $venta->usuario_id }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -139,9 +133,9 @@
                         <tr>
                             <td>{{ $producto->id }}</td>
                             <td>{{ $producto->nombre }}</td>
-                            <td>Q{{ number_format($producto->precio_base ?? 0, 2) }}</td>
-                            <td>{{ $producto->stock ?? 0 }}</td>
-                            <td>{{ $producto->category->name ?? 'Sin categoría' }}</td>
+                            <td>Q{{ number_format($producto->precio, 2) }}</td>
+                            <td>{{ $producto->stock ?? 'N/A' }}</td>
+                            <td>{{ $producto->category->nombre ?? 'Sin categoría' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -158,7 +152,6 @@
                         <th>Fecha</th>
                         <th>Estado</th>
                         <th>Usuario</th>
-                        <th>Pago</th>
                         <th>Total</th>
                     </tr>
                 </thead>
@@ -167,69 +160,15 @@
                         <tr>
                             <td>{{ $pedido->id }}</td>
                             <td>{{ $pedido->created_at->format('d/m/Y') }}</td>
-                            <td>{{ ucfirst($pedido->estado) }}</td>
-                            <td>
-                                @if($pedido->usuario)
-                                    {{ $pedido->usuario->first_name }} {{ $pedido->usuario->last_name }}
-                                @else
-                                    Usuario #{{ $pedido->id_usuario }}
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->payment_status === 'succeeded')
-                                    <span style="color: #16a34a;">✓ Pagado</span>
-                                @elseif($pedido->payment_status === 'pending')
-                                    <span style="color: #eab308;">⏳ Pendiente</span>
-                                @else
-                                    <span style="color: #6b7280;">- N/A</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->payment_amount)
-                                    Q{{ number_format($pedido->payment_amount, 2) }}
-                                @else
-                                    Q{{ number_format($pedido->getTotal(), 2) }}
-                                @endif
-                            </td>
+                            <td>{{ $pedido->estado }}</td>
+                            <td>{{ $pedido->usuario_id }}</td>
+                            <td>{{ $pedido->total ?? 'N/A' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
             <div class="summary">
-                <strong>Total de Pedidos: {{ $datos['total_pedidos'] ?? 0 }}</strong><br>
-                <strong>Total Pagados: {{ $datos['pedidos']->where('payment_status', 'succeeded')->count() }}</strong><br>
-                <strong>Monto Total: Q{{ number_format($datos['pedidos']->sum('payment_amount'), 2) }}</strong>
-            </div>
-        @elseif($tipo === 'usuarios' && isset($datos['usuarios']))
-            <h3>Datos de Usuarios</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Pedidos</th>
-                        <th>Total Gastado</th>
-                        <th>Registro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($datos['usuarios'] as $usuario)
-                        <tr>
-                            <td>{{ $usuario->id }}</td>
-                            <td>{{ $usuario->first_name }} {{ $usuario->last_name }}</td>
-                            <td style="font-size: 10px;">{{ $usuario->email }}</td>
-                            <td style="text-align: center;">{{ $usuario->total_pedidos ?? 0 }}</td>
-                            <td>Q{{ number_format($usuario->total_gastado ?? 0, 2) }}</td>
-                            <td>{{ $usuario->created_at ? $usuario->created_at->format('d/m/Y') : 'N/A' }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <div class="summary">
-                <strong>Usuarios con Pedidos en el Período: {{ $datos['total_usuarios'] ?? 0 }}</strong><br>
-                <strong>Total Usuarios en el Sistema: {{ $datos['total_usuarios_sistema'] ?? 0 }}</strong><br>
-                <strong>Gasto Total del Período: Q{{ number_format($datos['usuarios']->sum('total_gastado'), 2) }}</strong>
+                <strong>Total de Pedidos: {{ $datos['total_pedidos'] ?? 0 }}</strong>
             </div>
         @elseif($tipo === 'general' && isset($datos['resumen']))
             <h3>Resumen General</h3>
