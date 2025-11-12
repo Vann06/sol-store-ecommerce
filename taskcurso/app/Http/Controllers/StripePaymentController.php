@@ -84,7 +84,9 @@ class StripePaymentController extends Controller
                 'success' => true,
                 'client_secret' => $result['client_secret'],
                 'payment_intent_id' => $result['payment_intent_id'],
+                // Provide both snake_case and camelCase for frontend compatibility
                 'publishable_key' => config('stripe.key'),
+                'publishableKey' => config('stripe.key'),
             ]);
 
         } catch (\Exception $e) {

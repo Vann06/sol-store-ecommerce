@@ -19,14 +19,18 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost',
-        'http://solstoredev.duckdns.org',
-        'http://solstoredev.duckdns.org:5173',
-        'http://solstoredev.duckdns.org:8000',
-        'http://35.226.128.220:5173'
-    ],
+        // Use env-driven domains first to avoid hard-coded localhost in production.
+        'allowed_origins' => array_values(array_filter([
+            env('FRONTEND_URL'),               // e.g. http://solstoredev.duckdns.org
+            env('APP_URL'),                    // backend base URL
+            // Explicit fallbacks (keep for local dev / legacy builds)
+            'http://solstoredev.duckdns.org',
+            'http://solstoredev.duckdns.org:5173',
+            'http://solstoredev.duckdns.org:8000',
+            'http://35.226.128.220:5173',
+            'http://localhost',
+            'http://localhost:5173'
+        ])),
 
     'allowed_origins_patterns' => [],
 
