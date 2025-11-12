@@ -14,6 +14,7 @@ use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\DireccionController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\StripePaymentController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -98,8 +99,17 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
     Route::put('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
     Route::put('/pedidos/{id}/cancel', [PedidoController::class, 'cancelar']);
+
+    // 🔒 Rutas de Stripe Payment (protegidas con JWT)
+    Route::prefix('payments')->group(function () {
+        Route::post('/create-intent', [StripePaymentController::class, 'createPaymentIntent']);
+        Route::post('/verify', [StripePaymentController::class, 'verifyPayment']);
+        Route::get('/status/{order_id}', [StripePaymentController::class, 'getPaymentStatus']);
+    });
 });
 
+// 🌐 Webhooks de Stripe (sin autenticación - Stripe firma las peticiones)
+Route::post('/webhooks/stripe', [StripePaymentController::class, 'handleWebhook']);
 
 // Test endpoint
 Route::get('/ping', function () {
